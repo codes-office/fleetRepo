@@ -1,0 +1,242 @@
+
+/* Nyks Demo Styles
+================================================== */
+
+	/* Page Fonts */
+	@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,600,700,800');
+	@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400i,700,700i,900i');
+	.poppins{ font-family: 'Poppins', sans-serif !important;}
+
+	/* Body Options */
+	body{ font-family: 'Poppins', sans-serif; font-weight: 400; letter-spacing: 0px; }
+	body *{outline:none !important;}
+
+/* COLORS
+================================================== */
+
+	/* Colored */
+	.colored, .colored-hover:hover, .soft-video-play-btn{ color:#2088fe !important; }
+	.bg-colored, .bg-colored-hover:hover{background-color:#2088fe !important; }
+	.border-colored, .border-colored-hover:hover{ border-color:#2088fe !important; }
+
+	/* Colored1 */
+	.colored1, .colored1-hover:hover{ color:#6d5ec0 !important; }
+	.bg-colored1, .bg-colored1-hover:hover{ background-color:#6d5ec0 !important; }
+	.border-colored1, .border-colored1-hover:hover{ border-color:#6d5ec0 !important; }
+
+	/* Colored2 */
+	.colored2, .colored2-hover:hover{ color:#48698f !important; }
+	.bg-colored2, .bg-colored2-hover:hover{ background-color:#48698f !important; }
+	.border-colored2, .border-colored2-hover:hover{ border-color:#48698f !important; }
+
+	::selection{ background-color:#2088fe; }
+
+/* Other Colors */
+
+	#home .hades .tp-bullet.selected{ background-color:#2088fe; }
+
+	.bg-soft-colored:before{
+		background-color:rgba(33,34,35,0.95);
+	}
+
+	.bg-gradient,
+	.bg-soft-gradient:before{
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#6d5ec0+0,3778c3+100 */
+		background: #3778c3; /* Old browsers */
+		background: -moz-linear-gradient(45deg,  #6d5ec0 0%, #3778c3 100%); /* FF3.6-15 */
+		background: -webkit-linear-gradient(45deg,  #6d5ec0 0%,#3778c3 100%); /* Chrome10-25,Safari5.1-6 */
+		background: linear-gradient(45deg,  #6d5ec0 0%,#3778c3 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6d5ec0', endColorstr='#3778c3',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	}
+
+	.bg-gradient1,
+	.bg-soft-gradient1:before{
+		background: #242226; /* Old browsers */
+		background: -moz-linear-gradient(45deg,  #242226 0%, #2c2f45 100%); /* FF3.6-15 */
+		background: -webkit-linear-gradient(45deg,  #242226 0%,#2c2f45 100%); /* Chrome10-25,Safari5.1-6 */
+		background: linear-gradient(45deg,  #242226 0%,#2c2f45 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#242226', endColorstr='#2c2f45',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	}
+
+	.bg-gradient2,
+	.bg-soft-gradient2:before{
+		background: #1c1c1f; /* Old browsers */
+		background: -moz-linear-gradient(45deg,  #1c1c1f 0%, #272830 100%); /* FF3.6-15 */
+		background: -webkit-linear-gradient(45deg,  #1c1c1f 0%,#272830 100%); /* Chrome10-25,Safari5.1-6 */
+		background: linear-gradient(45deg,  #1c1c1f 0%,#272830 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1c1c1f', endColorstr='#272830',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	}
+
+	.bg-soft-gradient1:before,
+	.bg-soft-gradient2:before{ opacity: 0.95; }
+
+
+    /* Prices Section Colors */
+	.interactive-packages .selector{border-bottom-color:#2088fe;}
+	.interactive-packages .rise_title span.title_selector{ color:#2088fe;}
+	.interactive-packages .step-titles .title.active{color:#2088fe;}
+	.interactive-packages .bar .interactive_bar{ background:#2088fe;}
+
+
+    .qdr-hover-5:before,
+    .cbp-slider-next, .cbp-slider-prev{ background-color:#2088fe; }
+    .cbp-l-filters-buttonCenter .cbp-filter-counter:after{ border-top-color: #2088fe; }
+    .cbp-l-filters-buttonCenter .cbp-filter-counter{ background-color:#2088fe; }
+    .cbp-l-grid-masonry-projects .cbp-caption-activeWrap{
+		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#6d5ec0+0,3778c3+100 */
+		background: #3778c3; /* Old browsers */
+		background: -moz-linear-gradient(45deg,  #6d5ec0 0%, #3778c3 100%); /* FF3.6-15 */
+		background: -webkit-linear-gradient(45deg,  #6d5ec0 0%,#3778c3 100%); /* Chrome10-25,Safari5.1-6 */
+		background: linear-gradient(45deg,  #6d5ec0 0%,#3778c3 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6d5ec0', endColorstr='#3778c3',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    }
+
+    .cbp-l-filters-buttonCenter .cbp-filter-item.cbp-filter-item-active{ border-color:#2088fe; }
+    .cbp-l-filters-buttonCenter .cbp-filter-item.cbp-filter-item-active,
+   	#works .works-container .item .works-link:hover{ color: #2088fe; }
+
+
+    .qdr-hover:before,
+    .custom-slider.strip-dots > .slick-dots li.slick-active button{
+    	background-color:#2088fe;
+    }
+
+	/* Hover Colors */
+	.qdr-hover:after{background-color:#3a424b;}
+	.qdr-hover-1:before,
+	.qdr-hover-1-left:before,
+	.qdr-hover-1-right:before,
+	.qdr-hover-1-bottom:before{background-color:rgba(0,0,0,0.1);}
+	.qdr-hover-2:before,.qdr-hover-2-vertical:before{background-color:#3a424b;}
+	.qdr-hover-2-rotate:before{background-color:#3a424b;}
+
+
+
+/* NYKS VERSION MAIN STYLES
+================================================== */
+
+
+/* TITLES */
+	.page-title{ color:#4f5153; font-size:40px; font-weight: 800; padding:0; margin:10px auto 3px; letter-spacing:-1.3px; }
+	.page-title.light-title{ color:#fff; }
+	.page-subtitle{color:#c0c0c0; font-size:22px; font-weight: 300; padding:0; margin:0 auto;}
+	.page-subtitle.light-title{color:#a2a2a2; }
+	.page-description{ color:#c0c0c0; line-height: 28px; font-weight: 300; font-size:16px; padding:0; margin:0 auto; }
+	.page-description.light-title{ color:#d1d1d1; }
+
+		@media only screen and (max-width: 600px){
+			.page-title{ font-size:22px; }
+		}
+
+/* HOME */
+	#home .hades .tp-bullet{ width: 10px; height: 10px; border-radius: 100%; background: #888; border:3px solid #fff; opacity: 0.9; }
+	#home .hades .tp-bullet:hover{opacity: 1;}
+
+/* ABOUT */
+	#about{ padding:120px 0 110px; }
+
+	/* About box slider */
+	.image-boxes.custom-slider{ padding:120px 0 0; }
+	.image-boxes.custom-slider h3{ font-size:20px; font-weight: 600 !important; color:#535353 !important; text-transform: none !important; }
+
+/* SERVICES */
+	#services{ padding:100px 0; }
+
+/* Service Boxes */
+	.boxes-type-2{ padding: 0; }
+	.boxes-type-2 .item{margin-top:30px; margin-bottom:15px;}
+	.boxes-type-2 .item a{ display: block; float: left; font-size:29px; color:#868686; width: 15%; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; transition: all 0.3s; }
+	.boxes-type-2 .item a i{ display: block; }
+	.boxes-type-2 .item .texts{ float: left; width: 85%;}
+	.boxes-type-2 .item .texts h2{ font-size:22px; color:#ddd; margin:0; padding:0; }
+	.boxes-type-2 .item .texts p{ font-size:14px; color:#aaa; margin:0; margin-top:15px; padding:0; }
+	.boxes-type-2.dark .item .texts h2{ color:#888; }
+		@media only screen and (max-width: 480px){
+			.boxes-type-2 .item{ margin: 30px auto 15px; width: 100%; }
+			.container .boxes-type-2 .item{ padding-left:0; padding-right: 0; }
+			.boxes-type-2 .item a{float: none; margin:15px auto;}
+			.boxes-type-2 .item .texts{float: none; width: 100%;}
+		}
+
+/* NYKS FACTS */
+	#facts{ margin:100px 0 0; position: relative; }
+	/* Left */
+	#facts .left-details{ float: left; width: 67%; height: auto; padding:100px 100px 80px; }
+	#facts .left-details .description{ margin-top:30px; max-width: 660px; line-height: 25px; }
+	/* Buttons */
+	#facts .left-details .buttons{ margin: 40px 0 30px -7px; }
+	#facts .left-details .buttons a{ display: inline-block; padding:11px 18px 11px 7px; margin-right:11px; font-size:25px; position: relative; font-weight: inherit; line-height: 21px; -webkit-transition: all 0.4s; -moz-transition: all 0.4s; transition: all 0.4s; }
+	#facts.second-text-type .left-details .buttons a{ font-size:23px; }
+	#facts .left-details .buttons a span{ display: block; font-size:17px; }
+	#facts.second-text-type .left-details .buttons a span{ font-size:15px; }
+	#facts .left-details .buttons a:first-child{ margin-left:0; }
+	#facts .left-details .buttons a:hover{ padding-left:18px; margin-right:0; background-color: rgba(0,0,0,0.05); }
+	/* Facts */
+	#facts .facts-container .fact{ display: inline-block; margin: 10px 30px 10px 0; padding-right: 25px; border-right:1px solid rgba(255,255,255,0.2); cursor: default; }
+	#facts .facts-container .fact:last-child{ border-right: none; padding-right: 10px; margin-right: 0; }
+	#facts .facts-container h1.factor{ font-weight: inherit; font-size:45px; margin:0; padding: 0; }
+	#facts .facts-container h3{ font-weight: inherit; font-size:22px; margin:8px 0; padding: 0; }
+
+	/* Right Image */
+	#facts .right-image{ float: left; width: 33%; height: 100%; overflow: hidden; position: absolute; right: 0; }
+
+		@media only screen and (max-width: 1400px){
+			#facts .left-details{ padding:60px 30px 30px; }
+		}
+		@media only screen and (max-width: 1050px){
+			#facts .left-details{ width: 100%; height: auto; float: none; }
+			#facts .right-image{ position: relative; width: 60%; height: 500px; float: none; margin:0 auto; }
+		}
+		@media only screen and (max-width: 650px){
+			#facts .right-image{ width: 100%; height: 550px; }
+			#facts .facts-container .fact{ border-right: none; }
+		}
+		@media only screen and (max-width: 360px){
+			#facts .right-image{ height: 400px; }
+		}
+
+/* NYKS WORKS */
+	#works{ padding:100px 0; }
+	#works .works-container{ margin:100px 0 0; font-family: inherit; }
+	#works .works-container .cbp-item-wrapper{ background:#fff; padding-bottom:15px; border:1px solid #eee; }
+	#works .cbp-caption-defaultWrap{ -ms-transform: scale(1); -webkit-transform: scale(1); transform: scale(1); }
+	#works .item .works-link{ width: 50px; height: 50px; line-height: 50px; font-size: 17px; color: white; margin:0 5px; display: inline-block; background:transparent; border:1px solid white; border-radius: 100%; text-align: center; -webkit-transition: all 0.4s; -moz-transition: all 0.4s; transition: all 0.4s; }
+	#works .item .works-link:hover{ background-color:white; color:#333; }
+	#works .cbp-l-grid-masonry-projects-title{ text-transform: uppercase; font-size: 16px; margin:15px auto 3px; color:#848484; font-weight: 400; }
+	#works .cbp-l-grid-masonry-projects-title:hover{ opacity: 0.7;}
+	#works .cbp-item:hover .cbp-caption-activeWrap{ opacity: 0.9; }
+	/* Slider buttons on item */
+	#works .cbp-slider-next, #works .cbp-slider-prev{ opacity:.8; -webkit-transition: all 0.4s; -moz-transition: all 0.4s; transition: all 0.4s; }
+	#works .cbp-slider-next:hover, #works .cbp-slider-prev:hover{ opacity: 1; }
+	.cbp-l-grid-masonry-projects-title, .cbp-l-filters-buttonCenter .cbp-filter-counter, .cbp-l-grid-masonry-projects-desc{ font-family: inherit; }
+
+
+/* NYKS TEAM */
+	.team-type-1{ margin-top:50px; text-align:center; }
+	.team-type-1 .member{ padding:0 12px; height: auto; }
+		@media only screen and (max-width: 480px){
+			.container .team-type-1 .member{ padding:0; }
+		}
+	.team-type-1 .member .member-image{ width: 100%; overflow: hidden; }
+	.team-type-1 .member .member-image img{ width: 100%; }
+	.team-type-1 .member .member-image .socials{ width: auto; position: relative; top:-30px; z-index: 2; color:white; text-align: left; padding-left:5px; }
+	.team-type-1 .member .member-image .socials a{ width: 25px; height: 25px; display: inline-block; margin-left: 5px; line-height: 25px; text-align: center; font-size:14px; }
+	.team-type-1 .member .member-name{ color:#888; margin:0 auto; padding:0; font-size:19px; }
+	.team-type-1 .member .member-position{ margin:8px auto 0; padding:0; font-size:13px; }
+	.team-type-1 .member .member-details{ margin:5px auto 0; padding:0; color:#999; line-height: 25px; font-size:13px; }
+
+
+/* NYKS CONTACT */
+	#contact_form .half input, #contact_form .half button{ width: 45%; width:calc(50% - 10px); float: left; margin-right:20px; }
+	#contact_form .half button{ margin-right:0px; }
+	#contact_form .half input:last-child{ margin-right:0; }
+	#contact_form input, #contact_form textarea, #contact_form button{ width: 100%; border:1px solid #ececec; background:#fdfdfd; padding:12px 14px; text-transform: uppercase; outline: none; margin:8px 0; font-size:14px; color:#8c8c8c; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-transition: all 0.3s; -moz-transition: all 0.3s; transition: all 0.3s; }
+	#contact_form textarea{ min-height: 150px; max-height: 150px; max-width: 100%; }
+	#contact_form input:hover, #contact_form textarea:hover, #contact_form input:focus, #contact_form textarea:focus{ border-color:#dbdbdb; }
+	#contact_form .error_warning, #contact_form .error_warning:hover, #contact_form .error_warning:focus{ border-color:#c23b3b; }
+	.dark-section #contact_form input,.dark-section #contact_form textarea,.dark-section #contact_form button{  border:1px solid #444;  background:#222;  color:white; }
+	.dark-section #contact_form input:hover,.dark-section #contact_form textarea:hover,.dark-section #contact_form input:focus,.dark-section #contact_form textarea:focus{ border-color:#555; }
+		@media only screen and (max-width: 641px){
+			#contact_form .half input, #contact_form .half button{ width: 100%; float: none; margin-right:0; }
+			#contact_form input, #contact_form textarea, #contact_form button{ padding: 12px 10px;}
+		}

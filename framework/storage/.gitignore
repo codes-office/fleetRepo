@@ -1,0 +1,6 @@
+*
+!.gitignore
+!/framework
+!/firebase
+!/backup
+!logs
