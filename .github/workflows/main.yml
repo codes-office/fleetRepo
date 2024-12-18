@@ -1,0 +1,26 @@
+name: Deploy the gitmlt project  
+
+on:
+  push:
+    branches:
+      - main  # Or your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Upload Files via FTP
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: 194.238.21.119   # FTP Server (IP dress)
+        username: u123262960.mltcorporate.com  # FTP Username
+        password: Mlt@7072  # FTP Password
+        local-dir: ./  # Path to the files to upload (e.g., index.html in the root of your repo)
+        server-dir: /public_html/fleet/  # Path to the test subdomain folder on Hostinger
+        exclude: |
+          **/.github/**
+          **/.gitignore
