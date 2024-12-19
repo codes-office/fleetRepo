@@ -202,7 +202,7 @@
          processing: true,
          serverSide: true,
          ajax: {
-          url: "{{ url('admin/users-fetch') }}",
+          url: "{{ url('admin/mltusers-fetch') }}",
           type: 'POST',
           data:{}
          },

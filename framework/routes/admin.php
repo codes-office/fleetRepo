@@ -42,8 +42,6 @@ Route::namespace ('Admin')->group(function () {
         Route::post('transactions-fetch', 'BookingsController@transactions_fetch_data');
         Route::get('transactions', 'BookingsController@transactions');
 
-        Route::get('merge-bookings', 'bookingsController@merge_bookings')->name('merge-bookings');
-
         Route::get('get-models/{id}', 'VehiclesController@get_models');
 
         // Route::post('vehicle-color-fetch', 'VehicleColorsController@fetch_data');
@@ -63,7 +61,10 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('roles', 'UserAccessController');
 
         Route::post('/users-fetch', 'UsersController@fetch_data');
+        Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
         Route::resource('/users', 'UsersController');
+       
+        Route::get('mlt', 'UsersController@mltindex');
 
         Route::get('twilio-settings', 'TwilioController@index');
         Route::post('twilio-settings', 'TwilioController@update');
@@ -188,6 +189,8 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/vendors-fetch', 'VendorController@fetch_data');
         Route::resource('/vendors', 'VendorController');
         Route::post('drivers-fetch', 'DriversController@fetch_data');
+        Route::post('drivers-admin-fetch', 'DriversController@fetch_admin_data');
+        Route::post('assign-admin', 'DriversController@assignAdmin');
         Route::resource('/drivers', 'DriversController');
         Route::resource('/parts', 'PartsController');
         Route::post('/vehicles-fetch', 'VehiclesController@fetch_data');
