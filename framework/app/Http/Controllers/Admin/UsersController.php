@@ -110,6 +110,8 @@ class UsersController extends Controller {
 
 		if ($role['name'] == "Super Admin") {
 			$user_type = 'S';
+		} else if($role['name'] == "MLT Admin") {
+			$user_type = 'M';
 		} else {
 			$user_type = 'O';
 		}
