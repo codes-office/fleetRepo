@@ -189,6 +189,8 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/vendors-fetch', 'VendorController@fetch_data');
         Route::resource('/vendors', 'VendorController');
         Route::post('drivers-fetch', 'DriversController@fetch_data');
+        Route::post('drivers-admin-fetch', 'DriversController@fetch_admin_data');
+        Route::post('assign-admin', 'DriversController@assignAdmin');
         Route::resource('/drivers', 'DriversController');
         Route::resource('/parts', 'PartsController');
         Route::post('/vehicles-fetch', 'VehiclesController@fetch_data');

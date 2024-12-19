@@ -62,8 +62,9 @@
             class="btn btn-warning">@lang('fleet.import')</button>@endcan
         </h3>
       </div>
-
+   
       <div class="card-body table-responsive">
+        @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
         <table class="table" id="ajax_data_table" style="padding-bottom: 15px">
           <thead class="thead-inverse">
             <tr>
@@ -76,10 +77,15 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.is_active')</th>
               <th>@lang('fleet.phone')</th>
-              <th>@lang('Address')</th>
               {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
               <th>@lang('fleet.start_date')</th>
               <th>@lang('fleet.action')</th>
+               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
+               <th>@lang('fleet.assign_admin')</th>
+               @endif
+               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
+               <th>@lang('fleet.assigned_admin')</th>
+               @endif
             </tr>
           </thead>
           <tbody>
@@ -98,13 +104,56 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.is_active')</th>
               <th>@lang('fleet.phone')</th>
-              <th>@lang('Address')</th>
               {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
               <th>@lang('fleet.start_date')</th>
               <th>@lang('fleet.action')</th>
+              <th>@lang('fleet.assign_admin')</th>
             </tr>
           </tfoot>
         </table>
+        @endif
+        @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" && Auth::user()->user_type != "O" && Auth::user()->user_type != 'S')
+        <table class="table" id="ajax_admin_data_table" style="padding-bottom: 15px">
+          <thead class="thead-inverse">
+            <tr>
+              <th>
+                <input type="checkbox" id="chk_all">
+              </th>
+              <th>#</th>
+              <th>@lang('fleet.driverImage')</th>
+              <th>@lang('fleet.name')</th>
+              <th>@lang('fleet.email')</th>
+              <th>@lang('fleet.is_active')</th>
+              <th>@lang('fleet.phone')</th>
+              {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
+              <th>@lang('fleet.start_date')</th>
+              <th>@lang('fleet.action')</th>
+              
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+          <!--<tfoot>-->
+          <!--  <tr>-->
+          <!--    <th>-->
+          <!--      @can('Drivers delete')<button class="btn btn-danger" id="bulk_delete" data-toggle="modal"-->
+          <!--        title="@lang('fleet.delete')" data-target="#bulkModal" disabled>-->
+          <!--        <i class="fa fa-trash"></i></button>@endcan-->
+          <!--    </th>-->
+          <!--    <th>#</th>-->
+          <!--    <th>@lang('fleet.driverImage')</th>-->
+          <!--    <th>@lang('fleet.name')</th>-->
+          <!--    <th>@lang('fleet.email')</th>-->
+          <!--    <th>@lang('fleet.is_active')</th>-->
+          <!--    <th>@lang('fleet.phone')</th>-->
+          <!--    {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}-->
+          <!--    <th>@lang('fleet.start_date')</th>-->
+          <!--    <th>@lang('fleet.action')</th>-->
+          <!--  </tr>-->
+          <!--</tfoot>-->
+        </table>
+        @endif
       </div>
     </div>
   </div>
@@ -231,6 +280,7 @@
     </div>
   </div>
 </div>
+</div>
 <!-- Modal -->
 @endsection
 
@@ -290,7 +340,70 @@
             {data: 'email', name: 'email'},
             {data: 'is_active', name: 'is_active'},
             {data: 'phone', name: 'phone'},
-            {data: 'address', name: 'address'},
+            // {data: 'vehicle', name: 'vehicle'},
+            {data: 'start_date', name: 'start_date'},
+            {data: 'action',name:'action',  searchable:false, orderable:false},
+             {data : 'assign_admin',name:'assign_admin'},
+             {data : 'assigned_admin',name:'assigned_admin'}
+        ],
+        order: [[1, 'desc']],
+        "initComplete": function() {
+              table.columns().every(function () {
+                var that = this;
+                $('input', this.footer()).on('keyup change', function () {
+                  // console.log($(this).parent().index());
+                    that.search(this.value).draw();
+                });
+              });
+            }
+    });
+    $(document).on('change', '.assign-admin', function() {
+        var driverId = $(this).data('driver-id');
+        var adminId = $(this).val();
+    
+        $.ajax({
+            url: "{{ url('admin/assign-admin') }}",
+            method: 'POST',
+            data: {
+                driver_id: driverId,
+                admin_id: adminId,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Reload the DataTable
+                    $('#ajax_data_table').DataTable().ajax.reload(null, false);
+                } else {
+                    alert('Failed to assign admin. Please try again.');
+                }
+            },
+            error: function() {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+  });
+  $(function(){
+    
+    var table = $('#ajax_admin_data_table').DataTable({
+          "language": {
+              "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
+          },
+         processing: true,
+         serverSide: true,
+         ajax: {
+          url: "{{ url('admin/drivers-admin-fetch') }}",
+          type: 'POST',
+          data:{}
+         },
+         columns: [
+            {data: 'check',name:'check', searchable:false, orderable:false},
+            {data: 'id', name: 'users.id'},
+            {data: 'driver_image',name:'driver_image', searchable:false, orderable:false},
+            {data: 'name', name: 'name'},
+            {data: 'email', name: 'email'},
+            {data: 'is_active', name: 'is_active'},
+            {data: 'phone', name: 'phone'},
             // {data: 'vehicle', name: 'vehicle'},
             {data: 'start_date', name: 'start_date'},
             {data: 'action',name:'action',  searchable:false, orderable:false}
