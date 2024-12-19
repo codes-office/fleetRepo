@@ -742,9 +742,17 @@ input:checked + .slider:before {
                   @endcan
                   @can('Users list')
                   <li class="nav-item">
-                    <a href="{{ route('users.index')}}" class="nav-link @if(Request::is('admin/users*')) active @endif">
+                    <a href="{{ route('users.index')}}" class="nav-link @if(Request::is('admin/users')) active @endif">
                       <i class="fa fa-user nav-icon"></i>
-                      <p>@lang('fleet.users')@lang('fleet.managers')</p>
+                      <p>@lang('Client')</p>
+                    </a>
+                  </li>
+                  @endcan
+                  @can('Users list')
+                  <li class="nav-item">
+                    <a href="{{ url('admin/mlt')}}" class="nav-link @if(Request::is('admin/mlt')) active @endif">
+                      <i class="fa fa-user nav-icon"></i>
+                      <p>@lang('MLT')</p>
                     </a>
                   </li>
                   @endcan
