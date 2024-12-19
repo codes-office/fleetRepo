@@ -1,84 +1,48 @@
 @extends('layouts.app')
-@php($date_format_setting=(Hyvikk::get('date_format'))?Hyvikk::get('date_format'):'d-m-Y')
+
+@section("breadcrumb")
+<li class="breadcrumb-item active">@lang('fleet.users')@lang('fleet.managers')</li>
+@endsection
 @section('extra_css')
 <style type="text/css">
-.show-password-button{
-    outline: none;
-    border: 1px solid #ced4da;
-  }
-  .mybtn1 {
-    padding-top: 4px;
-    padding-right: 8px;
-    padding-bottom: 4px;
-    padding-left: 8px;
-  }
-
   .checkbox,
   #chk_all {
     width: 20px;
     height: 20px;
   }
-
+  .show-password-button{
+    outline: none;
+    border: 1px solid #ced4da;
+  }
   td>img {
     border-radius: 50%;
   }
 </style>
 @endsection
-@section("breadcrumb")
-<li class="breadcrumb-item active">@lang('fleet.drivers')</li>
-@endsection
 @section('content')
 <div class="row">
   <div class="col-md-12">
-
-    @if (count($errors) > 0)
-      <div class="alert alert-danger">
-        @if (session('errors'))
-            <p>{{ session('errors.error') }}</p>
-            @if(session('errors.data'))
-              <ul>
-                  @foreach (session('errors.data') as $bookingId)
-                      <li><a href="{{ route('bookings.edit', $bookingId) }}">Booking ID : {{ $bookingId }}</a></li>
-                  @endforeach
-              </ul>
-            @endif
-        @endif
-        @if(!is_array($errors))
-          <ul>
-            @foreach ($errors->all() as $error)
-              <li>{{ $error }}</li>
-            @endforeach
-          </ul>
-        @endif
-      </div>
-    @endif
-
     <div class="card card-info">
       <div class="card-header">
-        <h3 class="card-title">@lang('menu.drivers') &nbsp;
-          @can('Drivers add') <a href="{{ route('drivers.create') }}" class="btn btn-success"
-            title="@lang('fleet.addDriver')"> <i class="fa fa-plus"></i> </a> @endcan
-          @can('Drivers import') &nbsp;&nbsp;<button data-toggle="modal" data-target="#import"
-            class="btn btn-warning">@lang('fleet.import')</button>@endcan
-        </h3>
+        <h3 class="card-title">@lang('Client') &nbsp;
+          @can('Users add')<a href="{{route('users.create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
+              class="fa fa-plus"></i></a></h3>@endcan
       </div>
 
       <div class="card-body table-responsive">
-        <table class="table" id="ajax_data_table" style="padding-bottom: 15px">
+        <table class="table" id="ajax_data_table">
           <thead class="thead-inverse">
             <tr>
               <th>
+
                 <input type="checkbox" id="chk_all">
+
               </th>
-              <th>#</th>
-              <th>@lang('fleet.driverImage')</th>
+              <th>@lang('fleet.id')</th>
+              <th>@lang('fleet.profile_photo')</th>
               <th>@lang('fleet.name')</th>
               <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.is_active')</th>
-              <th>@lang('fleet.phone')</th>
-              <th>@lang('Address')</th>
-              {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
-              <th>@lang('fleet.start_date')</th>
+              <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
             </tr>
           </thead>
@@ -88,19 +52,17 @@
           <tfoot>
             <tr>
               <th>
-                @can('Drivers delete')<button class="btn btn-danger" id="bulk_delete" data-toggle="modal"
+
+                @can('Users delete')<button class="btn btn-danger" id="bulk_delete" data-toggle="modal"
                   title="@lang('fleet.delete')" data-target="#bulkModal" disabled>
                   <i class="fa fa-trash"></i></button>@endcan
+
               </th>
               <th>#</th>
-              <th>@lang('fleet.driverImage')</th>
+              <th>@lang('fleet.profile_photo')</th>
               <th>@lang('fleet.name')</th>
               <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.is_active')</th>
-              <th>@lang('fleet.phone')</th>
-              <th>@lang('Address')</th>
-              {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
-              <th>@lang('fleet.start_date')</th>
+              <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
             </tr>
           </tfoot>
@@ -109,45 +71,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal -->
-<div id="import" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">@lang('fleet.importDrivers')</h4>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        {!! Form::open(['url'=>'admin/import-drivers','method'=>'POST','files'=>true]) !!}
-        <div class="form-group">
-          {!! Form::label('excel',__('fleet.importDrivers'),['class'=>"form-label"]) !!}
-          {!! Form::file('excel',['class'=>"form-control",'required']) !!}
-        </div>
-        <div class="form-group">
-          <a href="{{ asset('assets/samples/drivers.xlsx') }}">@lang('fleet.downloadSampleExcel')</a>
-        </div>
-        <div class="form-group">
-          <h6 class="text-muted">@lang('fleet.note'):</h6>
-          <ul class="text-muted">
-            <li>@lang('fleet.driverImportNote1')</li>
-            <li>@lang('fleet.driverImportNote2')</li>
-            <li>@lang('fleet.driverImportNote3')</li>
-            <li>@lang('fleet.excelNote')</li>
-            <li>@lang('fleet.skipNote')</li>
-          </ul>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-warning" type="submit">@lang('fleet.import')</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('fleet.close')</button>
-      </div>
-      {!! Form::close() !!}
-    </div>
-  </div>
-</div>
-<!-- Modal -->
 
 <!-- Modal -->
 <div id="bulkModal" class="modal fade" role="dialog">
@@ -159,7 +82,7 @@
         <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
-        {!! Form::open(['url'=>'admin/delete-drivers','method'=>'POST','id'=>'form_delete']) !!}
+        {!! Form::open(['url'=>'admin/delete-users','method'=>'POST','id'=>'form_delete']) !!}
         <div id="bulk_hidden"></div>
         <p>@lang('fleet.confirm_bulk_delete')</p>
       </div>
@@ -187,8 +110,7 @@
       </div>
       <div class="modal-footer">
         <button id="del_btn" class="btn btn-danger" type="button" data-submit="">@lang('fleet.delete')</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('fleet.close')
-        </button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">@lang('fleet.close')</button>
       </div>
     </div>
   </div>
@@ -207,6 +129,7 @@
       <div class="modal-body">
         {!! Form::open(['url'=>url('admin/change_password'),'id'=>'changepass_form']) !!}
         <form id="change" action="{{url('admin/change_password')}}" method="POST">
+
           {!! Form::hidden('driver_id',"",['id'=>'driver_id'])!!}
           <div class="form-group">
             {!! Form::label('passwd',__('fleet.password'),['class'=>"form-label"]) !!}
@@ -236,7 +159,6 @@
 
 @section('script')
 <script type="text/javascript">
-
   $("#del_btn").on("click",function(){
     var id=$(this).data("submit");
     $("#form_"+id).submit();
@@ -258,12 +180,14 @@
       url: $(this).attr("action"),
       data: $(this).serialize(),
       success: function(data){
+
        new PNotify({
             title: 'Success!',
             text: "@lang('fleet.passwordChanged')",
             type: 'info'
         });
       },
+
       dataType: "html"
     });
     $('#changepass').modal("hide");
@@ -278,21 +202,17 @@
          processing: true,
          serverSide: true,
          ajax: {
-          url: "{{ url('admin/drivers-fetch') }}",
+          url: "{{ url('admin/mltusers-fetch') }}",
           type: 'POST',
           data:{}
          },
          columns: [
             {data: 'check',name:'check', searchable:false, orderable:false},
-            {data: 'id', name: 'users.id'},
-            {data: 'driver_image',name:'driver_image', searchable:false, orderable:false},
+            {data: 'id', name: 'id'},
+            {data: 'profile_image',name:'profile_image', searchable:false, orderable:false},
             {data: 'name', name: 'name'},
-            {data: 'email', name: 'email'},
-            {data: 'is_active', name: 'is_active'},
-            {data: 'phone', name: 'phone'},
-            {data: 'address', name: 'address'},
-            // {data: 'vehicle', name: 'vehicle'},
-            {data: 'start_date', name: 'start_date'},
+            {data: 'email', name: 'email'},            
+            {data: 'created_at', name: 'created_at'},
             {data: 'action',name:'action',  searchable:false, orderable:false}
         ],
         order: [[1, 'desc']],
@@ -310,6 +230,7 @@
   $(document).on('click','input[type="checkbox"]',function(){
     if(this.checked){
       $('#bulk_delete').prop('disabled',false);
+
     }else { 
       if($("input[name='ids[]']:checked").length == 0){
         $('#bulk_delete').prop('disabled',true);
@@ -393,5 +314,4 @@
 });
 
 </script>
-{{-- show password script end --}}
 @endsection

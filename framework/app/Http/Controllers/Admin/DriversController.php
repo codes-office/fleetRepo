@@ -26,6 +26,7 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceItemsModel;
 use App\Model\User;
+use App\Model\users_meta;
 use App\Model\VehicleModel;
 use App\Model\VehicleTypeModel;
 use Carbon\Carbon;
@@ -406,6 +407,10 @@ class DriversController extends Controller {
 					return $user->phone_code . ' ' . $user->phone;
 				})
 
+				->addColumn('address', function ($user){
+					return $user->address;
+				})
+
 				->addColumn('start_date', function ($user) {
 					return $user->start_date;
 				})
@@ -768,79 +773,141 @@ class DriversController extends Controller {
 	}
 
 	public function store(DriverRequest $request) {
-		//dd(Auth::user()->id);
-		// $request->validate([
-		// 	'emp_id' => ['required', new UniqueEId],
-		// 	'license_number' => ['required', new UniqueLicenceNumber],
-		// 	'contract_number' => ['required', new UniqueContractNumber],
-		// 	'first_name' => 'required',
-		// 	'last_name' => 'required',
-		// 	'address' => 'required',
-		// 	'phone' => 'required|numeric',
-		// 	'email' => 'required|email|unique:users,email,' . \Request::get("id"),
-		// 	'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
-		// 	'start_date' => 'date|date_format:Y-m-d',
-		// 	'issue_date' => 'date|date_format:Y-m-d',
-		// 	'end_date' => 'nullable|date|date_format:Y-m-d',
-		// 	'driver_image' => 'nullable|mimes:jpg,png,jpeg',
-		// 	'license_image' => 'nullable|mimes:jpg,png,jpeg',
-		// 	'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
-		// 	'driver_commision_type' => 'required',
-		// 	'driver_commision' => 'required|numeric',
-		// ]);
-
-		$id = User::create([
+		// Create a new user
+		$user = User::create([
 			"name" => $request->get("first_name") . " " . $request->get("last_name"),
 			"email" => $request->get("email"),
 			"password" => bcrypt($request->get("password")),
 			"user_type" => "D",
 			'api_token' => str_random(60),
-		])->id;
-		$user = User::find($id);
+			"address" => $request->get("address"),
+		]);
+	
+		// Associate user with the authenticated admin
 		$user->user_id = Auth::user()->id;
-
+	
+		// Handle file uploads
 		if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
-
-			$this->upload_file($request->file('driver_image'), "driver_image", $id);
+			$this->upload_file($request->file('driver_image'), "driver_image", $user->id);
 		}
-
+	
 		if ($request->file('license_image') && $request->file('license_image')->isValid()) {
-			$this->upload_file($request->file('license_image'), "license_image", $id);
+			$this->upload_file($request->file('license_image'), "license_image", $user->id);
 			$user->id_proof_type = "License";
-			$user->save();
 		}
+	
 		if ($request->file('documents')) {
-			$this->upload_file($request->file('documents'), "documents", $id);
-
+			$this->upload_file($request->file('documents'), "documents", $user->id);
 		}
-
-		$form_data = $request->all();
-		unset($form_data['driver_image']);
-		unset($form_data['documents']);
-		unset($form_data['license_image']);
+	
+		// Save other user details
 		$user->first_name = $request->get('first_name');
 		$user->last_name = $request->get('last_name');
-		$user->setMeta($form_data);
+		$user->address = $request->get('address');
+	
+		// Save additional metadata
+		$form_data = $request->except(['driver_image', 'license_image', 'documents']); // Exclude file fields
+		$user->setMeta($form_data); // Save other form data as meta
+	
+		// Save latitude and longitude as specific keys
+		$user->setMeta(['home_lat' => $request->get('latitude')]);
+		$user->setMeta(['home_lng' => $request->get('longitude')]);
+	
+		// Save user changes
 		$user->save();
-		$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
-
-		// $vehicle = VehicleModel::find($request->get('vehicle_id'));
-		// $vehicle->setMeta(['driver_id' => $user->id]);
-		// $vehicle->save();
-		// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
-		// DriverVehicleModel::updateOrCreate(
-		//     ['vehicle_id' => $request->get('vehicle_id')],
-		//     ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
-
-		# many-to-many driver vehicle relation.
-		// $user->vehicles()->sync($request->vehicle_id);
-		// foreach ($request->vehicle_id as $v_id) {
-		//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
-		// }
-
-		return redirect()->route("drivers.index");
-
+	
+		// Assign permissions to the user
+		$user->givePermissionTo([
+			'Notes add', 'Notes edit', 'Notes delete', 'Notes list', 
+			'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 
+			'Fuel list', 'VehicleInspection add', 'Transactions list', 
+			'Transactions add', 'Transactions edit', 'Transactions delete'
+		]);
+	
+		// Redirect back to drivers list
+		return redirect()->route("drivers.index")->with('success', 'Driver created successfully!');
 	}
+	
+	
+	// public function store(DriverRequest $request) {
+	// 	//dd(Auth::user()->id);
+	// 	// $request->validate([
+	// 	// 	'emp_id' => ['required', new UniqueEId],
+	// 	// 	'license_number' => ['required', new UniqueLicenceNumber],
+	// 	// 	'contract_number' => ['required', new UniqueContractNumber],
+	// 	// 	'first_name' => 'required',
+	// 	// 	'last_name' => 'required',
+	// 	// 	'address' => 'required',
+	// 	// 	'phone' => 'required|numeric',
+	// 	// 	'email' => 'required|email|unique:users,email,' . \Request::get("id"),
+	// 	// 	'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
+	// 	// 	'start_date' => 'date|date_format:Y-m-d',
+	// 	// 	'issue_date' => 'date|date_format:Y-m-d',
+	// 	// 	'end_date' => 'nullable|date|date_format:Y-m-d',
+	// 	// 	'driver_image' => 'nullable|mimes:jpg,png,jpeg',
+	// 	// 	'license_image' => 'nullable|mimes:jpg,png,jpeg',
+	// 	// 	'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+	// 	// 	'driver_commision_type' => 'required',
+	// 	// 	'driver_commision' => 'required|numeric',
+	// 	// ]);
+
+	// 	dd($request->all());
+	// 	exit;
+
+	// 	$id = User::create([
+	// 		"name" => $request->get("first_name") . " " . $request->get("last_name"),
+	// 		"email" => $request->get("email"),
+	// 		"password" => bcrypt($request->get("password")),
+	// 		"user_type" => "D",
+	// 		'api_token' => str_random(60),
+	// 		"address" => $request->get("address"),
+	// 	])->id;
+	// 	$user = User::find($id);
+	// 	$user->user_id = Auth::user()->id;
+
+	// 	if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
+
+	// 		$this->upload_file($request->file('driver_image'), "driver_image", $id);
+	// 	}
+
+	// 	if ($request->file('license_image') && $request->file('license_image')->isValid()) {
+	// 		$this->upload_file($request->file('license_image'), "license_image", $id);
+	// 		$user->id_proof_type = "License";
+	// 		$user->save();
+	// 	}
+	// 	if ($request->file('documents')) {
+	// 		$this->upload_file($request->file('documents'), "documents", $id);
+
+	// 	}
+
+	// 	$form_data = $request->all();
+	// 	unset($form_data['driver_image']);
+	// 	unset($form_data['documents']);
+	// 	unset($form_data['license_image']);
+	// 	$user->first_name = $request->get('first_name');
+	// 	$user->last_name = $request->get('last_name');
+	// 	$user->address = $request->get('address');
+	// 	$user->setMeta($form_data);
+	// 	$user->save();
+	// 	$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
+
+	// 	// $vehicle = VehicleModel::find($request->get('vehicle_id'));
+	// 	// $vehicle->setMeta(['driver_id' => $user->id]);
+	// 	// $vehicle->save();
+	// 	// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
+	// 	// DriverVehicleModel::updateOrCreate(
+	// 	//     ['vehicle_id' => $request->get('vehicle_id')],
+	// 	//     ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
+
+	// 	# many-to-many driver vehicle relation.
+	// 	// $user->vehicles()->sync($request->vehicle_id);
+	// 	// foreach ($request->vehicle_id as $v_id) {
+	// 	//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
+	// 	// }
+
+	// 	return redirect()->route("drivers.index");
+
+	// }
 
 	public function enable($id) {
 		// $driver = UserMeta::whereUser_id($id)->first();

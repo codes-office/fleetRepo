@@ -22,6 +22,7 @@ use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 use Validator;
 
 class CustomersController extends Controller {
@@ -98,8 +99,8 @@ class CustomersController extends Controller {
 				->addColumn('gender', function ($user) {
 					return ($user->getMeta('gender')) ? "Male" : "Female";
 				})
-				->addColumn('address', function ($user) {
-					return $user->getMeta('address');
+				->addColumn('address', function ($user) {					
+						return $user->address;
 				})
 				->addColumn('action', function ($user) {
 					return view('customers.list-actions', ['row' => $user]);
@@ -114,28 +115,70 @@ class CustomersController extends Controller {
 	public function create() {
 		return view("customers.create");
 	}
-	public function store(CustomerRequest $request) {
 
-		$id = User::create([
-			"name" => $request->get("first_name") . " " . $request->get("last_name"),
-			"email" => $request->get("email"),
-			"password" => bcrypt("password"),
-			"user_type" => "C",
-			"api_token" => str_random(60),
-		])->id;
-		$user = User::find($id);
-		$user->user_id = Auth::user()->id;
-		$user->first_name = $request->get("first_name");
-		$user->last_name = $request->get("last_name");
-		$user->address = $request->get("address");
-		$user->mobno = $request->get("phone");
-		$user->gender = $request->get('gender');
+	public function store(CustomerRequest $request)
+{
+    // Create the customer user
+    $id = User::create([
+        "name" => $request->get("first_name") . " " . $request->get("last_name"),
+        "email" => $request->get("email"),
+        "password" => bcrypt("password"), // You can modify this to get a password from the request if needed
+        "user_type" => "C",
+        "api_token" => str_random(60),
+    ])->id;
+
+    // Find the created user
+    $user = User::find($id);
+    $user->user_id = Auth::user()->id;
+    $user->first_name = $request->get("first_name");
+    $user->last_name = $request->get("last_name");
+    $user->address = $request->get("address");
+    $user->mobno = $request->get("phone");
+    $user->gender = $request->get('gender');
+    $user->address = $request->get("address");
+    $user->save();
+
+    // Assign permissions
+    $user->givePermissionTo(['Bookings add', 'Bookings edit', 'Bookings list', 'Bookings delete']);
+	
+		// Save latitude and longitude as specific keys
+		$user->setMeta(['cus_lat' => $request->get('latitude')]);
+		$user->setMeta(['cus_lng' => $request->get('longitude')]);
+	
+		// Save user changes
 		$user->save();
-		$user->givePermissionTo(['Bookings add', 'Bookings edit', 'Bookings list', 'Bookings delete']);
 
-		return redirect()->route("customers.index");
-	}
+    // Redirect to customers list
+    return redirect()->route("customers.index");
+}
+
+	
+	// public function store(CustomerRequest $request) {
+	// 	dd($request->all());
+	// 	exit;
+
+	// 	$id = User::create([
+	// 		"name" => $request->get("first_name") . " " . $request->get("last_name"),
+	// 		"email" => $request->get("email"),
+	// 		"password" => bcrypt("password"),
+	// 		"user_type" => "C",
+	// 		"api_token" => str_random(60),
+	// 	])->id;
+	// 	$user = User::find($id);
+	// 	$user->user_id = Auth::user()->id;
+	// 	$user->first_name = $request->get("first_name");
+	// 	$user->last_name = $request->get("last_name");
+	// 	$user->address = $request->get("address");
+	// 	$user->mobno = $request->get("phone");
+	// 	$user->gender = $request->get('gender');
+	// 	$user->save();
+	// 	$user->givePermissionTo(['Bookings add', 'Bookings edit', 'Bookings list', 'Bookings delete']);
+
+	// 	return redirect()->route("customers.index");
+	// }
 	public function ajax_store(Request $request) {
+
+		
 		$v = Validator::make($request->all(), [
 			'first_name' => 'required',
 			'last_name' => 'required',
@@ -154,6 +197,7 @@ class CustomersController extends Controller {
 				"password" => bcrypt("password"),
 				"user_type" => "C",
 				"api_token" => str_random(60),
+				"address" => $request->get("address"),
 			])->id;
 			$user = User::find($id);
 			$user->first_name = $request->get("first_name");

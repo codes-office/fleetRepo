@@ -24,7 +24,7 @@
   <div class="col-md-12">
     <div class="card card-info">
       <div class="card-header">
-        <h3 class="card-title">@lang('fleet.manageUsers')@lang('fleet.managers') &nbsp;
+        <h3 class="card-title">@lang('Client') &nbsp;
           @can('Users add')<a href="{{route('users.create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
               class="fa fa-plus"></i></a></h3>@endcan
       </div>
