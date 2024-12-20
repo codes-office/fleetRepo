@@ -876,7 +876,7 @@ class DriversController extends Controller {
 	}
 
 	public function store(DriverRequest $request) {
-		dd($request->all());
+		// dd($request->all());
 		// $request->validate([
 		// 	'emp_id' => ['required', new UniqueEId],
 		// 	'license_number' => ['required', new UniqueLicenceNumber],
