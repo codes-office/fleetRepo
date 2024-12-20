@@ -774,8 +774,6 @@ class DriversController extends Controller {
 
 	public function store(DriverRequest $request) {
 		// Create a new user
-		dd($request->all());
-		exit();
 		$user = User::create([
 			"name" => $request->get("first_name") . " " . $request->get("last_name"),
 			"email" => $request->get("email"),
