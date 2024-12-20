@@ -61,6 +61,7 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('roles', 'UserAccessController');
 
         Route::post('/users-fetch', 'UsersController@fetch_data');
+        Route::post('assign-admin-user', 'UsersController@assignAdmin'); // assing the admin 
         Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
         Route::resource('/users', 'UsersController');
        

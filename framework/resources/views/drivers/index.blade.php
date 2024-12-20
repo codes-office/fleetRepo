@@ -81,10 +81,10 @@
               <th>@lang('fleet.start_date')</th>
               <th>@lang('fleet.action')</th>
                @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
-               <th>@lang('fleet.assign_admin')</th>
+               <th>Assign To</th>
                @endif
                @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
-               <th>@lang('fleet.assigned_admin')</th>
+               <th>Assign Under</th>
                @endif
             </tr>
           </thead>
@@ -107,7 +107,8 @@
               {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
               <th>@lang('fleet.start_date')</th>
               <th>@lang('fleet.action')</th>
-              <th>@lang('fleet.assign_admin')</th>
+              <th>Assign To</th>
+              <th>Assign Under</th>
             </tr>
           </tfoot>
         </table>
