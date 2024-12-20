@@ -220,7 +220,6 @@
             {data: 'action',name:'action',  searchable:false, orderable:false},
             {data: 'assign_admin', name: 'assign_admin'}, 
             {data: 'assigned_admin', name: 'assigned_admin'} 
-            
         ],
         order: [[1, 'desc']],
         "initComplete": function() {
