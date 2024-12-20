@@ -72,7 +72,7 @@
   <div class="col-md-12">
     <div class="card card-success">
       <div class="card-header">
-        <h3 class="card-title">@lang('fleet.addUser')@lang('fleet.managers')</h3>
+        <h3 class="card-title">@lang('Admin Creation Based on Roles')</h3>
       </div>
 
 
@@ -110,11 +110,11 @@
               </select>
             </div>
 
-            <div class="form-group">
+            {{-- <div class="form-group">
               {!! Form::label('profile_image', __('fleet.profile_photo'), ['class' => 'form-label']) !!}
 
               {!! Form::file('profile_image',null,['class' => 'form-control']) !!}
-            </div>
+            </div> --}}
             {{-- <div class="form-group" style="margin-top: 30px">
               <div class="row">
                 <div class="col-md-3">
@@ -162,6 +162,27 @@
                 @endforeach
               </select>
             </div>
+          </div>
+
+          <div class="col-md-12">
+            <div class="form-group">
+              {!! Form::label('address', __('fleet.address'), ['class' => 'form-label required']) !!}
+              {!! Form::text('address', null, ['class' => 'form-control', 'id' => 'address', 'required', 'placeholder' => 'Select an address']) !!}
+          </div>
+          <!-- Map for Address Selection -->
+          <div id="address_map" style="height: 400px; margin-top: 10px; width: 100%;"></div>
+        </div>
+        
+        <!-- Hidden Fields for Latitude and Longitude -->
+        {!! Form::hidden('latitude', null, ['id' => 'latitude']) !!}
+        {!! Form::hidden('longitude', null, ['id' => 'longitude']) !!}  
+        </div>
+
+          <div class="form-group" style="margin-top: 30px;">
+            {!! Form::label('profile_image', __('fleet.profile_photo'), ['class' => 'form-label']) !!}
+
+            {!! Form::file('profile_image',null,['class' => 'form-control']) !!}
+          </div>
 
             {{-- <div class="form-group">
               {!! Form::label('module',__('fleet.select_modules'), ['class' => 'form-label']) !!} <br>
@@ -219,15 +240,101 @@
 
 @endsection
 @section('script')
-<script type="text/javascript">
-  $(document).ready(function() {
-    $('#group_id').select2({placeholder: "@lang('fleet.selectGroup')"});
-    $('#role_id').select2({placeholder: "@lang('fleet.role')"});
-    //Flat green color scheme for iCheck
-    // $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
-    //   checkboxClass: 'icheckbox_flat-green',
-    //   radioClass   : 'iradio_flat-green'
-    // });
+<script src="https://maps.googleapis.com/maps/api/js?key={{ Hyvikk::api('api_key') }}&callback=initMap" async defer></script>
+<script>
+  let map, marker, geocoder;
+
+// Function to initialize the map
+function initMap() {
+  geocoder = new google.maps.Geocoder();
+
+  // Try to get the user's current location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const userLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+
+      // Initialize map with user's location
+      map = new google.maps.Map(document.getElementById('address_map'), {
+        center: userLocation,
+        zoom: 13,
+      });
+
+      // Place a draggable marker at the user's location
+      marker = new google.maps.Marker({
+        position: userLocation,
+        map: map,
+        draggable: true,
+        title: "Drag to select location",
+      });
+
+      // Update latitude, longitude, and address when the marker is dragged
+      marker.addListener('dragend', function() {
+        const position = marker.getPosition();
+        updateLocation(position);
+      });
+
+      // Update latitude, longitude, and address when the map is clicked
+      map.addListener('click', function(event) {
+        const position = event.latLng;
+        marker.setPosition(position);
+        updateLocation(position);
+      });
+
+      // Set the initial location
+      updateLocation(userLocation);
+
+    }, function() {
+      handleLocationError(true);
+    });
+  } else {
+    // Browser doesn't support Geolocation
+    handleLocationError(false);
+  }
+}
+
+// Function to handle location errors
+function handleLocationError(error) {
+  const defaultLocation = { lat: 13.0380, lng: 77.4812 }; // Bengaluru as a fallback
+  map = new google.maps.Map(document.getElementById('address_map'), {
+    center: defaultLocation,
+    zoom: 13,
   });
+
+  marker = new google.maps.Marker({
+    position: defaultLocation,
+    map: map,
+    draggable: true,
+    title: "Drag to select location",
+  });
+
+  // Set default values for address, lat, and lng
+  updateLocation(defaultLocation);
+}
+
+// Function to update the hidden fields and address
+function updateLocation(latLng) {
+  const lat = latLng.lat();
+  const lng = latLng.lng();
+
+  // Update the latitude and longitude hidden fields
+  document.getElementById('latitude').value = lat;
+  document.getElementById('longitude').value = lng;
+
+  console.log('Updated Latitude:', lat); // Debugging line
+  console.log('Updated Longitude:', lng); // Debugging line
+
+  // Reverse geocode to get the address
+  geocoder.geocode({ location: latLng }, function(results, status) {
+    if (status === 'OK' && results[0]) {
+      document.getElementById('address').value = results[0].formatted_address;
+    } else {
+      document.getElementById('address').value = "Location not found";
+    }
+  });
+}
+
 </script>
 @endsection

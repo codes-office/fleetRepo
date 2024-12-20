@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section("breadcrumb")
-<li class="breadcrumb-item active">@lang('fleet.users')@lang('fleet.managers')</li>
+<li class="breadcrumb-item active">@lang('MLT Admin')</li>
 @endsection
 @section('extra_css')
 <style type="text/css">
@@ -24,7 +24,7 @@
   <div class="col-md-12">
     <div class="card card-info">
       <div class="card-header">
-        <h3 class="card-title">@lang('Client') &nbsp;
+        <h3 class="card-title">@lang('MLT Users') &nbsp;
           @can('Users add')<a href="{{route('users.create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
               class="fa fa-plus"></i></a></h3>@endcan
       </div>

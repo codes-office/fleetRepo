@@ -712,7 +712,7 @@ input:checked + .slider:before {
 
               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" )
            
-              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/customers*'))
+              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/mlt')) || (Request::is('admin/customers*'))
               || (Request::is('admin/chat')) )
               @php($class="menu-open")
               @php($active="active")

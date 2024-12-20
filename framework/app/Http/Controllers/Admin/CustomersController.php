@@ -118,6 +118,8 @@ class CustomersController extends Controller {
 
 	public function store(CustomerRequest $request)
 {
+	dd($request->all());
+	exit();
     // Create the customer user
     $id = User::create([
         "name" => $request->get("first_name") . " " . $request->get("last_name"),
