@@ -218,8 +218,8 @@
             {data: 'email', name: 'email'},            
             {data: 'created_at', name: 'created_at'},
             {data: 'action',name:'action',  searchable:false, orderable:false},
-            {data: 'assign_admin', name: 'assign_admin'}, // Admin Assignment column
-            {data: 'assigned_admin', name: 'assigned_admin'} // Assigned Admin column
+            {data: 'assign_admin', name: 'assign_admin'}, 
+            {data: 'assigned_admin', name: 'assigned_admin'} 
             
         ],
         order: [[1, 'desc']],
