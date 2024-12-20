@@ -44,8 +44,8 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
-              <th>@lang('fleet.assign_admin')</th>
-              <th>@lang('fleet.assigned_admin')</th>
+              <th>Assign To</th>
+              <th>Assign Under</th>
             </tr>
           </thead>
           <tbody>
@@ -66,8 +66,8 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
-              <th>@lang('fleet.assign_admin')</th>
-              <th>@lang('fleet.assigned_admin')</th>
+              <th>Assign To</th>
+              <th>Assign Under</th>
             </tr>
           </tfoot>
         </table>
