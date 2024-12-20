@@ -169,6 +169,10 @@ class UsersController extends Controller {
 		$user->language = Auth::user()->language;
 		$user->first_name = $request->get("first_name");
 		$user->last_name = $request->get("last_name");
+		$user->setMeta(['emsourcelat' => $request->get('latitude')]);
+		$user->setMeta(['emsourcelong' => $request->get('longitude')]);
+		$user->setMeta(['address' => $request->get('address')]);
+	
 		$user->save();
 		$role = Role::find($request->role_id);
 		$user->assignRole($role);

@@ -143,8 +143,8 @@ class CustomersController extends Controller {
     $user->givePermissionTo(['Bookings add', 'Bookings edit', 'Bookings list', 'Bookings delete']);
 	
 		// Save latitude and longitude as specific keys
-		$user->setMeta(['cus_lat' => $request->get('latitude')]);
-		$user->setMeta(['cus_lng' => $request->get('longitude')]);
+		$user->setMeta(['emsourcelat' => $request->get('latitude')]);
+		$user->setMeta(['emsourcelong' => $request->get('longitude')]);
 		$user->setMeta(['address' => $request->get('address')]);
 	
 		// Save user changes
