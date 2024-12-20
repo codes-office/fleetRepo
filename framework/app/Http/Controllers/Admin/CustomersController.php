@@ -118,6 +118,7 @@ class CustomersController extends Controller {
 
 	public function store(CustomerRequest $request)
 {
+	
     // Create the customer user
     $id = User::create([
         "name" => $request->get("first_name") . " " . $request->get("last_name"),
@@ -144,6 +145,7 @@ class CustomersController extends Controller {
 		// Save latitude and longitude as specific keys
 		$user->setMeta(['cus_lat' => $request->get('latitude')]);
 		$user->setMeta(['cus_lng' => $request->get('longitude')]);
+		$user->setMeta(['address' => $request->get('address')]);
 	
 		// Save user changes
 		$user->save();
@@ -239,7 +241,7 @@ class CustomersController extends Controller {
 		return view("customers.edit", $index);
 	}
 	public function update(CustomerRequest $request) {
-
+		
 		$user = User::find($request->id);
 		$user->name = $request->get("first_name") . " " . $request->get("last_name");
 		$user->email = $request->get('email');
@@ -250,6 +252,8 @@ class CustomersController extends Controller {
 		$user->address = $request->get("address");
 		$user->mobno = $request->get("phone");
 		$user->gender = $request->get('gender');
+
+		$user->setMeta(['address' => $request->get('address')]);
 		$user->save();
 
 		return redirect()->route("customers.index");

@@ -157,6 +157,7 @@ class UsersController extends Controller {
 			"email" => $request->get("email"),
 			"password" => bcrypt($request->get("password")),
 			"user_type" => $user_type,
+			"address" => $request->get("address"),
 			"group_id" => $request->get("group_id"),
 			'api_token' => str_random(60),
 		])->id;
@@ -179,6 +180,7 @@ class UsersController extends Controller {
 	}
 	public function edit($id) {
 		$user = User::find($id);
+		log:info($user);
 		$groups = VehicleGroupModel::all();
 		$roles = Role::get();
 		return view("users.edit", compact("user", 'groups', "roles"));
@@ -191,6 +193,7 @@ class UsersController extends Controller {
 		$user->email = $request->get("email");
 		$user->group_id = $request->get("group_id");
 		$user->module = serialize($request->get('module'));
+		$user->address = $request->get('address');
 		$user->first_name = $request->get("first_name");
 		$user->last_name = $request->get("last_name");
 		$old = Role::find($user->roles->first()->id);
