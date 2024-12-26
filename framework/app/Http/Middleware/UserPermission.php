@@ -26,11 +26,11 @@ class UserPermission {
 	public function handle($request, Closure $next, $m) {
 
 		if ($m != "S") {
-			if (Auth::user()->user_type == "S" || Auth::user()->user_type == "O") {
+			if (Auth::user()->user_type == "S" || Auth::user()->user_type == "O" || Auth::user()->user_type == "M") {
 				$modules = unserialize(Auth::user()->getMeta('module'));
 
 				//dd($modules);
-				if ($m == 0 && Auth::user()->user_type == "S") {
+				if ($m == 0 && Auth::user()->user_type == "S" || Auth::user()->user_type == "M") {
 					return $next($request);
 				}
 				if (!in_array($m, $modules)) {
@@ -50,7 +50,7 @@ class UserPermission {
 			}
 		}
 		if ($m == "S") {
-			if (Auth::user()->user_type != "S") {
+			if (Auth::user()->user_type != "S" || Auth::user()->user_type != "M") {
 				abort(404);
 			}
 		}

@@ -685,7 +685,6 @@ class DriversController extends Controller {
 				->rawColumns(['payment', 'action', 'check', 'pickup_addr', 'dest_addr'])
 				->make(true);
 			//return datatables(User::all())->toJson();
-
 		}
 	}
 
@@ -767,7 +766,7 @@ class DriversController extends Controller {
 		}
 		$driver->load('vehicles');
 
-		if (Auth::user()->group_id == null || Auth::user()->user_type == "S") {
+		if (Auth::user()->group_id == null || Auth::user()->user_type == "S" || Auth::user()->user_type == "M") {
 			$vehicles = VehicleModel::get();
 		} else {
 			$vehicles = VehicleModel::where('group_id', Auth::user()->group_id)

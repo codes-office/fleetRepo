@@ -191,7 +191,7 @@ input:checked + .slider:before {
           </a>
         </li>
         <!-- Notifications Dropdown Menu -->
-        @if(Auth::user()->user_type=="S")
+        @if(Auth::user()->user_type=="S" || Auth::user()->user_type=="M")
         @php($r = 0)
         @php($i = 0)
         @php($l = 0)
@@ -264,7 +264,7 @@ input:checked + .slider:before {
                 @php($src=asset('uploads/'.Auth::user()->getMeta('driver_image')))
                 @endif
                 <img src="{{$src}}" class="img-size-50 mr-3 img-circle" alt="User Image">
-                @elseif(Auth::user()->user_type == 'S' || Auth::user()->user_type == 'O')
+                @elseif(Auth::user()->user_type == 'S' || Auth::user()->user_type == 'M')
                 @if(Auth::user()->getMeta('profile_image') == null)
                 <img src="{{ asset("assets/images/no-user.jpg")}}" class="img-size-50 mr-3 img-circle"
                   alt="User Image">
@@ -345,7 +345,7 @@ input:checked + .slider:before {
             @php($src=asset('uploads/'.Auth::user()->getMeta('driver_image')))
             @endif
             <img src="{{$src}}" class="img-circle elevation-2" alt="User Image">
-            @elseif(Auth::user()->user_type == 'S' || Auth::user()->user_type == 'O')
+            @elseif(Auth::user()->user_type == 'S' || Auth::user()->user_type == 'M')
             @if(Auth::user()->getMeta('profile_image') == null)
             <img src="{{ asset("assets/images/no-user.jpg")}}" class="img-circle elevation-2" alt="User Image">
             @else
@@ -698,7 +698,7 @@ input:checked + .slider:before {
 
               <!-- sidebar menus for office-admin and super-admin -->
 
-              @if(Auth::user()->user_type=="S" || Auth::user()->user_type=="O")
+              @if(Auth::user()->user_type=="S" || Auth::user()->user_type=="M")
               <li class="nav-item">
                 <a href="{{ url('admin/')}}" class="nav-link @if(Request::is('admin')) active @endif">
                   <i class="nav-icon fa fa-tachograph-digital"></i>
@@ -710,7 +710,7 @@ input:checked + .slider:before {
               </li>
               @endif
 
-              @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" )
+              @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  )
            
               @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/mlt')) || (Request::is('admin/customers*'))
               || (Request::is('admin/chat')) )
@@ -1629,7 +1629,7 @@ input:checked + .slider:before {
               </li> @endif
 
               @can('Inquiries list')
-              @if(in_array(Auth::user()->user_type, ['S','O']))
+              @if(in_array(Auth::user()->user_type, ['S','M']))
               <li class="nav-item">
                 <a href="{{ url('admin/messages')}}" class="nav-link @if(Request::is('admin/messages')) active @endif">
                   <i class="nav-icon fa fa-comments"></i>
@@ -1642,7 +1642,7 @@ input:checked + .slider:before {
               @endif
               @endcan
               @endif
-              @if(Auth::user()->user_type=="S")
+              @if(Auth::user()->user_type=="S" || Auth::user()->user_type=="M")
               <li class="nav-item">
                 <a href="https://goo.gl/forms/PtzIirmT3ap8m5dY2" target="_blank" class="nav-link">
                   <i class="nav-icon fa fa-comment"></i>
