@@ -41,6 +41,26 @@ class UsersController extends Controller {
 		return view("users.mltuser");
 	}
 
+	public function assignAdmin(Request $request)
+	{
+	  
+		// Validate the request
+		$request->validate([
+			'user_id' => 'required|exists:users,id',
+			'admin_id' => 'nullable|exists:users,id'
+		]);
+	
+		// Find the user by ID
+		$user = User::findOrFail($request->user_id);
+	
+		// Assign the admin to the user
+		$user->assigned_admin = $request->admin_id;
+		$user->save();
+	
+		// Return a JSON response indicating success
+		return response()->json(['success' => true]);
+	}
+	
 	public function fetch_data(Request $request) {
 		if ($request->ajax()) {
 			$users = User::with(['metas'])
@@ -117,7 +137,24 @@ class UsersController extends Controller {
 				->addColumn('action', function ($user) {
 					return view('users.list-actions', ['row' => $user]);
 				})
-				->rawColumns(['profile_image', 'action', 'check'])
+				->addColumn('assign_admin', function ($user) use ($admins) {
+					$dropdown = '<select class="form-control assign-admin-user" data-user-id="' . $user->id . '">';
+					$dropdown .= '<option value="">Select Admin</option>';
+	
+					foreach ($admins as $admin) {
+						$selected = ($user->assigned_admin == $admin->id) ? 'selected' : '';
+						$dropdown .= '<option value="' . $admin->id . '" ' . $selected . '>' . $admin->name . '</option>';
+					}
+	
+					$dropdown .= '</select>';
+					return $dropdown;
+				})
+
+
+            ->addColumn('assigned_admin', function($user){
+                return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
+            })
+			->rawColumns(['profile_image', 'action', 'check', 'assign_admin']) // Mark columns with HTML as raw
 				->make(true);
 		}
 	}	

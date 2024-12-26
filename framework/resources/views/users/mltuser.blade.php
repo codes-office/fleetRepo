@@ -44,6 +44,8 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
+              <th>Assign To</th>
+              <th>Assign Under</th>
             </tr>
           </thead>
           <tbody>
@@ -64,6 +66,8 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.created')</th>
               <th>@lang('fleet.action')</th>
+              <th>Assign To</th>
+              <th>Assign Under</th>
             </tr>
           </tfoot>
         </table>
@@ -213,7 +217,9 @@
             {data: 'name', name: 'name'},
             {data: 'email', name: 'email'},            
             {data: 'created_at', name: 'created_at'},
-            {data: 'action',name:'action',  searchable:false, orderable:false}
+            {data: 'action',name:'action',  searchable:false, orderable:false},
+            {data: 'assign_admin', name: 'assign_admin'}, 
+            {data: 'assigned_admin', name: 'assigned_admin'} 
         ],
         order: [[1, 'desc']],
         "initComplete": function() {
@@ -226,7 +232,36 @@
               });
             }
     });
+
+    $(document).on('change', '.assign-admin-user', function() {
+    var userId = $(this).data('user-id');
+    var adminId = $(this).val();
+
+    $.ajax({
+       url: "{{ url('admin/assign-admin-user') }}", // The URL to handle the admin assignment
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            user_id: userId,
+            admin_id: adminId
+        },
+        success: function(response) {
+                if (response.success) {
+                    // Reload the DataTable
+                    $('#ajax_data_table').DataTable().ajax.reload(null, false);
+                } else {
+                    alert('Failed to assign admin. Please try again.');
+                }
+            },
+        error: function(xhr) {
+            alert('An error occurred. Please try again.');
+        }
+    });
+});
   });
+
+
+
   $(document).on('click','input[type="checkbox"]',function(){
     if(this.checked){
       $('#bulk_delete').prop('disabled',false);

@@ -61,6 +61,7 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('roles', 'UserAccessController');
 
         Route::post('/users-fetch', 'UsersController@fetch_data');
+        Route::post('assign-admin-user', 'UsersController@assignAdmin'); // assing the admin 
         Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
         Route::resource('/users', 'UsersController');
        
@@ -205,6 +206,8 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('/settings', 'SettingsController');
         Route::post('/customers-fetch', 'CustomersController@fetch_data');
         Route::resource('/customers', 'CustomersController');
+        Route::post('assign-admin-customer', 'CustomersController@assignAdmin'); // assing the admin 
+        Route::post('customer-admin-fetch', 'CustomersController@fetch_admin_data');
         Route::resource('/expense', 'ExpenseController');
         Route::resource('/expensecategories', 'ExpenseCategories');
         Route::resource('/incomecategories', 'IncomeCategories');

@@ -26,7 +26,6 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceItemsModel;
 use App\Model\User;
-use App\Model\users_meta;
 use App\Model\VehicleModel;
 use App\Model\VehicleTypeModel;
 use Carbon\Carbon;
@@ -47,249 +46,250 @@ class DriversController extends Controller {
 		$this->middleware('permission:Drivers delete', ['only' => ['bulk_delete', 'destroy']]);
 		$this->middleware('permission:Drivers list');
 		$this->middleware('permission:Drivers import', ['only' => ['importDrivers']]);
-		$this->phone_code = array('+93' => '+93',
-			'+358' => '+358',
-			'+355' => '+355',
-			'+213' => '+213',
-			'+1 684' => '+1 684',
-			'+376' => '+376',
-			'+244' => '+244',
-			'+1 264' => '+1 264',
-			'+672' => '+672',
-			'+1268' => '+1268',
-			'+54' => '+54',
-			'+374' => '+374',
-			'+297' => '+297',
-			'+61' => '+61',
-			'+43' => '+43',
-			'+994' => '+994',
-			'+1 242' => '+1 242',
-			'+973' => '+973',
-			'+880' => '+880',
-			'+1 246' => '+1 246',
-			'+375' => '+375',
-			'+32' => '+32',
-			'+501' => '+501',
-			'+229' => '+229',
-			'+1 441' => '+1 441',
-			'+975' => '+975',
-			'+591' => '+591',
-			'+387' => '+387',
-			'+267' => '+267',
-			'+55' => '+55',
-			'+246' => '+246',
-			'+673' => '+673',
-			'+359' => '+359',
-			'+226' => '+226',
-			'+257' => '+257',
-			'+855' => '+855',
-			'+237' => '+237',
-			'+1' => '+1',
-			'+238' => '+238',
-			'+ 345' => '+ 345',
-			'+236' => '+236',
-			'+235' => '+235',
-			'+56' => '+56',
-			'+86' => '+86',
-			'+61' => '+61',
-			'+61' => '+61',
-			'+57' => '+57',
-			'+269' => '+269',
-			'+242' => '+242',
-			'+243' => '+243',
-			'+682' => '+682',
-			'+506' => '+506',
-			'+225' => '+225',
-			'+385' => '+385',
-			'+53' => '+53',
-			'+357' => '+357',
-			'+420' => '+420',
-			'+45' => '+45',
-			'+253' => '+253',
-			'+1 767' => '+1 767',
-			'+1 849' => '+1 849',
-			'+593' => '+593',
-			'+20' => '+20',
-			'+503' => '+503',
-			'+240' => '+240',
-			'+291' => '+291',
-			'+372' => '+372',
-			'+251' => '+251',
-			'+500' => '+500',
-			'+298' => '+298',
-			'+679' => '+679',
-			'+358' => '+358',
-			'+33' => '+33',
-			'+594' => '+594',
-			'+689' => '+689',
-			'+241' => '+241',
-			'+220' => '+220',
-			'+995' => '+995',
-			'+49' => '+49',
-			'+233' => '+233',
-			'+350' => '+350',
-			'+30' => '+30',
-			'+299' => '+299',
-			'+1 473' => '+1 473',
-			'+590' => '+590',
-			'+1 671' => '+1 671',
-			'+502' => '+502',
-			'+44' => '+44',
-			'+224' => '+224',
-			'+245' => '+245',
-			'+595' => '+595',
-			'+509' => '+509',
-			'+379' => '+379',
-			'+504' => '+504',
-			'+852' => '+852',
-			'+36' => '+36',
-			'+354' => '+354',
+		$this->phone_code = array(
+		  //  '+93' => '+93',
+// 			'+358' => '+358',
+// 			'+355' => '+355',
+// 			'+213' => '+213',
+// 			'+1 684' => '+1 684',
+// 			'+376' => '+376',
+// 			'+244' => '+244',
+// 			'+1 264' => '+1 264',
+// 			'+672' => '+672',
+// 			'+1268' => '+1268',
+// 			'+54' => '+54',
+// 			'+374' => '+374',
+// 			'+297' => '+297',
+// 			'+61' => '+61',
+// 			'+43' => '+43',
+// 			'+994' => '+994',
+// 			'+1 242' => '+1 242',
+// 			'+973' => '+973',
+// 			'+880' => '+880',
+// 			'+1 246' => '+1 246',
+// 			'+375' => '+375',
+// 			'+32' => '+32',
+// 			'+501' => '+501',
+// 			'+229' => '+229',
+// 			'+1 441' => '+1 441',
+// 			'+975' => '+975',
+// 			'+591' => '+591',
+// 			'+387' => '+387',
+// 			'+267' => '+267',
+// 			'+55' => '+55',
+// 			'+246' => '+246',
+// 			'+673' => '+673',
+// 			'+359' => '+359',
+// 			'+226' => '+226',
+// 			'+257' => '+257',
+// 			'+855' => '+855',
+// 			'+237' => '+237',
+// 			'+1' => '+1',
+// 			'+238' => '+238',
+// 			'+ 345' => '+ 345',
+// 			'+236' => '+236',
+// 			'+235' => '+235',
+// 			'+56' => '+56',
+// 			'+86' => '+86',
+// 			'+61' => '+61',
+// 			'+61' => '+61',
+// 			'+57' => '+57',
+// 			'+269' => '+269',
+// 			'+242' => '+242',
+// 			'+243' => '+243',
+// 			'+682' => '+682',
+// 			'+506' => '+506',
+// 			'+225' => '+225',
+// 			'+385' => '+385',
+// 			'+53' => '+53',
+// 			'+357' => '+357',
+// 			'+420' => '+420',
+// 			'+45' => '+45',
+// 			'+253' => '+253',
+// 			'+1 767' => '+1 767',
+// 			'+1 849' => '+1 849',
+// 			'+593' => '+593',
+// 			'+20' => '+20',
+// 			'+503' => '+503',
+// 			'+240' => '+240',
+// 			'+291' => '+291',
+// 			'+372' => '+372',
+// 			'+251' => '+251',
+// 			'+500' => '+500',
+// 			'+298' => '+298',
+// 			'+679' => '+679',
+// 			'+358' => '+358',
+// 			'+33' => '+33',
+// 			'+594' => '+594',
+// 			'+689' => '+689',
+// 			'+241' => '+241',
+// 			'+220' => '+220',
+// 			'+995' => '+995',
+// 			'+49' => '+49',
+// 			'+233' => '+233',
+// 			'+350' => '+350',
+// 			'+30' => '+30',
+// 			'+299' => '+299',
+// 			'+1 473' => '+1 473',
+// 			'+590' => '+590',
+// 			'+1 671' => '+1 671',
+// 			'+502' => '+502',
+// 			'+44' => '+44',
+// 			'+224' => '+224',
+// 			'+245' => '+245',
+// 			'+595' => '+595',
+// 			'+509' => '+509',
+// 			'+379' => '+379',
+// 			'+504' => '+504',
+// 			'+852' => '+852',
+// 			'+36' => '+36',
+// 			'+354' => '+354',
 			'+91' => '+91',
-			'+62' => '+62',
-			'+98' => '+98',
-			'+964' => '+964',
-			'+353' => '+353',
-			'+44' => '+44',
-			'+972' => '+972',
-			'+39' => '+39',
-			'+1 876' => '+1 876',
-			'+81' => '+81',
-			'+44' => '+44',
-			'+962' => '+962',
-			'+7 7' => '+7 7',
-			'+254' => '+254',
-			'+686' => '+686',
-			'+850' => '+850',
-			'+82' => '+82',
-			'+965' => '+965',
-			'+996' => '+996',
-			'+856' => '+856',
-			'+371' => '+371',
-			'+961' => '+961',
-			'+266' => '+266',
-			'+231' => '+231',
-			'+218' => '+218',
-			'+423' => '+423',
-			'+370' => '+370',
-			'+352' => '+352',
-			'+853' => '+853',
-			'+389' => '+389',
-			'+261' => '+261',
-			'+265' => '+265',
-			'+60' => '+60',
-			'+960' => '+960',
-			'+223' => '+223',
-			'+356' => '+356',
-			'+692' => '+692',
-			'+596' => '+596',
-			'+222' => '+222',
-			'+230' => '+230',
-			'+262' => '+262',
-			'+52' => '+52',
-			'+691' => '+691',
-			'+373' => '+373',
-			'+377' => '+377',
-			'+976' => '+976',
-			'+382' => '+382',
-			'+1664' => '+1664',
-			'+212' => '+212',
-			'+258' => '+258',
-			'+95' => '+95',
-			'+264' => '+264',
-			'+674' => '+674',
-			'+977' => '+977',
-			'+31' => '+31',
-			'+599' => '+599',
-			'+687' => '+687',
-			'+64' => '+64',
-			'+505' => '+505',
-			'+227' => '+227',
-			'+234' => '+234',
-			'+683' => '+683',
-			'+672' => '+672',
-			'+1 670' => '+1 670',
-			'+47' => '+47',
-			'+968' => '+968',
-			'+92' => '+92',
-			'+680' => '+680',
-			'+970' => '+970',
-			'+507' => '+507',
-			'+675' => '+675',
-			'+595' => '+595',
-			'+51' => '+51',
-			'+63' => '+63',
-			'+872' => '+872',
-			'+48' => '+48',
-			'+351' => '+351',
-			'+1 939' => '+1 939',
-			'+974' => '+974',
-			'+40' => '+40',
-			'+7' => '+7',
-			'+250' => '+250',
-			'+262' => '+262',
-			'+590' => '+590',
-			'+290' => '+290',
-			'+1 869' => '+1 869',
-			'+1 758' => '+1 758',
-			'+590' => '+590',
-			'+508' => '+508',
-			'+1 784' => '+1 784',
-			'+685' => '+685',
-			'+378' => '+378',
-			'+239' => '+239',
-			'+966' => '+966',
-			'+221' => '+221',
-			'+381' => '+381',
-			'+248' => '+248',
-			'+232' => '+232',
-			'+65' => '+65',
-			'+421' => '+421',
-			'+386' => '+386',
-			'+677' => '+677',
-			'+252' => '+252',
-			'+27' => '+27',
-			'+500' => '+500',
-			'+34' => '+34',
-			'+94' => '+94',
-			'+249' => '+249',
-			'+597' => '+597',
-			'+47' => '+47',
-			'+268' => '+268',
-			'+46' => '+46',
-			'+41' => '+41',
-			'+963' => '+963',
-			'+886' => '+886',
-			'+992' => '+992',
-			'+255' => '+255',
-			'+66' => '+66',
-			'+670' => '+670',
-			'+228' => '+228',
-			'+690' => '+690',
-			'+676' => '+676',
-			'+1 868' => '+1 868',
-			'+216' => '+216',
-			'+90' => '+90',
-			'+993' => '+993',
-			'+1 649' => '+1 649',
-			'+688' => '+688',
-			'+256' => '+256',
-			'+380' => '+380',
-			'+971' => '+971',
-			'+44' => '+44',
-			'+1' => '+1',
-			'+598' => '+598',
-			'+998' => '+998',
-			'+678' => '+678',
-			'+58' => '+58',
-			'+84' => '+84',
-			'+1 284' => '+1 284',
-			'+1 340' => '+1 340',
-			'+681' => '+681',
-			'+967' => '+967',
-			'+260' => '+260',
-			'+263' => '+263',
-			'+1 809' => '+1 809',
-			'+1 829' => '+1 829',
+// 			'+62' => '+62',
+// 			'+98' => '+98',
+// 			'+964' => '+964',
+// 			'+353' => '+353',
+// 			'+44' => '+44',
+// 			'+972' => '+972',
+// 			'+39' => '+39',
+// 			'+1 876' => '+1 876',
+// 			'+81' => '+81',
+// 			'+44' => '+44',
+// 			'+962' => '+962',
+// 			'+7 7' => '+7 7',
+// 			'+254' => '+254',
+// 			'+686' => '+686',
+// 			'+850' => '+850',
+// 			'+82' => '+82',
+// 			'+965' => '+965',
+// 			'+996' => '+996',
+// 			'+856' => '+856',
+// 			'+371' => '+371',
+// 			'+961' => '+961',
+// 			'+266' => '+266',
+// 			'+231' => '+231',
+// 			'+218' => '+218',
+// 			'+423' => '+423',
+// 			'+370' => '+370',
+// 			'+352' => '+352',
+// 			'+853' => '+853',
+// 			'+389' => '+389',
+// 			'+261' => '+261',
+// 			'+265' => '+265',
+// 			'+60' => '+60',
+// 			'+960' => '+960',
+// 			'+223' => '+223',
+// 			'+356' => '+356',
+// 			'+692' => '+692',
+// 			'+596' => '+596',
+// 			'+222' => '+222',
+// 			'+230' => '+230',
+// 			'+262' => '+262',
+// 			'+52' => '+52',
+// 			'+691' => '+691',
+// 			'+373' => '+373',
+// 			'+377' => '+377',
+// 			'+976' => '+976',
+// 			'+382' => '+382',
+// 			'+1664' => '+1664',
+// 			'+212' => '+212',
+// 			'+258' => '+258',
+// 			'+95' => '+95',
+// 			'+264' => '+264',
+// 			'+674' => '+674',
+// 			'+977' => '+977',
+// 			'+31' => '+31',
+// 			'+599' => '+599',
+// 			'+687' => '+687',
+// 			'+64' => '+64',
+// 			'+505' => '+505',
+// 			'+227' => '+227',
+// 			'+234' => '+234',
+// 			'+683' => '+683',
+// 			'+672' => '+672',
+// 			'+1 670' => '+1 670',
+// 			'+47' => '+47',
+// 			'+968' => '+968',
+// 			'+92' => '+92',
+// 			'+680' => '+680',
+// 			'+970' => '+970',
+// 			'+507' => '+507',
+// 			'+675' => '+675',
+// 			'+595' => '+595',
+// 			'+51' => '+51',
+// 			'+63' => '+63',
+// 			'+872' => '+872',
+// 			'+48' => '+48',
+// 			'+351' => '+351',
+// 			'+1 939' => '+1 939',
+// 			'+974' => '+974',
+// 			'+40' => '+40',
+// 			'+7' => '+7',
+// 			'+250' => '+250',
+// 			'+262' => '+262',
+// 			'+590' => '+590',
+// 			'+290' => '+290',
+// 			'+1 869' => '+1 869',
+// 			'+1 758' => '+1 758',
+// 			'+590' => '+590',
+// 			'+508' => '+508',
+// 			'+1 784' => '+1 784',
+// 			'+685' => '+685',
+// 			'+378' => '+378',
+// 			'+239' => '+239',
+// 			'+966' => '+966',
+// 			'+221' => '+221',
+// 			'+381' => '+381',
+// 			'+248' => '+248',
+// 			'+232' => '+232',
+// 			'+65' => '+65',
+// 			'+421' => '+421',
+// 			'+386' => '+386',
+// 			'+677' => '+677',
+// 			'+252' => '+252',
+// 			'+27' => '+27',
+// 			'+500' => '+500',
+// 			'+34' => '+34',
+// 			'+94' => '+94',
+// 			'+249' => '+249',
+// 			'+597' => '+597',
+// 			'+47' => '+47',
+// 			'+268' => '+268',
+// 			'+46' => '+46',
+// 			'+41' => '+41',
+// 			'+963' => '+963',
+// 			'+886' => '+886',
+// 			'+992' => '+992',
+// 			'+255' => '+255',
+// 			'+66' => '+66',
+// 			'+670' => '+670',
+// 			'+228' => '+228',
+// 			'+690' => '+690',
+// 			'+676' => '+676',
+// 			'+1 868' => '+1 868',
+// 			'+216' => '+216',
+// 			'+90' => '+90',
+// 			'+993' => '+993',
+// 			'+1 649' => '+1 649',
+// 			'+688' => '+688',
+// 			'+256' => '+256',
+// 			'+380' => '+380',
+// 			'+971' => '+971',
+// 			'+44' => '+44',
+// 			'+1' => '+1',
+// 			'+598' => '+598',
+// 			'+998' => '+998',
+// 			'+678' => '+678',
+// 			'+58' => '+58',
+// 			'+84' => '+84',
+// 			'+1 284' => '+1 284',
+// 			'+1 340' => '+1 340',
+// 			'+681' => '+681',
+// 			'+967' => '+967',
+// 			'+260' => '+260',
+// 			'+263' => '+263',
+// 			'+1 809' => '+1 809',
+// 			'+1 829' => '+1 829',
 
 		);
 	}
@@ -370,7 +370,7 @@ class DriversController extends Controller {
 				->leftJoin('vehicles', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
 
 				->with(['metas'])->whereUser_type("D")->groupBy('users.id');
-
+            $admins = User::where('user_type', 'M')->select('id', 'name')->get();
 			return DataTables::eloquent($users)
 				->addColumn('check', function ($user) {
 					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
@@ -407,8 +407,110 @@ class DriversController extends Controller {
 					return $user->phone_code . ' ' . $user->phone;
 				})
 
-				->addColumn('address', function ($user){
-					return $user->address;
+				->addColumn('start_date', function ($user) {
+					return $user->start_date;
+				})
+    			->addColumn('assign_admin', function ($user) use ($admins) {
+                     $dropdown = '<select class="form-control assign-admin" data-driver-id="' . $user->id . '">';
+                        $dropdown .= '<option value="">Select Admin</option>';
+                        foreach ($admins as $admin) {
+                            $dropdown .= '<option value="' . $admin->id . '">' . $admin->name . '</option>';
+                        }
+                        $dropdown .= '</select>';
+                        return $dropdown;
+                })
+                ->addColumn('assigned_admin',function($user){
+                  return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
+                })
+				->addColumn('action', function ($user) {
+					return view('drivers.list-actions', ['row' => $user]);
+				})
+				->filterColumn('is_active', function ($query, $keyword) {
+					$query->whereHas("metas", function ($q) use ($keyword) {
+						$q->where('key', 'is_active');
+						$q->whereRaw("IF(value = 1 , 'YES', 'NO') like ? ", ["%{$keyword}%"]);
+					});
+					return $query;
+				})
+				->filterColumn('phone', function ($query, $keyword) {
+					$query->whereHas("metas", function ($q) use ($keyword) {
+						$q->where(function ($q) use ($keyword) {
+							$q->where('key', 'phone');
+							$q->where("value", 'like', "%$keyword%");
+						})->orWhere(function ($q) use ($keyword) {
+							$q->where('key', 'phone_code');
+							$q->where("value", 'like', "%$keyword%");
+						});
+					});
+					return $query;
+				})
+				->filterColumn('start_date', function ($query, $keyword) {
+					$query->whereHas("metas", function ($q) use ($keyword) {
+						$q->where('key', 'start_date');
+						$q->where("value", 'like', "%$keyword%");
+					});
+					return $query;
+				})
+				->rawColumns(['driver_image', 'action', 'check', 'name','assign_admin'])
+				->make(true);
+			//return datatables(User::all())->toJson();
+
+		}
+	}
+	
+	public function assignAdmin(Request $request)
+{
+    
+    $driver = User::findOrFail($request->driver_id);
+    $driver->assigned_admin = $request->admin_id;
+    $driver->save();
+
+    return response()->json(['success' => true]);
+}
+    	public function fetch_admin_data(Request $request) {
+		if ($request->ajax()) {
+
+			$users = User::select('users.*')
+				->leftJoin('users_meta', 'users_meta.user_id', '=', 'users.id')
+				->leftJoin('driver_vehicle', 'driver_vehicle.driver_id', '=', 'users.id')
+				->leftJoin('vehicles', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
+                ->where('users.assigned_admin', Auth::user()->id)
+				->with(['metas'])->whereUser_type("D")->groupBy('users.id');
+
+			return DataTables::eloquent($users)
+				->addColumn('check', function ($user) {
+					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
+				})
+				->editColumn('name', function ($user) {
+					return "<a href=" . route('drivers.show', $user->id) . ">$user->name</a>";
+				})
+				->addColumn('driver_image', function ($user) {
+					$src = ($user->driver_image != null)?asset('uploads/' . $user->driver_image): asset('assets/images/no-user.jpg');
+
+					return '<img src="' . $src . '" height="70px" width="70px">';
+				})
+			// ->addColumn('vehicle', function ($user) {
+			//     // return ($user->vehicle_id != null) ? $user->driver_vehicle->vehicle->make_name . '-' . $user->driver_vehicle->vehicle->model_name . '-' . $user->driver_vehicle->vehicle->license_plate : '';
+
+			//     # below code is using many-to-many relations
+			//     // dd($user);
+			//     $vehicles = [];
+			//     foreach ($user->vehicles as $vehicle) {
+			//         $vehicles[] = $vehicle->make_name . '-' . $vehicle->model_name . '-' . $vehicle->license_plate;
+			//     }
+
+			//     return implode(', ', $vehicles);
+
+			// })
+			// ->filterColumn('vehicle', function ($query, $keyword) {
+			//     $query->whereRaw("CONCAT(vehicles.make_name , '-' , vehicles.model_name , '-' , vehicles.license_plate) like ?", ["%$keyword%"]);
+			//     return $query;
+			// })
+				->addColumn('is_active', function ($user) {
+					return ($user->is_active == 1) ? "YES" : "NO";
+				})
+				->addColumn('phone', function ($user) {
+					return $user->phone_code . ' ' . $user->phone;
 				})
 
 				->addColumn('start_date', function ($user) {
@@ -449,7 +551,8 @@ class DriversController extends Controller {
 
 		}
 	}
-
+	
+	
 	public function show($id) {
 		$index['driver'] = User::find($id);
 		// $index['driver']->load('metas');
@@ -772,36 +875,59 @@ class DriversController extends Controller {
 	}
 
 	public function store(DriverRequest $request) {
-		// Create a new user
-		$user = User::create([
+		// dd($request->all());
+		// $request->validate([
+		// 	'emp_id' => ['required', new UniqueEId],
+		// 	'license_number' => ['required', new UniqueLicenceNumber],
+		// 	'contract_number' => ['required', new UniqueContractNumber],
+		// 	'first_name' => 'required',
+		// 	'last_name' => 'required',
+		// 	'address' => 'required',
+		// 	'phone' => 'required|numeric',
+		// 	'email' => 'required|email|unique:users,email,' . \Request::get("id"),
+		// 	'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
+		// 	'start_date' => 'date|date_format:Y-m-d',
+		// 	'issue_date' => 'date|date_format:Y-m-d',
+		// 	'end_date' => 'nullable|date|date_format:Y-m-d',
+		// 	'driver_image' => 'nullable|mimes:jpg,png,jpeg',
+		// 	'license_image' => 'nullable|mimes:jpg,png,jpeg',
+		// 	'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+		// 	'driver_commision_type' => 'required',
+		// 	'driver_commision' => 'required|numeric',
+		// ]);
+
+		$id = User::create([
 			"name" => $request->get("first_name") . " " . $request->get("last_name"),
 			"email" => $request->get("email"),
 			"password" => bcrypt($request->get("password")),
 			"user_type" => "D",
 			'api_token' => str_random(60),
-			"address" => $request->get("address"),
-		]);
-	
-		// Associate user with the authenticated admin
+		])->id;
+		$user = User::find($id);
 		$user->user_id = Auth::user()->id;
-	
-		// Handle file uploads
+
 		if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
-			$this->upload_file($request->file('driver_image'), "driver_image", $user->id);
+
+			$this->upload_file($request->file('driver_image'), "driver_image", $id);
 		}
-	
+
 		if ($request->file('license_image') && $request->file('license_image')->isValid()) {
-			$this->upload_file($request->file('license_image'), "license_image", $user->id);
+			$this->upload_file($request->file('license_image'), "license_image", $id);
 			$user->id_proof_type = "License";
+			$user->save();
 		}
-	
 		if ($request->file('documents')) {
-			$this->upload_file($request->file('documents'), "documents", $user->id);
+			$this->upload_file($request->file('documents'), "documents", $id);
+
 		}
-	
-		// Save other user details
+
+		$form_data = $request->all();
+		unset($form_data['driver_image']);
+		unset($form_data['documents']);
+		unset($form_data['license_image']);
 		$user->first_name = $request->get('first_name');
 		$user->last_name = $request->get('last_name');
+
 		$user->address = $request->get('address');
 	
 		// Save additional metadata
@@ -815,100 +941,27 @@ class DriversController extends Controller {
 
 	
 		// Save user changes
+
 		$user->save();
-	
-		// Assign permissions to the user
-		$user->givePermissionTo([
-			'Notes add', 'Notes edit', 'Notes delete', 'Notes list', 
-			'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 
-			'Fuel list', 'VehicleInspection add', 'Transactions list', 
-			'Transactions add', 'Transactions edit', 'Transactions delete'
-		]);
-	
-		// Redirect back to drivers list
-		return redirect()->route("drivers.index")->with('success', 'Driver created successfully!');
+		$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
+
+		// $vehicle = VehicleModel::find($request->get('vehicle_id'));
+		// $vehicle->setMeta(['driver_id' => $user->id]);
+		// $vehicle->save();
+		// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
+		// DriverVehicleModel::updateOrCreate(
+		//     ['vehicle_id' => $request->get('vehicle_id')],
+		//     ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
+
+		# many-to-many driver vehicle relation.
+		// $user->vehicles()->sync($request->vehicle_id);
+		// foreach ($request->vehicle_id as $v_id) {
+		//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
+		// }
+
+		return redirect()->route("drivers.index");
+
 	}
-	
-	
-	// public function store(DriverRequest $request) {
-	// 	//dd(Auth::user()->id);
-	// 	// $request->validate([
-	// 	// 	'emp_id' => ['required', new UniqueEId],
-	// 	// 	'license_number' => ['required', new UniqueLicenceNumber],
-	// 	// 	'contract_number' => ['required', new UniqueContractNumber],
-	// 	// 	'first_name' => 'required',
-	// 	// 	'last_name' => 'required',
-	// 	// 	'address' => 'required',
-	// 	// 	'phone' => 'required|numeric',
-	// 	// 	'email' => 'required|email|unique:users,email,' . \Request::get("id"),
-	// 	// 	'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
-	// 	// 	'start_date' => 'date|date_format:Y-m-d',
-	// 	// 	'issue_date' => 'date|date_format:Y-m-d',
-	// 	// 	'end_date' => 'nullable|date|date_format:Y-m-d',
-	// 	// 	'driver_image' => 'nullable|mimes:jpg,png,jpeg',
-	// 	// 	'license_image' => 'nullable|mimes:jpg,png,jpeg',
-	// 	// 	'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
-	// 	// 	'driver_commision_type' => 'required',
-	// 	// 	'driver_commision' => 'required|numeric',
-	// 	// ]);
-
-	// 	dd($request->all());
-	// 	exit;
-
-	// 	$id = User::create([
-	// 		"name" => $request->get("first_name") . " " . $request->get("last_name"),
-	// 		"email" => $request->get("email"),
-	// 		"password" => bcrypt($request->get("password")),
-	// 		"user_type" => "D",
-	// 		'api_token' => str_random(60),
-	// 		"address" => $request->get("address"),
-	// 	])->id;
-	// 	$user = User::find($id);
-	// 	$user->user_id = Auth::user()->id;
-
-	// 	if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
-
-	// 		$this->upload_file($request->file('driver_image'), "driver_image", $id);
-	// 	}
-
-	// 	if ($request->file('license_image') && $request->file('license_image')->isValid()) {
-	// 		$this->upload_file($request->file('license_image'), "license_image", $id);
-	// 		$user->id_proof_type = "License";
-	// 		$user->save();
-	// 	}
-	// 	if ($request->file('documents')) {
-	// 		$this->upload_file($request->file('documents'), "documents", $id);
-
-	// 	}
-
-	// 	$form_data = $request->all();
-	// 	unset($form_data['driver_image']);
-	// 	unset($form_data['documents']);
-	// 	unset($form_data['license_image']);
-	// 	$user->first_name = $request->get('first_name');
-	// 	$user->last_name = $request->get('last_name');
-	// 	$user->address = $request->get('address');
-	// 	$user->setMeta($form_data);
-	// 	$user->save();
-	// 	$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
-
-	// 	// $vehicle = VehicleModel::find($request->get('vehicle_id'));
-	// 	// $vehicle->setMeta(['driver_id' => $user->id]);
-	// 	// $vehicle->save();
-	// 	// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
-	// 	// DriverVehicleModel::updateOrCreate(
-	// 	//     ['vehicle_id' => $request->get('vehicle_id')],
-	// 	//     ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
-
-	// 	# many-to-many driver vehicle relation.
-	// 	// $user->vehicles()->sync($request->vehicle_id);
-	// 	// foreach ($request->vehicle_id as $v_id) {
-	// 	//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
-	// 	// }
-
-	// 	return redirect()->route("drivers.index");
-
-	// }
 
 	public function enable($id) {
 		// $driver = UserMeta::whereUser_id($id)->first();
@@ -946,6 +999,52 @@ class DriversController extends Controller {
 		// $data['data'] = Bookings::orderBy('id', 'desc')->whereDriver_id(Auth::user()->id)->get();
 		return view('drivers.my_bookings', compact('data'));
 	}
+// public function my_bookings(Request $request)
+// {
+//     // if ($request->ajax()) {
+//     //     $date_format_setting = Hyvikk::get('date_format') ?: 'd-m-Y';
+
+//     //     $bookings = Bookings::where('driver_id', Auth::id())
+//     //         ->where('ride_status', '!=', 'Cancelled')
+//     //         ->latest()
+//     //         ->select('bookings.*')
+//     //         ->leftJoin('vehicles', 'bookings.vehicle_id', '=', 'vehicles.id')
+//     //         ->leftJoin('bookings_meta', function ($join) {
+//     //             $join->on('bookings_meta.booking_id', '=', 'bookings.id')
+//     //                 ->where('bookings_meta.key', '=', 'vehicle_typeid');
+//     //         })
+//     //         ->leftJoin('vehicle_types', 'bookings_meta.value', '=', 'vehicle_types.id')
+//     //         ->with(['customer']);
+
+//     //     return DataTables::eloquent($bookings)
+//     //         ->addColumn('customer', function ($row) {
+//     //             return $row->customer->name ?? '';
+//     //         })
+//     //         ->addColumn('vehicle', function ($row) {
+//     //             return $row->vehicle->make_name . ' - ' . $row->vehicle->model_name . ' - ' . $row->vehicle->license_plate;
+//     //         })
+//     //         ->editColumn('pickup', function ($row) use ($date_format_setting) {
+//     //             return date($date_format_setting . ' g:i A', strtotime($row->pickup));
+//     //         })
+//     //         ->editColumn('dropoff', function ($row) use ($date_format_setting) {
+//     //             return date($date_format_setting . ' g:i A', strtotime($row->dropoff));
+//     //         })
+//     //         ->editColumn('pickup_addr', function ($row) {
+//     //             return $row->pickup_addr;
+//     //         })
+//     //         ->editColumn('dropoff_addr', function ($row) {
+//     //             return $row->dest_addr;
+//     //         })
+//     //         ->addColumn('passengers', function ($row) {
+//     //             return $row->travellers;
+//     //         })
+//     //         ->make(true);
+//     // }
+
+//     return view('drivers.my_bookings');
+// }
+
+
 
 	public function yearly() {
 		$bookings = DriverLogsModel::where('driver_id', Auth::user()->id)->get();
