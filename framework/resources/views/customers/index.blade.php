@@ -36,7 +36,52 @@
       </div>
 
       <div class="card-body table-responsive">
-        <table class="table" id="ajax_data_table" style="padding-bottom: 25px">
+ @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'O')
+    <table class="table" id="ajax_data_table" style="padding-bottom: 25px">
+      <thead class="thead-inverse">
+        <tr>
+          <th>
+            <input type="checkbox" id="chk_all">
+          </th>
+          <th>@lang('fleet.name')</th>
+          <th>@lang('fleet.email')</th>
+          <th>@lang('fleet.phone')</th>
+          <th>@lang('fleet.gender')</th>
+          <th>Home Address</th>
+          <th>Office Address</th>
+          <th>@lang('fleet.action')</th>
+          
+          <th>Employee Assigned To</th>
+          <th>Employee Assigned Under</th>
+          
+        </tr>
+      </thead>
+      <tbody>
+        
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>
+            @can('Customer delete')<button class="btn btn-danger" id="bulk_delete" data-toggle="modal" data-target="#bulkModal" disabled title="@lang('fleet.delete')"><i class="fa fa-trash"></i></button>@endcan
+          </th>
+          <th>@lang('fleet.name')</th>
+          <th>@lang('fleet.email')</th>
+          <th>@lang('fleet.phone')</th>
+          <th>@lang('fleet.gender')</th>
+          <th>Home Address</th>
+          <th>Office Address</th>
+          <th>@lang('fleet.action')</th>
+          @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'O')
+          <th>Employee Assigned To</th>
+          <th>Employee Assigned Under</th>
+          @endif
+        </tr>
+      </tfoot>
+    </table>
+    @endif
+    @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" && Auth::user()->user_type != "M"   && Auth::user()->user_type != 'S')
+    
+            <table class="table" id="ajax_admin_data_table" style="padding-bottom: 25px">
           <thead class="thead-inverse">
             <tr>
               <th>
@@ -46,8 +91,11 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.phone')</th>
               <th>@lang('fleet.gender')</th>
-              <th>@lang('fleet.address')</th>
+              <th>Home Address</th>
+              <th>Office Address</th>
               <th>@lang('fleet.action')</th>
+               
+              
             </tr>
           </thead>
           <tbody>
@@ -62,12 +110,16 @@
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.phone')</th>
               <th>@lang('fleet.gender')</th>
-              <th>@lang('fleet.address')</th>
+              <th>Home Address</th>
+                <th>Office Address</th>
               <th>@lang('fleet.action')</th>
+         
             </tr>
           </tfoot>
         </table>
-      </div>
+       @endif
+  </div>
+
     </div>
   </div>
 </div>
@@ -234,42 +286,112 @@
     $('#changepass').modal("hide");
     e.preventDefault();
   });
-
   $(function(){
-    
-    var table = $('#ajax_data_table').DataTable({
-          "language": {
-              "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
-          },
-         processing: true,
-         serverSide: true,
-        //  stateSave: true,
-         ajax: {
-          url: "{{ url('admin/customers-fetch') }}",
-          type: 'POST',
-          data:{}
-         },
-         columns: [
-            {data: 'check',name:'check', searchable:false, orderable:false},
+  
+  var table = $('#ajax_data_table').DataTable({
+        "language": {
+            "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
+        },
+      processing: true,
+      serverSide: true,
+      //  stateSave: true,
+      ajax: {
+        url: "{{ url('admin/customers-fetch') }}",
+        type: 'POST',
+        data:{}
+      },
+      columns: [
+          {data: 'check',name:'check', searchable:false, orderable:false},
+          {data: 'name', name: 'name'},
+          {data: 'email', name: 'email'},            
+          {data: 'mobno', name: 'user_data.value'},            
+          {data: 'gender', name: 'user_data.value'},            
+         {data: 'home_address', name: 'user_data.value'},
+        {data: 'office_address', name: 'user_data.value'},
+          {data: 'action',name:'action',  searchable:false, orderable:false},
+          {data : 'assign_admin',name:'assign_admin'},
+          {data : 'assigned_admin',name:'assigned_admin'}
+      ],
+      order: [[1, 'desc']],
+      "initComplete": function() {
+            table.columns().every(function () {
+              var that = this;
+              $('input', this.footer()).on('keyup change', function () {
+                that.search(this.value).draw();
+              });
+            });
+          }
+  });
+
+ $(document).on('change', '.assign-admin-customer', function() {
+    var customerId = $(this).data('customer-id');
+    var adminId = $(this).val();
+
+    $.ajax({
+      url: "{{ url('admin/assign-admin-customer') }}",
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            customer_id: customerId,
+            admin_id: adminId
+        },
+        success: function(response) {
+                if (response.success) {
+                    // Reload the DataTable
+                    $('#ajax_data_table').DataTable().ajax.reload(null, false);
+                } else {
+                    alert('Failed to assign admin. Please try again.');
+                }
+            },
+        error: function(xhr) {
+            alert('An error occurred while assigning the admin. Please try again.');
+        }
+    });
+});
+
+
+
+});
+// fetch the data to admins
+$(function() {
+    var adminId = {{ Auth::user()->id }}; // Get the current admin's ID
+
+    var table = $('#ajax_admin_data_table').DataTable({
+        "language": {
+            "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
+        },
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ url('admin/customer-admin-fetch') }}",
+            type: 'POST',
+            data: function (d) {
+                d.admin_id = adminId; // Send the admin ID with the request
+            }
+        },
+        columns: [
+            {data: 'check', name: 'check', searchable: false, orderable: false},
             {data: 'name', name: 'name'},
-            {data: 'email', name: 'email'},            
-            {data: 'mobno', name: 'user_data.value'},            
-            {data: 'gender', name: 'user_data.value'},            
-            {data: 'address', name: 'user_data.value'},
-            {data: 'action',name:'action',  searchable:false, orderable:false}
+            {data: 'email', name: 'email'},
+            {data: 'mobno', name: 'user_data.value'},
+            {data: 'gender', name: 'user_data.value'},
+            {data: 'home_address', name: 'user_data.value'},
+            {data: 'office_address', name: 'user_data.value'},
+            {data: 'action', name: 'action', searchable: false, orderable: false}
         ],
         order: [[1, 'desc']],
         "initComplete": function() {
-              table.columns().every(function () {
+            table.columns().every(function () {
                 var that = this;
                 $('input', this.footer()).on('keyup change', function () {
-                  // console.log($(this).parent().index());
                     that.search(this.value).draw();
                 });
-              });
-            }
+            });
+        }
     });
-  });
+});
+
+
   $(document).on('click','input[type="checkbox"]',function(){
     if(this.checked){
       $('#bulk_delete').prop('disabled',false);
