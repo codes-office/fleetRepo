@@ -791,7 +791,6 @@ class DriversController extends Controller {
 	}
 
 	public function update(DriverRequest $request) {
-		// dd($request->all());
 		$id = $request->get('id');
 		$user = User::find($id);
 
@@ -847,6 +846,7 @@ class DriversController extends Controller {
 		$user->middle_name = $name[1] ?? '';
 		$user->last_name = $name[2] ?? '';
 		$user->email = $request->get('email');
+		$user->address = $request->get('address');
 		$user->save();
 		// $user->driver_image = $request->get('driver_image');
 		$form_data = $request->all();
@@ -928,7 +928,21 @@ class DriversController extends Controller {
 		unset($form_data['license_image']);
 		$user->first_name = $request->get('first_name');
 		$user->last_name = $request->get('last_name');
-		$user->setMeta($form_data);
+
+		$user->address = $request->get('address');
+	
+		// Save additional metadata
+		$form_data = $request->except(['driver_image', 'license_image', 'documents']); // Exclude file fields
+		$user->setMeta($form_data); // Save other form data as meta
+	
+		// Save latitude and longitude as specific keys
+		$user->setMeta(['home_lat' => $request->get('latitude')]);
+		$user->setMeta(['home_lng' => $request->get('longitude')]);
+		$user->setMeta(['address' => $request->get('address')]);
+
+	
+		// Save user changes
+
 		$user->save();
 		$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
 
