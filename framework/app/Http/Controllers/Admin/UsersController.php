@@ -44,10 +44,14 @@ class UsersController extends Controller {
 	public function fetch_data(Request $request) {
 		if ($request->ajax()) {
 			$users = User::with(['metas'])
-				->where(function ($query) {
-					$query->where('user_type', 'O')
-						  ->orWhere('user_type', 'S');
-				});
+			->where(function ($query) {
+				$query->where('user_type', 'O')
+					  ->orWhere('user_type', 'S');
+			})
+			->whereHas('metas', function ($query) {
+				$query->where('key', 'client')->where('value', 1);
+			});
+
 	
 			$date_format_setting = (Hyvikk::get('date_format')) ? Hyvikk::get('date_format') : 'd-m-Y';
 	
@@ -60,7 +64,7 @@ class UsersController extends Controller {
 						$tag = '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
 					}
 					return $tag;
-				})
+				}) 
 				->addColumn('profile_image', function ($user) {
 					$src = ($user->profile_image != null) ? asset('uploads/' . $user->profile_image) : asset('assets/images/no-user.jpg');
 					return '<img src="' . $src . '" height="70px" width="70px">';
@@ -77,11 +81,20 @@ class UsersController extends Controller {
 	}	
 	public function mlt_fetch_data(Request $request) {
 		if ($request->ajax()) {
-			$users = User::with(['metas'])
-				->where(function ($query) {
-					$query->where('user_type', 'M');
-				});
+			// $users = User::with(['metas'])
+			// 	->where(function ($query) {
+			// 		$query->where('user_type', 'O');
+			// 	});
 	
+			$users = User::with(['metas'])
+			->where(function ($query) {
+				$query->where('user_type', 'O');
+			})
+			->whereHas('metas', function ($query) {
+				$query->where('key', 'client')->where('value', 0);
+			});
+		
+
 			$date_format_setting = (Hyvikk::get('date_format')) ? Hyvikk::get('date_format') : 'd-m-Y';
 	
 			return DataTables::eloquent($users)
@@ -147,9 +160,12 @@ class UsersController extends Controller {
 		if ($role['name'] == "Super Admin") {
 			$user_type = 'S';
 		} else if($role['name'] == "MLT Admin") {
-			$user_type = 'M';
+			$user_type = 'O';
+			$client ="0";
+			
 		} else {
 			$user_type = 'O';
+			$client ="1";
 		}
 
 		$id = User::create([
@@ -172,7 +188,7 @@ class UsersController extends Controller {
 		$user->setMeta(['emsourcelat' => $request->get('latitude')]);
 		$user->setMeta(['emsourcelong' => $request->get('longitude')]);
 		$user->setMeta(['address' => $request->get('address')]);
-	
+		$user->setMeta(['Client' => $client]);
 		$user->save();
 		$role = Role::find($request->role_id);
 		$user->assignRole($role);
@@ -211,7 +227,7 @@ class UsersController extends Controller {
 		if ($role['name'] == "Super Admin") {
 			$user->user_type = 'S';
 		} else {
-			$user->user_type = 'O';
+			$user->user_type = 'M';
 		}
 
 		$user->save();

@@ -189,7 +189,7 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/vendors-fetch', 'VendorController@fetch_data');
         Route::resource('/vendors', 'VendorController');
         Route::post('drivers-fetch', 'DriversController@fetch_data');
-        Route::resource('/drivers', 'DriversController');
+        Route::resource('/drivers', 'DriversController');       
         Route::resource('/parts', 'PartsController');
         Route::post('/vehicles-fetch', 'VehiclesController@fetch_data');
         Route::resource('/vehicles', 'VehiclesController');
