@@ -105,7 +105,7 @@ class UsersController extends Controller {
 			// 	->where(function ($query) {
 			// 		$query->where('user_type', 'O');
 			// 	});
-	
+			$admins = User::where('user_type', 'O')->select('id', 'name')->get();
 			$users = User::with(['metas'])
 			->where(function ($query) {
 				$query->where('user_type', 'O');
@@ -137,7 +137,7 @@ class UsersController extends Controller {
 				->addColumn('action', function ($user) {
 					return view('users.list-actions', ['row' => $user]);
 				})
-				->addColumn('assign_admin', function ($user) use ($admins) {
+		 		->addColumn('assign_admin', function ($user) use ($admins) {
 					$dropdown = '<select class="form-control assign-admin-user" data-user-id="' . $user->id . '">';
 					$dropdown .= '<option value="">Select Admin</option>';
 	
