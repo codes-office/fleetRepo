@@ -33,6 +33,7 @@ use DataTables;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Maatwebsite\Excel\Facades\Excel;
@@ -370,7 +371,15 @@ class DriversController extends Controller {
 				->leftJoin('vehicles', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
 
 				->with(['metas'])->whereUser_type("D")->groupBy('users.id');
-            $admins = User::where('user_type', 'M')->select('id', 'name')->get();
+            	// Fetch all admins
+			$admins = User::with(['metas'])
+			->where(function ($query) {
+				$query->where('user_type', 'O');
+			})
+			->whereHas('metas', function ($query) {
+				$query->where('key', 'client')->where('value', 0);
+			})
+			->select('id', 'name')->get();
 			return DataTables::eloquent($users)
 				->addColumn('check', function ($user) {
 					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
@@ -460,7 +469,7 @@ class DriversController extends Controller {
 	
 	public function assignAdmin(Request $request)
 {
-    
+    Log::info($request->all());
     $driver = User::findOrFail($request->driver_id);
     $driver->assigned_admin = $request->admin_id;
     $driver->save();
