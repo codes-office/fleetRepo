@@ -90,7 +90,14 @@ class CustomersController extends Controller {
 				->groupBy('users.id');
 	
 			// Fetch all admins
-			$admins = User::where('user_type', 'O')->select('id', 'name')->get();
+			$admins = User::with(['metas'])
+			->where(function ($query) {
+				$query->where('user_type', 'O');
+			})
+			->whereHas('metas', function ($query) {
+				$query->where('key', 'client')->where('value', 1);
+			})
+			->select('id', 'name')->get();
 	
 			return DataTables::eloquent($users)
 				->addColumn('check', function ($user) {
