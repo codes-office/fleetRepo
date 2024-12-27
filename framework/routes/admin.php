@@ -63,8 +63,9 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/users-fetch', 'UsersController@fetch_data');
         Route::post('assign-admin-user', 'UsersController@assignAdmin'); // assing the admin 
         Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
+        Route::post('/assign-admin', 'DriversController@assignAdmin');
         Route::resource('/users', 'UsersController');
-       
+        
         Route::get('mlt', 'UsersController@mltindex');
 
         Route::get('twilio-settings', 'TwilioController@index');
