@@ -474,6 +474,7 @@ public function assignAdmin(Request $request)
     $request->validate([
         'driver_id' => 'required|exists:users,id',
         'admin_id' => 'required|exists:users,id',
+		
     ]);
 
     try {
