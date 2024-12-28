@@ -23,7 +23,7 @@
 
 @section('breadcrumb')
     <li class="breadcrumb-item "><a href="{{ route('timeslots.index') }}">All Timeslots</a></li>
-    <li class="breadcrumb-item active">timeslots</li>
+    <li class="breadcrumb-item active">Timeslots</li>
 @endsection
 
 @section('content')
@@ -50,8 +50,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Created By</th>
-                                <th>Pickup Time</th>
-                                <th>Drop Time</th>
+                                <th>Slot</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -60,8 +59,7 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $timeslot->user->name ?? 'Unknown' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($timeslot->pickup_time)->format('h:i A') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($timeslot->drop_time)->format('h:i A') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($timeslot->pickup_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($timeslot->drop_time)->format('H:i') }}</td>
                                     <td>
                                         <a href="{{ route('timeslots.edit', $timeslot->id) }}" class="btn btn-warning btn-sm">Edit</a>
                                         <form action="{{ route('timeslots.destroy', $timeslot->id) }}" method="POST" style="display: inline-block;">
@@ -73,7 +71,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center">No timeslots available.</td>
+                                    <td colspan="4" class="text-center">No timeslots available.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -90,6 +88,15 @@
 
 @section('script')
     <script>
-        var datet = "{{date('Y-m-d H:i:s')}}";
+        // Ensure jQuery is loaded and use the following to fade out success messages after 3 seconds
+        $(document).ready(function() {
+            // Check if a success message is present
+            @if(session('success'))
+                // Fade out the success message after 3 seconds
+                setTimeout(function() {
+                    $(".alert-success").fadeOut("slow");
+                }, 3000); // 3000ms = 3 seconds
+            @endif
+        });
     </script>
 @endsection
