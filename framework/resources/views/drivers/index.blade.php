@@ -129,7 +129,7 @@
               {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
               <th>@lang('fleet.start_date')</th>
               <th>@lang('fleet.action')</th>
-              
+               <th>@lang('fleet.assign_admin')</th>
             </tr>
           </thead>
           <tbody>
@@ -359,29 +359,34 @@
             }
     });
     $(document).on('change', '.assign-admin', function() {
-        var driverId = $(this).data('driver-id');
-        var adminId = $(this).val();
+      console.log('hi there');
+      const driverId = $(this).data('driver-id'); // Fetch the driver ID from the data attribute
+    const adminId = $(this).val(); // Fetch the selected admin ID
     
-        $.ajax({
-            url: "{{ url('admin/assign-admin') }}",
-            method: 'POST',
-            data: {
-                driver_id: driverId,
-                admin_id: adminId,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Reload the DataTable
-                    $('#ajax_data_table').DataTable().ajax.reload(null, false);
-                } else {
-                    alert('Failed to assign admin. Please try again.');
-                }
-            },
-            error: function() {
-                alert('An error occurred. Please try again.');
-            }
-        });
+    console.log('Driver ID:', driverId);
+    console.log('Admin ID:', adminId);
+
+    
+    $.ajax({
+    url: "{{ url('admin/assign-admin') }}",
+    method: 'POST',
+    data: {
+        _token: '{{ csrf_token() }}',
+        driver_id: driverId,
+        admin_id: adminId
+    },
+    success: function(response) {
+        console.log('Success response:', response);
+        alert(response.message);
+        $('#ajax_data_table').DataTable().ajax.reload(null, false);
+    },
+    error: function(xhr) {
+        console.error('Error response:', xhr.responseText);
+        alert('Server error: ' + xhr.status + ' ' + xhr.statusText);
+    }
+});
+
+
     });
   });
   $(function(){
