@@ -65,8 +65,7 @@ class UsersController extends Controller {
 		if ($request->ajax()) {
 			$users = User::with(['metas'])
 			->where(function ($query) {
-				$query->where('user_type', 'O')
-					  ->orWhere('user_type', 'S');
+				$query->where('user_type', 'O')	;
 			})
 			->whereHas('metas', function ($query) {
 				$query->where('key', 'client')->where('value', 1);
@@ -99,13 +98,23 @@ class UsersController extends Controller {
 				->make(true);
 		}
 	}	
+
+	
 	public function mlt_fetch_data(Request $request) {
 		if ($request->ajax()) {
 			// $users = User::with(['metas'])
 			// 	->where(function ($query) {
 			// 		$query->where('user_type', 'O');
 			// 	});
-	
+			$admins = User::with(['metas'])
+			->where(function ($query) {
+				$query->where('user_type', 'O');
+			})
+			->whereHas('metas', function ($query) {
+				$query->where('key', 'client')->where('value', 1);
+			})->select('id', 'name')->get();
+
+
 			$users = User::with(['metas'])
 			->where(function ($query) {
 				$query->where('user_type', 'O');
@@ -137,7 +146,7 @@ class UsersController extends Controller {
 				->addColumn('action', function ($user) {
 					return view('users.list-actions', ['row' => $user]);
 				})
-				->addColumn('assign_admin', function ($user) use ($admins) {
+		 		->addColumn('assign_admin', function ($user) use ($admins) {
 					$dropdown = '<select class="form-control assign-admin-user" data-user-id="' . $user->id . '">';
 					$dropdown .= '<option value="">Select Admin</option>';
 	
