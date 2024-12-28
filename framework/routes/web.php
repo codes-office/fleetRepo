@@ -1,5 +1,9 @@
 <?php
 
+
+Route::get('/send-fcm-notification', 'FirebaseController@sendNotification')->name('send.notification');
+
+
 Route::group(['middleware' => ['IsInstalled', 'lang_check_user', 'front_enable']], function () {
     // define all routes here
     Route::get('/', 'FrontEnd\HomeController@index')->name('frontend.home');
