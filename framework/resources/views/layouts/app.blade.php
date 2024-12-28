@@ -955,11 +955,11 @@ input:checked + .slider:before {
                     <li class="nav-item">
                       <a href="{{ url('admin/timeslots') }}" 
                         class="nav-link @if(Request::is('admin/timeslots')) active @endif"> 
-                        {{-- adding timeslots is here --}}
-                        <i class="fa fa-compress nav-icon"></i>
+                        <i class="fa fa-clock nav-icon"></i>
                         <p>Time Slots</p>
                       </a>
                     </li>
+                    {{-- adding timeslots is here --}}
                   <li class="nav-item">
                     <a href="{{ url('admin/transactions') }}"
                       class="nav-link @if((Request::is('admin/transactions'))) active @endif">
