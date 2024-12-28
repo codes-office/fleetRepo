@@ -2,6 +2,7 @@
 
 
 Route::get('/send-fcm-notification', 'FirebaseController@sendNotification')->name('send.notification');
+Route::get('/twilio/test-number', 'Admin\TwilioController@testNumber')->name('twilio.test');
 
 
 Route::group(['middleware' => ['IsInstalled', 'lang_check_user', 'front_enable']], function () {

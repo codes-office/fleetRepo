@@ -100,6 +100,55 @@ class TwilioController extends Controller {
 		return view('twilio.index');
 	}
 
+	public function testNumber() {
+		$id = Hyvikk::twilio('sid'); // Twilio Account SID
+		$token = Hyvikk::twilio('token'); // Twilio Auth Token
+		$from = "+18599278872"; // Replace with your valid Twilio number
+		\Log::info('Twilio From Number: ' . $from);
+	
+		$to = "+916364158081"; // Recipient number (ensure it's in E.164 format)
+		$test_message = "hi there hi buddy"; // The message you want to send
+	
+		// Correct API endpoint for sending SMS
+		$url = "https://api.twilio.com/2010-04-01/Accounts/$id/Messages.json";
+	
+		// Prepare data for the POST request
+		$data = array(
+			'To' => $to,
+			'From' => $from,
+			'Body' => $test_message,
+		);
+	
+		// Initialize cURL and set options
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($ch, CURLOPT_USERPWD, "$id:$token");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+	
+		// Execute the request and get the response
+		$response = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		curl_close($ch);
+	
+		// Log the response for debugging purposes
+		\Log::info('Twilio Response: ' . $response);
+	
+		// Check the HTTP status code and return appropriate response
+		if ($http_code == 201) {
+			return response()->json(['status' => 'success', 'message' => 'Message sent successfully!']);
+		} else {
+			return response()->json([
+				'status' => 'error',
+				'message' => 'Failed to send message.',
+				'response' => $response
+			], 400);
+		}
+	}
+	
+		
 	public function update(Request $request) {
 		TwilioSettings::where('name', 'sid')->update(['value' => $request->sid]);
 		TwilioSettings::where('name', 'token')->update(['value' => $request->token]);
