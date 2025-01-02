@@ -53,7 +53,7 @@ class UsersApi extends Controller {
 	
     // Check if the user with the provided mobile number exists and is of type 'C'
     $user = User::where('number', $mobileNumber)->first(); // Assuming 'mobno' stores the mobile number
-Log::info('User: ' . $user);
+// Log::info('User: ' . $user);
     if (!$user) {
         return [
             'success' => 0,
@@ -61,17 +61,17 @@ Log::info('User: ' . $user);
         ];
     }
 
-    // if ($user->user_type !== 'C') {
-    //     return [
-    //         'success' => 0,
-    //         'message' => 'Only users with type "C" are allowed to receive OTP.'
-    //     ];
-    // }
+    if ($user->user_type !== 'C') {
+        return [
+            'success' => 0,
+            'message' => 'Only users with type "C" are allowed to receive OTP.'
+        ];
+    }
 
 		// Twilio credentials from .env or any custom method you're using
 		$sid = hyvikk::twilio('sid'); // Account SID
 		$token = hyvikk::twilio('token'); // Auth Token
-		$serviceSid = "VA0863023905385cf69611f69a845d3ba8"; // Correct Service SID (for Twilio Verify Service)
+		$serviceSid = hyvikk::twilio('serviceSid'); // Correct Service SID (for Twilio Verify Service)
 	
 		if (!$sid || !$token || !$serviceSid) {
 			return [
