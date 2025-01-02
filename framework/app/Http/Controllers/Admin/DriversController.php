@@ -467,15 +467,29 @@ class DriversController extends Controller {
 		}
 	}
 	
-	public function assignAdmin(Request $request)
+public function assignAdmin(Request $request)
 {
-    Log::info($request->all());
-    $driver = User::findOrFail($request->driver_id);
-    $driver->assigned_admin = $request->admin_id;
-    $driver->save();
+    Log::info('Assign admin request:', $request->all());
 
-    return response()->json(['success' => true]);
+    $request->validate([
+        'driver_id' => 'required|exists:users,id',
+        'admin_id' => 'required|exists:users,id',
+		
+    ]);
+
+    try {
+        $driver = User::findOrFail($request->driver_id);
+        $driver->assigned_admin = $request->admin_id;
+        $driver->save();
+
+        Log::info("Admin assigned successfully: Driver ID: {$driver->id}, Admin ID: {$driver->assigned_admin}");
+        return response()->json(['success' => true, 'message' => 'Admin assigned successfully.']);
+    } catch (\Exception $e) {
+        Log::error('Error assigning admin: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to assign admin.'], 500);
+    }
 }
+
     	public function fetch_admin_data(Request $request) {
 		if ($request->ajax()) {
 

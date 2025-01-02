@@ -907,7 +907,7 @@ input:checked + .slider:before {
                 </ul>
               </li> @endcan
 
-              @if((Request::is('admin/transactions*')) || (Request::is('admin/bookings*')) ||(Request::is('admin/bookings_calendar')) || (Request::is('admin/merge-bookings')) || (Request::is('admin/booking-quotation*')))
+              @if((Request::is('admin/transactions*')) || (Request::is('admin/bookings*')) ||(Request::is('admin/bookings_calendar')) || (Request::is('admin/merge-bookings')) || (Request::is('admin/timeslots')) || (Request::is('admin/booking-quotation*')))
               @php($class="menu-open")
               @php($active="active")
 
@@ -952,6 +952,14 @@ input:checked + .slider:before {
                         <p>Merge Bookings</p>
                       </a>
                     </li>
+                    <li class="nav-item">
+                      <a href="{{ url('admin/timeslots') }}" 
+                        class="nav-link @if(Request::is('admin/timeslots')) active @endif"> 
+                        <i class="fa fa-clock nav-icon"></i>
+                        <p>Time Slots</p>
+                      </a>
+                    </li>
+                    {{-- adding timeslots is here --}}
                   <li class="nav-item">
                     <a href="{{ url('admin/transactions') }}"
                       class="nav-link @if((Request::is('admin/transactions'))) active @endif">
