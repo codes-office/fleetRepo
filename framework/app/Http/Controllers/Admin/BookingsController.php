@@ -39,6 +39,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
+use Illuminate\Support\Facades\Log;
 
 class BookingsController extends Controller {
 	public function __construct() {
@@ -798,52 +799,140 @@ private function generateTimeSlots() {
 
 	}
 
-	public function store(BookingRequest $request) {
-		$max_seats = VehicleModel::find($request->get('vehicle_id'))->types->seats;
-		$xx = $this->check_booking($request->get("pickup"), $request->get("dropoff"), $request->get("vehicle_id"));
-		if ($xx) {
-			if($request->get("travellers") > $max_seats){
-				return redirect()->route("bookings.create")->withErrors(["error" => "Number of Travellers exceed seating capity of the vehicle | Seats Available : ".$max_seats.""])->withInput();
-			}else{
-				$id = Bookings::create($request->all())->id;
-	
-				Address::updateOrCreate(['customer_id' => $request->get('customer_id'), 'address' => $request->get('pickup_addr')]);
-	
-				Address::updateOrCreate(['customer_id' => $request->get('customer_id'), 'address' => $request->get('dest_addr')]);
-	
-				$booking = Bookings::find($id);
-				$booking->user_id = $request->get("user_id");
-				$booking->driver_id = $request->get('driver_id');
-				$dropoff = Carbon::parse($booking->dropoff);
-				$pickup = Carbon::parse($booking->pickup);
-				$diff = $pickup->diffInMinutes($dropoff);
-				$booking->note = $request->get('note');
-				$booking->duration = $diff;
-				$booking->udf = serialize($request->get('udf'));
-				$booking->accept_status = 1; //0=yet to accept, 1= accept
-				$booking->ride_status = "Upcoming";
-				$booking->booking_type = 1;
-				$booking->journey_date = date('d-m-Y', strtotime($booking->pickup));
-				$booking->journey_time = date('H:i:s', strtotime($booking->pickup));
-				$booking->save();
-				$mail = Bookings::find($id);
-				$this->booking_notification($booking->id);
-	
-				// send sms to customer while adding new booking
-				$this->sms_notification($booking->id);
-	
-				// browser notification
-				$this->push_notification($booking->id);
-				if (Hyvikk::email_msg('email') == 1) {
-					Mail::to($mail->customer->email)->send(new VehicleBooked($booking));
-					Mail::to($mail->driver->email)->send(new DriverBooked($booking));
-				}
-				return redirect()->route("bookings.index");
-			}
-		} else {
-			return redirect()->route("bookings.create")->withErrors(["error" => "Selected Vehicle is not Available in Given Timeframe"])->withInput();
-		}
-	}
+	public function store(BookingRequest $request)
+{
+    Log::info($request->all()); // Log the request for debugging
+
+    // Fetch maximum seats for the selected vehicle
+    $max_seats = VehicleModel::find($request->get('vehicle_id'))->types->seats;
+
+    // Check if the booking conflicts with other bookings
+    $xx = $this->check_booking($request->get("pickup"), $request->get("dropoff"), $request->get("vehicle_id"));
+
+    if ($xx) {
+        if ($request->get("travellers") > $max_seats) {
+            return redirect()->route("bookings.create")
+                ->withErrors([
+                    "error" => "Number of Travellers exceed seating capacity of the vehicle | Seats Available: $max_seats",
+                ])
+                ->withInput();
+        } else {
+            // Retrieve booking type and user details
+            $bookingType = $request->get('booking_type');
+            $userIds = $request->get('customer_id'); // This should be an array of user IDs
+
+            if (!is_array($userIds) || empty($userIds)) {
+                return redirect()->route("bookings.create")
+                    ->withErrors(["error" => "Invalid customer IDs provided."])
+                    ->withInput();
+            }
+
+            // Handle addresses based on booking type
+            $bookings = [];
+            foreach ($userIds as $userId) {
+                $user = User::find($userId);
+                if (!$user) {
+                    return redirect()->route("bookings.create")
+                        ->withErrors(["error" => "User with ID $userId not found."])
+                        ->withInput();
+                }
+
+                // Retrieve home and office addresses
+                $homeAddress = $user->address;
+                $homelongitude = $user->getMeta('emsourcelong');
+                $homelatitude = $user->getMeta('emsourcelat');
+
+                $officeAddress = $user->assigned_admin
+                    ? User::find($user->assigned_admin)->address ?? 'No Admin Assigned'
+                    : 'Company Not Assigned';
+                $officelongitude = $user->assigned_admin
+                    ? User::find($user->assigned_admin)->getMeta('emsourcelong') ?? 'No Admin Assigned'
+                    : 'Company Not Assigned';
+                $officelatitude = $user->assigned_admin
+                    ? User::find($user->assigned_admin)->getMeta('emsourcelat') ?? 'No Admin Assigned'
+                    : 'Company Not Assigned';
+
+                // Set pickup and destination addresses based on booking type
+                if ($bookingType === 'Home') {
+                    $pickupAddress = $officeAddress;
+                    $pickuplatitude = $officelatitude;
+                    $pickuplongitude = $officelongitude;
+                    $destAddress = $homeAddress;
+                    $destlatitude = $homelatitude;
+                    $destlongitude = $homelongitude;
+                } elseif ($bookingType === 'Office') {
+                    $pickupAddress = $homeAddress;
+                    $pickuplatitude = $homelatitude;
+                    $pickuplongitude = $homelongitude;
+                    $destAddress = $officeAddress;
+                    $destlatitude = $officelatitude;
+                    $destlongitude = $officelongitude;
+                } else {
+                    $pickupAddress = $request->get('pickup_location');
+                    $pickuplatitude = $request->get('pickup_lat');
+                    $pickuplongitude = $request->get('pickup_lng');
+                    $destAddress = $request->get('dropoff_location');
+                    $destlatitude = $request->get('dropoff_lat');
+                    $destlongitude = $request->get('dropoff_lng');
+                }
+
+                // Calculate the duration between pickup and dropoff
+                $pickup = Carbon::parse($request->get('pickup'));
+                $dropoff = Carbon::parse($request->get('dropoff'));
+                $duration = $pickup->diffInMinutes($dropoff);
+
+                // Create booking record
+                $booking = Bookings::create([
+                    'customer_id' => json_encode([(string)$user->id]), // Store user_id as a JSON array
+                    'pickup_addr' => $pickupAddress,
+                    'pickup_lat' => $pickuplatitude,
+                    'pickup_long' => $pickuplongitude,
+                    'dest_addr' => $destAddress,
+                    'dest_lat' => $destlatitude,
+                    'dest_long' => $destlongitude,
+                    'pickup' => $request->get('pickup'),
+                    'dropoff' => $request->get('dropoff'),
+                    'vehicle_id' => $request->get('vehicle_id'), // Store the vehicle ID
+                    'accept_status' => 1,
+                    'ride_status' => "Upcoming",
+                    'booking_type' => $bookingType,
+                    'journey_date' => date('d-m-Y', strtotime($request->get('pickup'))),
+                    'journey_time' => date('H:i:s', strtotime($request->get('pickup'))),
+                    'duration' => $duration, // Save the calculated duration
+                    'user_id' => $request->get('user_id'),
+                    'driver_id' => $request->get('driver_id'),
+                    'note' => $request->get('note'),
+                    'udf' => serialize($request->get('udf')),
+                ]);
+
+                $bookings[] = ['booking_id' => $booking->id];
+
+                // Log booking details
+                Log::info('New Booking Created', [
+                    'booking_id' => $booking->id,
+                    'vehicle_id' => $request->get('vehicle_id'), // Log the vehicle ID
+                    'pickup_address' => $pickupAddress,
+                    'destination_address' => $destAddress,
+                    'pickup_lat' => $pickuplatitude,
+                    'pickup_long' => $pickuplongitude,
+                    'destination_lat' => $destlatitude,
+                    'destination_long' => $destlongitude,
+                    'duration' => $duration, // Log the duration
+                ]);
+
+                // Notify customer and driver
+                // $this->sms_notification($booking->id);
+                $this->push_notification($booking->id);
+            }
+
+            return redirect()->route("bookings.index");
+        }
+    } else {
+        return redirect()->route("bookings.create")
+            ->withErrors(["error" => "Selected Vehicle is not available in the given timeframe"])
+            ->withInput();
+    }
+}
 
 	public function sms_notification($booking_id) {
 		$booking = Bookings::find($booking_id);

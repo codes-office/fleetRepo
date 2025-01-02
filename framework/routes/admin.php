@@ -68,6 +68,14 @@ Route::namespace ('Admin')->group(function () {
         
         Route::get('mlt', 'UsersController@mltindex');
 
+        //Company Teams Routes
+        Route::resource('company_teams', 'CompanyTeamController');
+        // Route::post('company_teams/store', 'CompanyTeamController@store')->name('teams.store');s
+        // Route::post('company_teams/teams-fetch', 'CompanyTeamController@fetch_data');
+        Route::get('admin/company_teams/fetch_data', [CompanyTeamController::class, 'fetch_data'])->name('company_team.fetch_data');
+
+
+
         Route::get('twilio-settings', 'TwilioController@index');
         Route::post('twilio-settings', 'TwilioController@update');
 

@@ -712,7 +712,7 @@ input:checked + .slider:before {
 
               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  )
            
-              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/mlt')) || (Request::is('admin/customers*'))
+              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/company_teams')) || (Request::is('admin/mlt')) || (Request::is('admin/customers*'))
               || (Request::is('admin/chat')) )
               @php($class="menu-open")
               @php($active="active")
@@ -762,6 +762,15 @@ input:checked + .slider:before {
                       class="nav-link @if(Request::is('admin/customers*')) active @endif">
                       <i class="fa fa-address-card nav-icon"></i>
                       <p>@lang('fleet.customers')</p>
+                    </a>
+                  </li>
+                  @endcan
+                  @can('Customer list')
+                  <li class="nav-item">
+                    <a href="{{ url('admin/company_teams')}}"
+                      class="nav-link @if(Request::is('admin/company_teams')) active @endif">
+                      <i class="fa fa-address-card nav-icon"></i>
+                      <p>@lang('Teams')</p>
                     </a>
                   </li>
                   @endcan
