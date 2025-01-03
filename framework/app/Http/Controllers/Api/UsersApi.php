@@ -25,10 +25,88 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth as Login;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Validator;
+use Twilio\Rest\Client;
 
 class UsersApi extends Controller {
+	public function send_otp(Request $request) {
+		$mobileNumber = $request->get('mobile_number');
+	Log::info('Mobile Number: ' . $mobileNumber);
+	if (empty($mobileNumber)) {
+        return [
+            'success' => 0,
+            'message' => 'Mobile number is required.'
+        ];
+    }
+  // Remove any non-numeric characters and the '+' sign if it exists
+  $mobileNumber = preg_replace('/\D/', '', $mobileNumber); // Remove all non-numeric characters
 
+  // Check if the number starts with '91' and remove it (country code)
+  if (substr($mobileNumber, 0, 2) === '91') {
+	  $mobileNumber = substr($mobileNumber, 2); // Remove the '91' prefix
+  }
+   
+
+	
+    // Check if the user with the provided mobile number exists and is of type 'C'
+    $user = User::where('number', $mobileNumber)->first(); // Assuming 'mobno' stores the mobile number
+// Log::info('User: ' . $user);
+    if (!$user) {
+        return [
+            'success' => 0,
+            'message' => 'User not found.'
+        ];
+    }
+
+    if ($user->user_type !== 'C') {
+        return [
+            'success' => 0,
+            'message' => 'Only users with type "C" are allowed to receive OTP.'
+        ];
+    }
+
+		// Twilio credentials from .env or any custom method you're using
+		$sid = hyvikk::twilio('sid'); // Account SID
+		$token = hyvikk::twilio('token'); // Auth Token
+		$serviceSid = hyvikk::twilio('serviceSid'); // Correct Service SID (for Twilio Verify Service)
+	
+		if (!$sid || !$token || !$serviceSid) {
+			return [
+				'success' => 0,
+				'message' => 'Twilio credentials are missing.'
+			];
+		}
+	
+		try {
+
+			 // Format the mobile number by adding +91 if it's not already present
+			 if (strpos($mobileNumber, '+91') !== 0) {
+				$mobileNumber = '+91' . $mobileNumber;
+			}
+	
+			// Initialize Twilio client
+			$twilio = new Client($sid, $token);
+	
+			// Send OTP verification request
+			$verification = $twilio->verify->v2->services($serviceSid)
+				->verifications
+				->create($mobileNumber, "sms");
+	
+			return [
+				'success' => 1,
+				'message' => 'OTP sent successfully.',
+			];
+	
+		} catch (\Exception $e) {
+			Log::error('Twilio Error: ' . $e->getMessage());
+			return [
+				'success' => 0,
+				'message' => 'Failed to send OTP. Please try again.',
+				'error' => $e->getMessage(),
+			];
+		}
+	}
 	public function map_api(Request $request) {
 
 		$validation = Validator::make($request->all(), [
