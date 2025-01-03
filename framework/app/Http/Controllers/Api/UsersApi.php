@@ -107,6 +107,134 @@ class UsersApi extends Controller {
 			];
 		}
 	}
+	public function verify_otp(Request $request) {
+		$mobileNumber = $request->get('mobile_number');
+		$otp = $request->get('otp');
+	
+		Log::info('verify_otp - Received Mobile Number: ' . $mobileNumber);
+		Log::info('verify_otp - Received OTP: ' . $otp);
+	
+		// Validate input
+		if (empty($mobileNumber) || empty($otp)) {
+			Log::info('verify_otp - Mobile number or OTP is empty.');
+			return [
+				'success' => 0,
+				'message' => 'Mobile number and OTP are required.'
+			];
+		}
+	
+		// Clean the mobile number
+		$mobileNumber = preg_replace('/\D/', '', $mobileNumber); 
+		Log::info('verify_otp - Cleaned Mobile Number: ' . $mobileNumber);
+	
+		// Remove country code if present
+		if (substr($mobileNumber, 0, 2) === '91') {
+			$mobileNumber = substr($mobileNumber, 2); 
+			Log::info('verify_otp - Mobile Number after removing country code: ' . $mobileNumber);
+		}
+	
+		// Check if user exists
+		$user = User::where('number', $mobileNumber)->first();
+		Log::info('verify_otp - User found: ' . ($user ? 'Yes' : 'No'));
+	
+		if (!$user) {
+			Log::info('verify_otp - User not found for mobile number: ' . $mobileNumber);
+			return [
+				'success' => 0,
+				'message' => 'User not found.'
+			];
+		}
+	
+		if ($user->user_type !== 'C') {
+			Log::info('verify_otp - User type is not "C". User type: ' . $user->user_type);
+			return [
+				'success' => 0,
+				'message' => 'Only users with type "C" are allowed to verify OTP.'
+			];
+		}
+	
+		// Twilio credentials check
+		$sid = hyvikk::twilio('sid');
+		$token = hyvikk::twilio('token');
+		$serviceSid = hyvikk::twilio('serviceSid');
+	
+		if (!$sid || !$token || !$serviceSid) {
+			Log::info('verify_otp - Twilio credentials are missing.');
+			return [
+				'success' => 0,
+				'message' => 'Twilio credentials are missing.'
+			];
+		}
+	
+		try {
+			// Format mobile number to include +91 if missing
+			if (strpos($mobileNumber, '+91') !== 0) {
+				$mobileNumber = '+91' . $mobileNumber;
+				Log::info('verify_otp - Mobile Number after adding country code: ' . $mobileNumber);
+			}
+	
+			// Initialize Twilio client
+			$twilio = new Client($sid, $token);
+			Log::info('verify_otp - Twilio client initialized.');
+	
+			// Verify OTP
+			$verificationCheck = $twilio->verify->v2->services($serviceSid)
+				->verificationChecks
+				->create([
+					'to' => $mobileNumber,
+					'code' => $otp
+				]);
+	
+			Log::info('verify_otp - Verification status: ' . $verificationCheck->status);
+	
+			if ($verificationCheck->status === "approved") {
+				Log::info('verify_otp - OTP verified successfully.');
+			
+				// Prepare the response data
+				$data = [
+					'success' => 1,
+					'message' => 'OTP verified successfully.',
+					'data' => [
+						'userinfo' => [
+							"user_id" => $user->id,
+							"api_token" => $user->api_token,
+							"fcm_id" => $user->getMeta('fcm_id'),
+							"device_token" => $user->getMeta('device_token'),
+							"socialmedia_uid" => $user->getMeta('socialmedia_uid'),
+							"user_name" => $user->name,
+							"user_type" => $user->user_type,
+							"mobno" => $user->number,
+							"emailid" => $user->email,
+							"gender" => $user->getMeta('gender'),
+							"profile_pic" => $user->getMeta('profile_pic'),
+							"status" => $user->getMeta('login_status'),
+							"timestamp" => date('Y-m-d H:i:s', strtotime($user->created_at))
+						]
+					]
+				];
+			
+				// Ensure the response is being returned properly
+				return response()->json($data);
+			} else {
+				Log::info('verify_otp - OTP verification failed.');
+				return response()->json([
+					'success' => 0,
+					'message' => 'Invalid OTP. Please try again.'
+				]);
+			}
+	
+		} catch (\Exception $e) {
+			Log::error('verify_otp - Twilio Error: ' . $e->getMessage());
+			return [
+				'success' => 0,
+				'message' => 'Failed to verify OTP. Please try again.',
+				'error' => $e->getMessage()
+			];
+		}
+	}
+		
+	
+	
 	public function map_api(Request $request) {
 
 		$validation = Validator::make($request->all(), [
