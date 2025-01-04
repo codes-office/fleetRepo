@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Http\Request;
+
+
 Route::namespace ('Api')->middleware(['throttle'])->group(function () {
-	
+	Route::post('send-otp', 'UsersApi@send_otp');
+	Route::post('verify-otp', 'UsersApi@verify_otp');
 	Route::post('/login', 'Auth@login');
 	Route::post('/user-registration', 'UsersApi@user_registration');
 	Route::post('/user-login', 'UsersApi@user_login'); //without social media connected
