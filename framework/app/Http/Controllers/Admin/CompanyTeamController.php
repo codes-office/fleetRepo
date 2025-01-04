@@ -55,8 +55,8 @@ class CompanyTeamController extends Controller
 
     // Save to database
     $team = new CompanyTeam();
-    $team->name = $request->team_name;
-    $team->team_manager = $request->manager_name;
+    $team->team_name = $request->team_name;
+    $team->Manager = $request->manager_name;
     // $team->team_id = $data['team_id'];
     // $team->employee_count = $employeeCount;
     $team->save();
@@ -67,29 +67,67 @@ return view("company_team.index ");
 // return redirect()->route('company_team.index')->with('success', 'Team created successfully');
     // return redirect()->route('teams.index')->with('success', 'Team created successfully!');
 }
-
 public function fetch_data(Request $request)
 {
     if ($request->ajax()) {
-        // Fetch all teams
-        $teams = CompanyTeam::select('id', 'name', 'team_manager', 'employee_count');
+        try {
+            // Fetching company teams with specific columns
+            $teams = CompanyTeam::select('team_name', 'Manager');
 
-        return DataTables::of($teams)
-            ->addColumn('check', function ($team) {
-                return '<input type="checkbox" name="ids[]" value="' . $team->id . '" class="checkbox">';
-            })
-            ->addColumn('action', function ($team) {
-                return '<a href="' . route('company_team.edit', $team->id) . '" class="btn btn-primary btn-sm">Edit</a>
-                        <form action="' . route('company_team.destroy', $team->id) . '" method="POST" style="display:inline;">
-                            ' . csrf_field() . '
-                            ' . method_field('DELETE') . '
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure?\')">Delete</button>
-                        </form>';
-            })
-            ->rawColumns(['action', 'check'])
-            ->make(true);
+            // Returning data as JSON for DataTables
+            return DataTables::of($teams)
+                ->addColumn('action', function ($team) {
+                    return '<a href="' . route('company_teams.edit', $team->id) . '" class="btn btn-primary btn-sm">Edit</a>
+                            <form action="' . route('company_teams.destroy', $team->id) . '" method="POST" style="display:inline;">
+                                ' . csrf_field() . '
+                                ' . method_field('DELETE') . '
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Are you sure?\')">Delete</button>
+                            </form>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        } catch (\Exception $e) {
+            Log::error('Fetch data error: ', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching data: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid request.',
+    ], 400);
 }
+
+
+
+public function bulk_delete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:company_teams,id',
+        ]);
+
+        try {
+            CompanyTeam::whereIn('id', $request->ids)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Selected teams have been deleted successfully.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Bulk delete error: ', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting teams: ' . $e->getMessage(),
+            ], 500);
+        }
+        return back();
+    }
 
 
 

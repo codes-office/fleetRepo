@@ -1,4 +1,6 @@
 <?php
+use Illuminate\Support\Facades\Log;
+
 Auth::routes();
 Route::namespace ('Admin')->group(function () {
     // Route::get('export-events', 'HomeController@export_calendar');
@@ -72,7 +74,10 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('company_teams', 'CompanyTeamController');
         // Route::post('company_teams/store', 'CompanyTeamController@store')->name('teams.store');s
         // Route::post('company_teams/teams-fetch', 'CompanyTeamController@fetch_data');
-        Route::get('admin/company_teams/fetch_data', [CompanyTeamController::class, 'fetch_data'])->name('company_team.fetch_data');
+        // Route::get('/company_teams/fetch_data','CompanyTeamController@fetch_data')->name('company_teams.fetch_data');
+
+        // Route::post('/cteams-fetch', 'CompanyTeamController@fetch_data');
+        Route::get('/company_teams/fetch_data', [CompanyTeamController::class, 'fetch_data'])->name('company_teams.fetch_data');
 
 
 
@@ -131,6 +136,7 @@ Route::namespace ('Admin')->group(function () {
         Route::post('delete-users', 'UsersController@bulk_delete');
         Route::post('delete-drivers', 'DriversController@bulk_delete');
         Route::post('delete-vehicles', 'VehiclesController@bulk_delete');
+        Route::post('delete-companyteam','CompanyTeamController@bulk_delete');
         // Route::post('delete-fuel', 'FuelController@bulk_delete');
         Route::post('delete-vendors', 'VendorController@bulk_delete');
         Route::post('delete-bookings', 'BookingsController@bulk_delete');
