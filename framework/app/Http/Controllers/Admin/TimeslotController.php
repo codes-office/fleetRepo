@@ -51,6 +51,10 @@ class TimeslotController extends Controller
      */
     public function store(Request $request)
     {
+
+        //  dd($request->all());
+        // exit;
+
         // Validate incoming request
         $request->validate([
             'company_id' => function ($attribute, $value, $fail) {
@@ -112,6 +116,21 @@ class TimeslotController extends Controller
      */
     public function edit($id)
     {
+        $user = Auth::user();
+    
+        // Initialize an empty array to store data to pass to the view
+        $data = [];
+    
+        // Check the user_type and fetch customers only for super admin
+        if ($user->user_type === 'S') {
+            // Fetch customers for super admin
+            $customerIds = UserData::where('key', 'client')
+                                   ->where('value', 1)
+                                   ->pluck('user_id')
+                                   ->toArray();
+            $data['customers'] = User::whereIn('id', $customerIds)->get();
+        }
+        $data['user_id'] = $user->id;
         $timeslot = Timeslot::findOrFail($id);
    
 // Decode the days_available field if it's a JSON string
@@ -123,7 +142,8 @@ if (is_string($timeslot->days_available)) {
 Log::info('Editing Timeslot:', [
     'Timeslot Data' => $timeslot->toArray(),
 ]);
-        return view('timeslots.edit', compact('timeslot'));
+
+        return view('timeslots.edit', compact('timeslot'),$data);
     }
     
     /**
@@ -131,16 +151,18 @@ Log::info('Editing Timeslot:', [
      */
     public function update(Request $request, $id)
 {
+        // dd($request->all());
+        // exit;   
     $validated = $request->validate([
-        'pickup_time' => 'required|date_format:H:i',
-        'drop_time' => 'required|date_format:H:i|after:pickup_time',
+        'from_time' => 'required|date_format:H:i',
+        'to_time' => 'required|date_format:H:i|after:from_time',
         'days_available' => 'array|nullable',
         'days_available.*' => 'string',
     ]);
 
     $timeslot = Timeslot::findOrFail($id);
-    $timeslot->pickup_time = $validated['pickup_time'];
-    $timeslot->drop_time = $validated['drop_time'];
+    $timeslot->from_time = $validated['from_time'];
+    $timeslot->to_time = $validated['to_time'];
     $timeslot->days_available = $validated['days_available'];
     $timeslot->save();
 

@@ -51,6 +51,13 @@
                                 <th>#</th>
                                 <th>Created By</th>
                                 <th>Slot</th>
+                                <th>Log</th>
+                                <th>Active</th>
+                                <th>Selected days</th>
+                                @if(Auth::user()->user_type == 's') <!-- Check if user_type is 's' -->
+                                <th>Created to</th>
+                            @endif
+                            
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -59,7 +66,24 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $timeslot->user->name ?? 'Unknown' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($timeslot->pickup_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($timeslot->drop_time)->format('H:i') }}</td>
+                                    <td>
+                                        @if($timeslot->from_time && $timeslot->to_time)
+                                            {{ \Carbon\Carbon::createFromFormat('H:i', $timeslot->from_time)->format('H:i') }}-
+                                            {{ \Carbon\Carbon::createFromFormat('H:i', $timeslot->to_time)->format('H:i') }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td>{{ ucfirst($timeslot->log) }}</td> 
+                                    <td>
+                                        @if($timeslot->active)
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ is_string($timeslot->days_available) ? implode(', ', json_decode($timeslot->days_available)) : implode(', ', $timeslot->days_available ?? []) }}</td>
+                                    <td>{{ $timeslot->company->name ?? 'Unknown' }}</td>
                                     <td>
                                         <a href="{{ route('timeslots.edit', $timeslot->id) }}" class="btn btn-warning btn-sm">Edit</a>
                                         <form action="{{ route('timeslots.destroy', $timeslot->id) }}" method="POST" style="display: inline-block;">
@@ -75,6 +99,7 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        
                     </table>
 
                     <!-- Create new timeslot button -->

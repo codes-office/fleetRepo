@@ -21,6 +21,11 @@ class Timeslot extends Model
     
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,"user_id");
     }
+    public function company()
+    {
+        return $this->belongsTo(User::class, 'company_id');  // company_id maps to user_id in users table
+    }
+ 
 }

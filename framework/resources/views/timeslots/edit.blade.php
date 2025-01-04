@@ -100,31 +100,37 @@
 
                         <!-- Active Checkbox -->
                         <div class="form-group">
-                            <label for="timeslot_Active">Active</label>
+                            <label for="Active">Active</label>
                             <input type="hidden" name="Active" value="0"> <!-- Hidden input ensures 0 is sent when unchecked -->
-                            <input type="checkbox" name="Active" id="timeslot_Active" value="1" {{ old('Active', $timeslot->Active) ? 'checked' : '' }}>
+                            <input type="checkbox" name="Active" id="Active" value="1" {{ old('Active', $timeslot->active) == 1 ? 'checked' : '' }}>
                         </div>
+                        
 
                         <!-- Pickup Time -->
                         <div class="form-group">
-                            <label for="pickup_time">Pickup Time</label>
-                            <input type="time" name="pickup_time" id="pickup_time" class="form-control time-input" value="{{ old('pickup_time', $timeslot->pickup_time) }}" required>
+                            <label for="from_time">From</label>
+                            <input type="time" name="from_time" id="from_time" class="form-control time-input" value="{{ old('from_time', $timeslot->from_time) }}" required>
                         </div>
 
                         <!-- Drop Time -->
                         <div class="form-group">
-                            <label for="drop_time">Drop Time</label>
-                            <input type="time" name="drop_time" id="drop_time" class="form-control time-input" value="{{ old('drop_time', $timeslot->drop_time) }}" required>
+                            <label for="to_time">To</label>
+                            <input type="time" name="to_time" id="to_time" class="form-control time-input" value="{{ old('to_time', $timeslot->to_time) }}" required>
                         </div>
 
                         <!-- Login/Logout Radio Buttons -->
                         <div class="form-group">
                             <label>Select Login or Logout</label>
                             <div class="login-logout-radio">
-                                <label><input type="radio" name="log" value="Login" {{ old('log', $timeslot->log) == 'Login' ? 'checked' : '' }}> Login</label>
-                                <label><input type="radio" name="log" value="Logout" {{ old('log', $timeslot->log) == 'Logout' ? 'checked' : '' }}> Logout</label>
+                                <label>
+                                    <input type="radio" name="log" value="login" {{ old('log', $timeslot->log) == 'login' ? 'checked' : '' }}> Login
+                                </label>
+                                <label>
+                                    <input type="radio" name="log" value="logout" {{ old('log', $timeslot->log) == 'logout' ? 'checked' : '' }}> Logout
+                                </label>
                             </div>
                         </div>
+                        
 
                         <div id="time-error" class="error-message"></div>
 
@@ -142,8 +148,8 @@
 @section('script')
     <script>
         const form = document.querySelector('form');
-        const pickupTime = document.getElementById('pickup_time');
-        const dropTime = document.getElementById('drop_time');
+        const pickupTime = document.getElementById('from_time');
+        const dropTime = document.getElementById('to_time');
         const timeError = document.getElementById('time-error');
 
         form.addEventListener('submit', function(event) {
