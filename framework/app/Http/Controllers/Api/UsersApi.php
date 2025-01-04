@@ -25,13 +25,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth as Login;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Validator;
 use Twilio\Rest\Client;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class UsersApi extends Controller {
-
 	public function send_otp(Request $request) {
 		$mobileNumber = $request->get('mobile_number');
 	Log::info('Mobile Number: ' . $mobileNumber);
@@ -109,27 +107,80 @@ class UsersApi extends Controller {
 			];
 		}
 	}
-	
-
 	public function verify_otp(Request $request) {
+		// Define validation rules
+		$validationRules = [
+			'mobile_number' => 'required|string|regex:/^[0-9]{10,15}$/', // Allow 10 to 15 digits
+			'otp' => 'required|string|size:4', // Assume OTP is always 4 digits
+			'fcm_id' => 'required|string|max:255', // FCM ID should be a string with a max length of 255
+		];
+	
+		// Validate the request
+		$validator = Validator::make($request->all(), $validationRules);
+	
+		if ($validator->fails()) {
+			Log::info('verify_otp - Validation failed: ' . json_encode($validator->errors()->all()));
+			return response()->json([
+				'success' => 0,
+				'message' => 'Validation failed.',
+				'errors' => $validator->errors()
+			]);
+		}
+	
+		// Extract mobile number and OTP from the request
 		$mobileNumber = $request->get('mobile_number');
 		$otp = $request->get('otp');
+		$fcm_id = $request->get('fcm_id'); // Get FCM ID from the request
+	
+		Log::info('verify_otp - Received Mobile Number: ' . $mobileNumber);
+		Log::info('verify_otp - Received OTP: ' . $otp);
 	
 		// Validate input
 		if (empty($mobileNumber) || empty($otp)) {
+			Log::info('verify_otp - Mobile number or OTP is empty.');
 			return [
 				'success' => 0,
 				'message' => 'Mobile number and OTP are required.'
 			];
 		}
 	
-		
-		// Twilio credentials from .env or any custom method you're using
-		$sid = hyvikk::twilio('sid'); // Account SID
-		$token = hyvikk::twilio('token'); // Auth Token
-		$serviceSid = "VA0863023905385cf69611f69a845d3ba8"; // Correct Service SID (for Twilio Verify Service)
+		// Clean the mobile number
+		$mobileNumber = preg_replace('/\D/', '', $mobileNumber); 
+		Log::info('verify_otp - Cleaned Mobile Number: ' . $mobileNumber);
+	
+		// Remove country code if present
+		if (substr($mobileNumber, 0, 2) === '91') {
+			$mobileNumber = substr($mobileNumber, 2); 
+			Log::info('verify_otp - Mobile Number after removing country code: ' . $mobileNumber);
+		}
+	
+		// Check if user exists
+		$user = User::where('number', $mobileNumber)->first();
+		Log::info('verify_otp - User found: ' . ($user ? 'Yes' : 'No'));
+	
+		if (!$user) {
+			Log::info('verify_otp - User not found for mobile number: ' . $mobileNumber);
+			return [
+				'success' => 0,
+				'message' => 'User not found.'
+			];
+		}
+	
+		if ($user->user_type !== 'C') {
+			Log::info('verify_otp - User type is not "C". User type: ' . $user->user_type);
+			return [
+				'success' => 0,
+				'message' => 'Only users with type "C" are allowed to verify OTP.'
+			];
+		}
+	
+		// Twilio credentials check
+		$sid = hyvikk::twilio('sid');
+		$token = hyvikk::twilio('token');
+		$serviceSid = hyvikk::twilio('serviceSid');
 	
 		if (!$sid || !$token || !$serviceSid) {
+			Log::info('verify_otp - Twilio credentials are missing.');
 			return [
 				'success' => 0,
 				'message' => 'Twilio credentials are missing.'
@@ -137,15 +188,27 @@ class UsersApi extends Controller {
 		}
 	
 		try {
-			 // Format the mobile number by adding +91 if it's not already present
-			 if (strpos($mobileNumber, '+91') !== 0) {
+			// Format mobile number to include +91 if missing
+			if (strpos($mobileNumber, '+91') !== 0) {
 				$mobileNumber = '+91' . $mobileNumber;
+				Log::info('verify_otp - Mobile Number after adding country code: ' . $mobileNumber);
 			}
 	
 			// Initialize Twilio client
 			$twilio = new Client($sid, $token);
-	
-			// Verify the OTP entered by the user
+			Log::info('verify_otp - Twilio client initialized.');
+
+			// Update user login status
+			$user->login_status = 1;
+            $user->save();
+
+			 // Update FCM ID by calling the update_fcm function
+			 $updateFcmResponse = $this->update_fcm(new Request([
+                'user_id' => $user->id,
+                'fcm_id' => $fcm_id
+            ]));
+
+			// Verify OTP
 			$verificationCheck = $twilio->verify->v2->services($serviceSid)
 				->verificationChecks
 				->create([
@@ -153,19 +216,46 @@ class UsersApi extends Controller {
 					'code' => $otp
 				]);
 	
+			Log::info('verify_otp - Verification status: ' . $verificationCheck->status);
+	
 			if ($verificationCheck->status === "approved") {
-				return [
+				Log::info('verify_otp - OTP verified successfully.');
+			
+				// Prepare the response data
+				$data = [
 					'success' => 1,
-					'message' => 'OTP verified successfully.'
+					'message' => 'OTP verified successfully.',
+					'data' => [
+						'userinfo' => [
+							"user_id" => $user->id,
+							"api_token" => $user->api_token,
+							"fcm_id" => $user->getMeta('fcm_id'),
+							"device_token" => $user->getMeta('device_token'),
+							"socialmedia_uid" => $user->getMeta('socialmedia_uid'),
+							"user_name" => $user->name,
+							"user_type" => $user->user_type,
+							"mobno" => $user->number,
+							"emailid" => $user->email,
+							"gender" => $user->getMeta('gender'),
+							"profile_pic" => $user->getMeta('profile_pic'),
+							"status" => $user->getMeta('login_status'),
+							"timestamp" => date('Y-m-d H:i:s', strtotime($user->created_at))
+						]
+					]
 				];
+			
+				// Ensure the response is being returned properly
+				return response()->json($data);
 			} else {
-				return [
+				Log::info('verify_otp - OTP verification failed.');
+				return response()->json([
 					'success' => 0,
 					'message' => 'Invalid OTP. Please try again.'
-				];
+				]);
 			}
 	
 		} catch (\Exception $e) {
+			Log::error('verify_otp - Twilio Error: ' . $e->getMessage());
 			return [
 				'success' => 0,
 				'message' => 'Failed to verify OTP. Please try again.',
@@ -173,8 +263,9 @@ class UsersApi extends Controller {
 			];
 		}
 	}
+		
 	
-
+	
 	public function map_api(Request $request) {
 
 		$validation = Validator::make($request->all(), [
@@ -267,33 +358,55 @@ class UsersApi extends Controller {
 	}
 
 	public function update_fcm(Request $request) {
+		Log::info('update_fcm - Received Request: ' . json_encode($request->all()));
+	
+		// Validate the input
 		$validation = Validator::make($request->all(), [
 			'fcm_id' => 'required',
 			'user_id' => 'required|integer',
 		]);
+	
 		$errors = $validation->errors();
 		if (count($errors) > 0) {
+			Log::info('update_fcm - Validation failed: ' . json_encode($errors->all()));
 			$data['success'] = 0;
 			$data['message'] = "Unable to update FCM ID.";
 			$data['data'] = "";
-
-		} else {
-			$user = User::find($request->user_id);
-			if ($user->login_status == 1) {
-				$user->fcm_id = $request->fcm_id;
-				$user->save();
-				$data['success'] = 1;
-				$data['message'] = "FCM ID updated Successfully!";
-				$data['data'] = "";
-			} else {
-				$data['success'] = 0;
-				$data['message'] = "Unable to update FCM ID.";
-				$data['data'] = "";
-			}
-
+	
+			return $data;
 		}
+	
+		$user = User::find($request->user_id);
+		if (!$user) {
+			Log::info('update_fcm - User not found with ID: ' . $request->user_id);
+			$data['success'] = 0;
+			$data['message'] = "User not found.";
+			$data['data'] = "";
+	
+			return $data;
+		}
+	
+		Log::info('update_fcm - User found: ' . $user->name);
+	
+		if ($user->login_status == 1) {
+			$user->fcm_id = $request->fcm_id;
+			$user->save();
+			Log::info('update_fcm - FCM ID updated for user: ' . $user->id . ', New FCM ID: ' . $request->fcm_id);
+	
+			$data['success'] = 1;
+			$data['message'] = "FCM ID updated Successfully!";
+			$data['data'] = "";
+		} else {
+			Log::info('update_fcm - User login status is not active. ID: ' . $user->id);
+			$data['success'] = 0;
+			$data['message'] = "Unable to update FCM ID.";
+			$data['data'] = "";
+		}
+	
+		Log::info('update_fcm - Response: ' . json_encode($data));
 		return $data;
 	}
+	
 
 	public function user_registration(Request $request) {
 
