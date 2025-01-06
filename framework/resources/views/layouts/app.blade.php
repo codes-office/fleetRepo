@@ -756,6 +756,14 @@ input:checked + .slider:before {
                     </a>
                   </li>
                   @endcan
+                  @can('Users list')
+                  <li class="nav-item">
+                    <a href="{{ url('admin/companyteam')}}" class="nav-link @if(Request::is('admin/companyteam')) active @endif">
+                      <i class="fa fa-user nav-icon"></i>
+                      <p>company team</p>
+                    </a>
+                  </li>
+                  @endcan
                   @can('Customer list')
                   <li class="nav-item">
                     <a href="{{ route('customers.index')}}"
