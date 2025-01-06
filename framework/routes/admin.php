@@ -67,6 +67,7 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('/users', 'UsersController');
         
         Route::get('mlt', 'UsersController@mltindex');
+        Route::get('companyteam', 'CompanyTeamController@index');
 
         Route::get('twilio-settings', 'TwilioController@index');
         Route::post('twilio-settings', 'TwilioController@update');
