@@ -25,7 +25,7 @@
     <div class="card card-info">
       <div class="card-header">
         <h3 class="card-title">@lang('MLT Users') &nbsp;
-          @can('Users add')<a href="{{route('users.create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
+          @can('Users add')<a href="{{url('admin/companyteam/create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
               class="fa fa-plus"></i></a></h3>@endcan
       </div>
 
@@ -39,10 +39,9 @@
 
               </th>
               <th>@lang('fleet.id')</th>
-              <th>@lang('fleet.profile_photo')</th>
-              <th>@lang('fleet.name')</th>
-              <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.created')</th>
+              <th>Company</th>
+              <th>Team</th>
+              {{-- <th>Emplyoees</th> --}}
               <th>@lang('fleet.action')</th>
               
             </tr>
@@ -59,12 +58,11 @@
                   <i class="fa fa-trash"></i></button>@endcan
 
               </th>
-              <th>#</th>
-              <th>@lang('fleet.profile_photo')</th>
+              {{-- <th>#</th>
+              <th>Company</th>
               <th>@lang('fleet.name')</th>
               <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.created')</th>
-              <th>@lang('fleet.action')</th>
+              <th>@lang('fleet.action')</th> --}}
             
             </tr>
           </tfoot>
@@ -120,10 +118,10 @@
 <!-- Modal -->
 
 <!-- Modal -->
-<div id="changepass" class="modal fade" role="dialog">
-  <div class="modal-dialog">
+{{-- <div id="changepass" class="modal fade" role="dialog">
+  <div class="modal-dialog"> --}}
     <!-- Modal content-->
-    <div class="modal-content">
+    {{-- <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">@lang('fleet.change_password')</h4>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -155,7 +153,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> --}}
 <!-- Modal -->
 @endsection
 
@@ -176,25 +174,25 @@
     $("#driver_id").val(id);
   });
 
-  $("#changepass_form").on("submit",function(e){
-    $.ajax({
-      type: "POST",
-      url: $(this).attr("action"),
-      data: $(this).serialize(),
-      success: function(data){
+  // $("#changepass_form").on("submit",function(e){
+  //   $.ajax({
+  //     type: "POST",
+  //     url: $(this).attr("action"),
+  //     data: $(this).serialize(),
+  //     success: function(data){
 
-       new PNotify({
-            title: 'Success!',
-            text: "@lang('fleet.passwordChanged')",
-            type: 'info'
-        });
-      },
+  //      new PNotify({
+  //           title: 'Success!',
+  //           text: "@lang('fleet.passwordChanged')",
+  //           type: 'info'
+  //       });
+  //     },
 
-      dataType: "html"
-    });
-    $('#changepass').modal("hide");
-    e.preventDefault();
-  });
+  //     dataType: "html"
+  //   });
+  //   $('#changepass').modal("hide");
+  //   e.preventDefault();
+  // });
   $(function(){
     
     var table = $('#ajax_data_table').DataTable({
@@ -204,17 +202,16 @@
          processing: true,
          serverSide: true,
          ajax: {
-          url: "{{ url('admin/mltusers-fetch') }}",
+          url: "{{ url('admin/Companyteam-fetch') }}",
           type: 'POST',
           data:{}
          },
          columns: [
             {data: 'check',name:'check', searchable:false, orderable:false},
             {data: 'id', name: 'id'},
-            {data: 'profile_image',name:'profile_image', searchable:false, orderable:false},
-            {data: 'name', name: 'name'},
-            {data: 'email', name: 'email'},            
-            {data: 'created_at', name: 'created_at'},
+            {data: 'Company', name: 'Company'},
+            {data: 'Team_Name', name: 'Team_Name'},
+            // {data: 'Emplyoees', name: 'Emplyoees'},            
             {data: 'action',name:'action',  searchable:false, orderable:false},
             
         ],

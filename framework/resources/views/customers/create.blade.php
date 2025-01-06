@@ -60,6 +60,20 @@
               </div>
             </div>
           </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              {!! Form::label('company', __('fleet.company'), ['class' => 'form-label']) !!}
+              {!! Form::select('company', $data, null, ['class' => 'form-control', 'placeholder' => __('fleet.select_company')]) !!}
+
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group">
+              {!! Form::label('team', __('fleet.team'), ['class' => 'form-label']) !!}
+              {!! Form::select('team', $teams, null, ['class' => 'form-control', 'placeholder' => __('fleet.select_team')]) !!}
+            </div>
+          </div>
           <div class="col-md-12">
             <div class="form-group">
                 {!! Form::label('address', __('fleet.address'), ['class' => 'form-label required']) !!}

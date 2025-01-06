@@ -3,71 +3,48 @@
 @section('extra_css')
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
     <style>
-        /* Make the table and text a little bit bigger */
+        /* Styling similar to Create Blade */
         .table {
-            font-size: 15px; /* Slightly increase font size */
-            width: 100%; /* Make the table take the full width */
-            table-layout: auto; /* Allow table to adjust width based on content */
+            font-size: 15px;
+            width: 100%;
+            table-layout: auto;
         }
         .table th, .table td {
-            padding: 12px; /* Slightly increase padding */
+            padding: 12px;
+            text-align: center;
         }
-        .table th {
-            text-align: center; /* Center align table headers */
-        }
-        .table td {
-            text-align: center; /* Center align table data */
-        }
-
-        /* Make time inputs bigger */
         .time-input {
-            width: 200px; /* Increase width of the input box */
-            font-size: 21px; /* Increase font size for better visibility */
-            padding: 10px; /* Add padding for a bigger clickable area */
+            width: 200px;
+            font-size: 21px;
+            padding: 10px;
         }
-
         .error-message {
             color: red;
             font-size: 14px;
             margin-top: 5px;
         }
-
-        /* Adding a smooth animation for time input */
-        .time-input:focus {
-            outline: none;
-            border-color: #28a745;
-            box-shadow: 0 0 5px rgba(0, 200, 0, 0.5);
-        }
-
-        /* Make buttons bigger */
         .btn {
-            font-size: 16px; /* Increase font size */
-            padding: 10px 20px; /* Increase padding for bigger buttons */
-            border-radius: 5px; /* Slightly round the corners */
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
         }
-
-        /* Create Timeslot Form Styling */
         .timeslot-form-container {
-            max-width: 600px; /* Make the form container smaller */
-            margin: 0 auto; /* Center the form horizontally */
-            position: relative; /* For positioning the watermark */
-            padding-right: 50px; /* Add some space on the right for watermark */
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            padding-right: 50px;
         }
-
-        /* Clock Icon Watermark */
         .timeslot-form-container::after {
-            content: '\f017'; /* Unicode for clock icon (Font Awesome) */
+            content: '\f017';
             font-family: 'FontAwesome';
             font-size: 50px;
-            color: rgba(0, 0, 0, 0.1); /* Light grey color */
+            color: rgba(0, 0, 0, 0.1);
             position: absolute;
             top: 50%;
-            right: 10px; /* Position the clock on the right */
+            right: 10px;
             transform: translateY(-50%);
-            pointer-events: none; /* Prevent interaction with the watermark */
+            pointer-events: none;
         }
-
-        /* Add some spacing for the form fields */
         .form-group {
             margin-bottom: 15px;
         }
@@ -85,9 +62,7 @@
         <div class="col-md-12">
             <div class="card card-success">
                 <div class="card-header">
-                    <h3 class="card-title">
-                        Edit Timeslot
-                    </h3>
+                    <h3 class="card-title">Edit Timeslot</h3>
                 </div>
 
                 <div class="card-body">
@@ -104,17 +79,58 @@
 
                     <form action="{{ route('timeslots.update', $timeslot->id) }}" method="POST" class="timeslot-form-container">
                         @csrf
-                        @method('PUT') <!-- Specify PUT method for updates -->
+                        @method('PUT')
 
+                        <!-- Days Checkboxes -->
                         <div class="form-group">
-                            <label for="pickup_time">Pickup Time</label>
-                            <input type="time" name="pickup_time" id="pickup_time" class="form-control time-input" value="{{ old('pickup_time', $timeslot->pickup_time) }}" required>
+                            <label>Select Days</label>
+                            <div class="days-checkboxes">
+                                @php
+                                    $selectedDays = old('days_available', $timeslot->days_available ?? []);
+                                @endphp
+                                <label><input type="checkbox" name="days_available[]" value="Monday" {{ in_array('Monday', $selectedDays) ? 'checked' : '' }}> Monday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Tuesday" {{ in_array('Tuesday', $selectedDays) ? 'checked' : '' }}> Tuesday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Wednesday" {{ in_array('Wednesday', $selectedDays) ? 'checked' : '' }}> Wednesday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Thursday" {{ in_array('Thursday', $selectedDays) ? 'checked' : '' }}> Thursday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Friday" {{ in_array('Friday', $selectedDays) ? 'checked' : '' }}> Friday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Saturday" {{ in_array('Saturday', $selectedDays) ? 'checked' : '' }}> Saturday</label>
+                                <label><input type="checkbox" name="days_available[]" value="Sunday" {{ in_array('Sunday', $selectedDays) ? 'checked' : '' }}> Sunday</label>
+                            </div>
                         </div>
 
+                        <!-- Active Checkbox -->
                         <div class="form-group">
-                            <label for="drop_time">Drop Time</label>
-                            <input type="time" name="drop_time" id="drop_time" class="form-control time-input" value="{{ old('drop_time', $timeslot->drop_time) }}" required>
+                            <label for="Active">Active</label>
+                            <input type="hidden" name="Active" value="0"> <!-- Hidden input ensures 0 is sent when unchecked -->
+                            <input type="checkbox" name="Active" id="Active" value="1" {{ old('Active', $timeslot->active) == 1 ? 'checked' : '' }}>
                         </div>
+                        
+
+                        <!-- Pickup Time -->
+                        <div class="form-group">
+                            <label for="from_time">From</label>
+                            <input type="time" name="from_time" id="from_time" class="form-control time-input" value="{{ old('from_time', $timeslot->from_time) }}" required>
+                        </div>
+
+                        <!-- Drop Time -->
+                        <div class="form-group">
+                            <label for="to_time">To</label>
+                            <input type="time" name="to_time" id="to_time" class="form-control time-input" value="{{ old('to_time', $timeslot->to_time) }}" required>
+                        </div>
+
+                        <!-- Login/Logout Radio Buttons -->
+                        <div class="form-group">
+                            <label>Select Login or Logout</label>
+                            <div class="login-logout-radio">
+                                <label>
+                                    <input type="radio" name="log" value="login" {{ old('log', $timeslot->log) == 'login' ? 'checked' : '' }}> Login
+                                </label>
+                                <label>
+                                    <input type="radio" name="log" value="logout" {{ old('log', $timeslot->log) == 'logout' ? 'checked' : '' }}> Logout
+                                </label>
+                            </div>
+                        </div>
+                        
 
                         <div id="time-error" class="error-message"></div>
 
@@ -131,10 +147,9 @@
 
 @section('script')
     <script>
-        // Add time validation for pickup time > drop time
         const form = document.querySelector('form');
-        const pickupTime = document.getElementById('pickup_time');
-        const dropTime = document.getElementById('drop_time');
+        const pickupTime = document.getElementById('from_time');
+        const dropTime = document.getElementById('to_time');
         const timeError = document.getElementById('time-error');
 
         form.addEventListener('submit', function(event) {
@@ -142,18 +157,11 @@
             const drop = dropTime.value;
 
             if (pickup && drop && pickup >= drop) {
-                event.preventDefault(); // Prevent form submission
+                event.preventDefault();
                 timeError.textContent = 'Pickup time must be earlier than drop time.';
             } else {
-                timeError.textContent = ''; // Clear error message if valid
+                timeError.textContent = '';
             }
-        });
-
-        // Trigger time selection window when clicking on the input field
-        document.querySelectorAll('.time-input').forEach(input => {
-            input.addEventListener('click', function() {
-                this.showPicker();  // Trigger the time picker directly when clicked
-            });
         });
     </script>
 @endsection

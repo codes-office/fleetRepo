@@ -769,7 +769,7 @@ input:checked + .slider:before {
                     <a href="{{ route('customers.index')}}"
                       class="nav-link @if(Request::is('admin/customers*')) active @endif">
                       <i class="fa fa-address-card nav-icon"></i>
-                      <p>@lang('fleet.customers')</p>
+                      <p>Emplyoees</p>
                     </a>
                   </li>
                   @endcan
