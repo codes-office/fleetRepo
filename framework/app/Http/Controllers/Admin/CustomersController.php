@@ -17,6 +17,8 @@ use App\Http\Requests\Customers as CustomerRequest;
 use App\Http\Requests\ImportRequest;
 use App\Imports\CustomerImport;
 use App\Model\User;
+use App\Model\USerData;
+use App\Model\CompanyTeam;
 use Auth;
 use DataTables;
 use Illuminate\Http\Request;
@@ -147,7 +149,24 @@ class CustomersController extends Controller {
 	}
 	
 	public function create() {
-		return view("customers.create");
+		$user = Auth::user();
+
+    // Initialize an empty array to store data to pass to the view
+    $data = [];
+
+    // Check the user_type and fetch customers only for super admin
+    if ($user->user_type === 'S') {
+        // Fetch customers for super admin
+        $customerIds = UserData::where('key', 'client')
+                               ->where('value', 1)
+                               ->pluck('user_id')
+                               ->toArray();
+        $data['customers'] = User::whereIn('id', $customerIds)->get();
+    }
+
+    $data['user_id'] = $user->id;
+	$teams = CompanyTeam::all()->pluck('name', 'id');
+		return view("customers.create",compact('data', 'teams'));
 	}
 
 	public function assignAdmin(Request $request)
