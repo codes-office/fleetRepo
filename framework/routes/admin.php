@@ -70,6 +70,7 @@ Route::namespace ('Admin')->group(function () {
 
         Route::get('mlt', 'UsersController@mltindex');
         Route::get('companyteam', 'CompanyTeamController@index');
+        Route::post('/companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::get('companyteam/create', 'CompanyTeamController@create');
         Route::post('companyteam/store', 'CompanyTeamController@store'); 
         Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');

@@ -35,7 +35,7 @@ class TimeslotController extends Controller
             ->where('company_id', $user->company_id)
             ->get();
     }
-    dd($timeslots->toArray());
+    // dd($timeslots->toArray());
 
     return view('timeslots.index', compact('timeslots'));
 }

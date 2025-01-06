@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\EditUserRequest;
+use App\Http\Requests\UserRequest;
+use App\Model\Hyvikk;
 use App\Model\User;
 use App\Model\UserData;
+use App\Model\VehicleGroupModel;
 use Auth;
+use DataTables;
+use Illuminate\Http\Request;
 use App\Model\CompanyTeam;
 use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Collection;
-use Yajra\DataTables\DataTables;
+
 
 class CompanyTeamController extends Controller
 {
