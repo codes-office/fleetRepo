@@ -18,6 +18,9 @@
         .table td {
             text-align: center; /* Center align table data */
         }
+        .container-fluid {
+            padding: 0 15px; /* Optional: Adjust padding for better spacing */
+        }
     </style>
 @endsection
 
@@ -27,9 +30,9 @@
 @endsection
 
 @section('content')
-<div class="container">
+<div class="container-fluid"> <!-- Changed from container to container-fluid -->
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-12"> <!-- Changed to col-12 for full-width content -->
             <div class="card card-success">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -51,6 +54,10 @@
                                 <th>#</th>
                                 <th>Created By</th>
                                 <th>Slot</th>
+                                <th>Log</th>
+                                <th>Active</th>
+                                <th>Selected days</th>
+                                <th>Created to</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -59,7 +66,36 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $timeslot->user->name ?? 'Unknown' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($timeslot->pickup_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($timeslot->drop_time)->format('H:i') }}</td>
+                                    <td>
+                                        @if($timeslot->from_time && $timeslot->to_time)
+                                            {{ \Carbon\Carbon::createFromFormat('H:i', $timeslot->from_time)->format('H:i') }}-
+                                            {{ \Carbon\Carbon::createFromFormat('H:i', $timeslot->to_time)->format('H:i') }}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td>{{ ucfirst($timeslot->log) }}</td> 
+                                    <td>
+                                        @if($timeslot->active == 1)
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $days = is_string($timeslot->days_available) 
+                                                ? json_decode($timeslot->days_available, true) 
+                                                : $timeslot->days_available ?? [];
+                                        @endphp
+                                        @foreach(array_chunk($days, 3) as $chunk)
+                                            {{ implode(', ', $chunk) }}
+                                            @if (!$loop->last)
+                                                <br>
+                                            @endif
+                                        @endforeach
+                                    </td>
+                                        <td>{{ $timeslot->company->name ?? 'Unknown' }}</td>
                                     <td>
                                         <a href="{{ route('timeslots.edit', $timeslot->id) }}" class="btn btn-warning btn-sm">Edit</a>
                                         <form action="{{ route('timeslots.destroy', $timeslot->id) }}" method="POST" style="display: inline-block;">
@@ -71,7 +107,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center">No timeslots available.</td>
+                                    <td colspan="8" class="text-center">No timeslots available.</td>
                                 </tr>
                             @endforelse
                         </tbody>
