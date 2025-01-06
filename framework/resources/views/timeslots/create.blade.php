@@ -8,6 +8,7 @@
             font-size: 15px; /* Slightly increase font size */
             width: 100%; /* Make the table take the full width */
             table-layout: auto; /* Allow table to adjust width based on content */
+            margin: 0; /* Remove any outside margin */
         }
         .table th, .table td {
             padding: 12px; /* Slightly increase padding */
@@ -48,10 +49,8 @@
 
         /* Create Timeslot Form Styling */
         .timeslot-form-container {
-            max-width: 600px; /* Make the form container smaller */
-            margin: 0 auto; /* Center the form horizontally */
-            position: relative; /* For positioning the watermark */
-            padding-right: 50px; /* Add some space on the right for watermark */
+            max-width: 100%; /* Make the form container full-width */
+            margin: 0; /* Remove outside margin */
         }
 
         /* Clock Icon Watermark */
@@ -71,6 +70,34 @@
         .form-group {
             margin-bottom: 15px;
         }
+
+        /* Styling for checkboxes section */
+        .days-checkboxes {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .days-checkboxes label {
+            font-size: 16px;
+        }
+
+        /* Styling for the columns */
+        .left-column, .right-column {
+            padding-right: 30px;
+        }
+
+        /* Styling for login and logout radio buttons */
+        .login-logout-radio {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        .login-logout-radio label {
+            font-size: 16px;
+        }
     </style>
 @endsection
 
@@ -87,7 +114,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12"> <!-- Make this column full width -->
             <div class="card card-success">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -109,15 +136,67 @@
 
                     <form action="{{ route('timeslots.store') }}" method="POST" class="timeslot-form-container">
                         @csrf
+                        {{-- <!-- Hidden user_id field -->
+                        <input type="hidden" name="user_id" value="{{ $user_id }}"> --}}
 
-                        <div class="form-group">
-                            <label for="pickup_time">Pickup Time</label>
-                            <input type="time" name="pickup_time" id="pickup_time" class="form-control time-input" value="{{ old('pickup_time') }}" required>
-                        </div>
+                        <div class="row">
+                            <!-- Left Column: Days Checkboxes -->
+                            <div class="col-md-6 left-column">
+                                <div class="form-group">
+                                    <label>Select Days</label>
+                                    <div class="days-checkboxes">
+                                        <label><input type="checkbox" name="days_available[]" value="Monday" {{ in_array('monday', old('days', [])) ? 'checked' : '' }}> Monday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Tuesday" {{ in_array('tuesday', old('days', [])) ? 'checked' : '' }}> Tuesday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Wednesday" {{ in_array('wednesday', old('days', [])) ? 'checked' : '' }}> Wednesday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Thursday" {{ in_array('thursday', old('days', [])) ? 'checked' : '' }}> Thursday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Friday" {{ in_array('friday', old('days', [])) ? 'checked' : '' }}> Friday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Saturday" {{ in_array('saturday', old('days', [])) ? 'checked' : '' }}> Saturday</label>
+                                        <label><input type="checkbox" name="days_available[]" value="Sunday" {{ in_array('sunday', old('days', [])) ? 'checked' : '' }}> Sunday</label>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="drop_time">Drop Time</label>
-                            <input type="time" name="drop_time" id="drop_time" class="form-control time-input" value="{{ old('drop_time') }}" required>
+                            <!-- Right Column: Other Form Fields -->
+                            <div class="col-md-6 right-column">
+                                <div class="form-group">
+                                    <label for="timeslot_Active">Active</label>
+                                    <input type="hidden" name="Active" value="0"> <!-- Hidden input ensures 0 is sent when unchecked -->
+                                    <input type="checkbox" name="Active" id="timeslot_Active" value="1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="from_time">From</label>
+                                    <input type="time" name="from_time" id="from_time" class="form-control time-input" value="{{ old('pickup_time') }}" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="to_time">To</label>
+                                    <input type="time" name="to_time" id="to_time" class="form-control time-input" value="{{ old('drop_time') }}" required>
+                                </div>
+
+                                @if (Auth::user()->user_type == 'S')
+                                <div class="form-group">
+                                    <label for="company_id">Select Customer</label>
+                                    <select name="company_id" id="company_id" class="form-control" required>
+                                        <option value="">-- Select a Customer --</option>
+                                        @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                            {{ $customer->name }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                @endif
+
+                                <!-- Login/Logout Radio Buttons -->
+                                <div class="form-group">
+                                    <label>Select Login or Logout</label>
+                                    <div class="login-logout-radio">
+                                        <label><input type="radio" name="log" value="Login" {{ old('login_logout') == 'login' ? 'checked' : '' }}> Login</label>
+                                        <label><input type="radio" name="log" value="Logout" {{ old('login_logout') == 'logout' ? 'checked' : '' }}> Logout</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="time-error" class="error-message"></div>
@@ -126,6 +205,7 @@
                             <button type="submit" class="btn btn-success mt-3">Create Timeslot</button>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>

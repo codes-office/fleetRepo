@@ -63,12 +63,19 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/users-fetch', 'UsersController@fetch_data');
         Route::post('assign-admin-user', 'UsersController@assignAdmin'); // assing the admin 
         Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
+
+        Route::post('Companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::post('/assign-admin', 'DriversController@assignAdmin');
         Route::resource('/users', 'UsersController');
-        
+
         Route::get('mlt', 'UsersController@mltindex');
         Route::get('companyteam', 'CompanyTeamController@index');
         Route::post('/companyteam-fetch', 'CompanyTeamController@fetch_data');
+        Route::get('companyteam/create', 'CompanyTeamController@create');
+        Route::post('companyteam/store', 'CompanyTeamController@store'); 
+        Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');
+        Route::post('companyteam/update/{id}', 'CompanyTeamController@update');
+
 
         Route::get('twilio-settings', 'TwilioController@index');
         Route::post('twilio-settings', 'TwilioController@update');
