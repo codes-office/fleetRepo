@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Model\User;
 use App\Model\UserData;
 use Auth;
+use DataTables;
 use Illuminate\Support\Facades\Validator;
 // use Illuminate\Support\Facades\Schema;
 
@@ -78,7 +79,7 @@ class TimeslotController extends Controller
         $request->validate([
             'company_id' => function ($attribute, $value, $fail) {
                 // Check if the authenticated user is of type 's'
-                if (auth()->user() && auth()->user()->user_type === 's') {
+                if (auth()->user() && auth()->user()->user_type === 'S') {
                     if (empty($value)) {
                         $fail('The company_id field is required when user_type is "s".');
                     }
@@ -165,6 +166,42 @@ Log::info('Editing Timeslot:', [
         return view('timeslots.edit', compact('timeslot'),$data);
     }
     
+    public function fetchTimeslots(Request $request)
+{
+    if ($request->ajax()) {
+        $timeslots = Timeslot::with(['user', 'company'])
+            ->select('timeslots.*')
+            ->orderBy('id', 'desc');
+
+        if ($request->has('company_id')) {
+            $timeslots->where('company_id', $request->company_id);
+        }
+
+        return DataTables::eloquent($timeslots)
+            ->addColumn('check', function ($timeslot) {
+                return '<input type="checkbox" name="ids[]" value="' . $timeslot->id . '" class="checkbox">';
+            })
+            ->addColumn('user_name', function ($timeslot) {
+                return $timeslot->user ? $timeslot->user->name : 'N/A';
+            })
+            ->addColumn('company_name', function ($timeslot) {
+                return $timeslot->company ? $timeslot->company->name : 'N/A';
+            })
+            ->addColumn('action', function ($timeslot) {
+                return '<a href="' . route('timeslots.edit', $timeslot->id) . '" class="btn btn-primary">Edit</a>';
+            })
+            ->rawColumns(['check', 'action'])
+            ->make(true);
+    }
+}
+
+
+
+    
+    
+
+
+
     /**
      * Update the specified resource in storage.
      */

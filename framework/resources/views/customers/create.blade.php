@@ -60,18 +60,29 @@
               </div>
             </div>
           </div>
+          
+          @if ($user->user_type === 'S')
+          <!-- Show Company selection for Super Admin -->
           <div class="col-md-6">
             <div class="form-group">
-              {!! Form::label('company', __('fleet.company'), ['class' => 'form-label']) !!}
-              {!! Form::select('company', $data, null, ['class' => 'form-control', 'placeholder' => __('fleet.select_company')]) !!}
-
+                {!! Form::label('company', __('Company'), ['class' => 'form-label']) !!}
+                {!! Form::select('company', $data['customers'], null, ['class' => 'form-control', 'placeholder' => __('Select Company'), 'id' => 'company']) !!}
             </div>
           </div>
+          @else
+          <!-- Auto-select Customer for 'O' user type -->
+          <div class="col-md-6">
+            <div class="form-group">
+                {!! Form::label('company', __('Company'), ['class' => 'form-label']) !!}
+                {!! Form::text('company', $data['selected_customer_id'] ?? '', ['class' => 'form-control', 'readonly' => 'readonly']) !!}
+            </div>
+          </div>
+          @endif
 
           <div class="col-md-6">
             <div class="form-group">
-              {!! Form::label('team', __('fleet.team'), ['class' => 'form-label']) !!}
-              {!! Form::select('team', $teams, null, ['class' => 'form-control', 'placeholder' => __('fleet.select_team')]) !!}
+                {!! Form::label('team', __('Team'), ['class' => 'form-label']) !!}
+                {!! Form::select('team', [], null, ['class' => 'form-control', 'placeholder' => __('Select Team'), 'id' => 'team']) !!}
             </div>
           </div>
           <div class="col-md-12">
@@ -203,5 +214,43 @@ function updateLocation(latLng) {
   });
 }
 
+</script>
+
+<script>
+  $(document).ready(function () {
+      $('#company').change(function () {
+          const companyId = $(this).val();
+
+          // Clear the team dropdown
+          $('#team').empty().append('<option value="">' + "{{ __('fleet.select_team') }}" + '</option>');
+
+          if (companyId) {
+              // Make an AJAX request to fetch teams
+              $.ajax({
+                  url: "{{ url('admin/get-teams-by-company')}}",
+                  type: 'POST',
+                  data: {
+                      company_id: companyId,
+                      _token: '{{ csrf_token() }}'
+                  },
+                  success: function (data) {
+                      // Populate the team dropdown with the returned data
+                      $.each(data, function (id, name) {
+                          $('#team').append('<option value="' + id + '">' + name + '</option>');
+                      });
+                  },
+                  error: function () {
+                      alert("{{ __('fleet.error_fetching_teams') }}");
+                  }
+              });
+          }
+      });
+
+      // Trigger company change event on page load for 'O' user type
+      const companyId = $('#company').val();
+      if (companyId) {
+          $('#company').trigger('change');
+      }
+  });
 </script>
 @endsection
