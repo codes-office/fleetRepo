@@ -162,6 +162,10 @@ public function edit($id)
     return view('company_team.edit', $data);
 }
 
+public function show($id) {
+    
+}
+
 public function update(Request $request, $id)
 {
 

@@ -27,6 +27,9 @@
         <h3 class="card-title">@lang('MLT Users') &nbsp;
           @can('Users add')<a href="{{url('admin/companyteam/create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
               class="fa fa-plus"></i></a></h3>@endcan
+         <h3 class="card-title">@lang('Add Employee') &nbsp;
+            @can('Users add')<a href="{{route('customers.create')}}" class="btn btn-success" title="@lang('fleet.addUser')"><i
+              class="fa fa-plus"></i></a></h3>@endcan
       </div>
 
       <div class="card-body table-responsive">
@@ -210,7 +213,9 @@
             {data: 'check',name:'check', searchable:false, orderable:false},
             {data: 'id', name: 'id'},
             {data: 'Company', name: 'Company'},
-            {data: 'Team_Name', name: 'Team_Name'},
+            {data: 'Team_Name', name: 'Team_Name', render: function(data, type, row) {
+        return `<a href="{{ url('admin/companyteam') }}/${row.id}" title="View Team">${data}</a>`;
+    }},
             // {data: 'Emplyoees', name: 'Emplyoees'},            
             {data: 'action',name:'action',  searchable:false, orderable:false},
             
