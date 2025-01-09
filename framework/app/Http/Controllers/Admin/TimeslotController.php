@@ -214,8 +214,7 @@ Log::info('Editing Timeslot:', [
         // dd($request->all());
         // exit;   
     $validated = $request->validate([
-        'from_time' => 'required|date_format:H:i',
-        'to_time' => 'required|date_format:H:i|after:from_time',
+        'shift' => 'required|date_format:H:i',
         'Active' => 'required|in:0,1', 
         'log' => 'string',
         'days_available' => 'array|nullable',
@@ -223,9 +222,8 @@ Log::info('Editing Timeslot:', [
     ]);
 
     $timeslot = Timeslot::findOrFail($id);
-    $timeslot->from_time = $validated['from_time'];
+    $timeslot->shift = $validated['shift'];
     $timeslot->Active=$validated['Active'];
-    $timeslot->to_time = $validated['to_time'];
     $timeslot->log = $validated['log'];
     $timeslot->days_available = $validated['days_available'];
     $timeslot->save();
