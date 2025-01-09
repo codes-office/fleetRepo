@@ -304,7 +304,7 @@ public function getActiveSlots(Request $request)
     foreach ($timeslots as $slot) {
         $company = $slot->company_id;
         $slotData = [
-            'from_to' => $slot->shift,
+            'shift' => $slot->shift,
             'log' => $slot->log,
             'days_available' => json_decode($slot->days_available, true), // Decode days_available if JSON
         ];
