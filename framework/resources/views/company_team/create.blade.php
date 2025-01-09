@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="form-group">
-                    {!! Form::label('manager', 'Manager') !!}
+                    {!! Form::label('manager', 'Manager(Optional)') !!}
                     {!! Form::text('manager', null, ['class' => 'form-control', 'placeholder' => 'Enter Manager Name']) !!}
                 </div>
 

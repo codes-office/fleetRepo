@@ -108,14 +108,8 @@
 
                         <!-- Pickup Time -->
                         <div class="form-group">
-                            <label for="from_time">From</label>
-                            <input type="time" name="from_time" id="from_time" class="form-control time-input" value="{{ old('from_time', $timeslot->from_time) }}" required>
-                        </div>
-
-                        <!-- Drop Time -->
-                        <div class="form-group">
-                            <label for="to_time">To</label>
-                            <input type="time" name="to_time" id="to_time" class="form-control time-input" value="{{ old('to_time', $timeslot->to_time) }}" required>
+                            <label for="shift">shift</label>
+                            <input type="time" name="shift" id="shift" class="form-control time-input" value="{{ old('shift', $timeslot->shift) }}" required>
                         </div>
 
                         <!-- Login/Logout Radio Buttons -->
