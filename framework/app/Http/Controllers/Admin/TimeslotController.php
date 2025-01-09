@@ -20,26 +20,21 @@ class TimeslotController extends Controller
      */
     public function index()
 {
-
-    // Schema::table('timeslots', function (Blueprint $table) {
-    //     $table->foreign('company_id')->references('id')->on('users')->onDelete('cascade');
-    // });
-    
     $user = auth()->user();
 
     if ($user->user_type == 'S') {
         // Super admin sees all timeslots
         $timeslots = Timeslot::with(['user', 'company'])->get();
-    } else {
-        // Other users see only their company's timeslots
+    } else if ($user->user_type == 'O') {
+        // Owner sees only their created timeslots
         $timeslots = Timeslot::with(['user', 'company'])
-            ->where('company_id', $user->company_id)
+            ->where('user_id', $user->id)
             ->get();
     }
-    // dd($timeslots->toArray());
 
     return view('timeslots.index', compact('timeslots'));
 }
+
 
 
     /**
@@ -165,19 +160,20 @@ Log::info('Editing Timeslot:', [
 
         return view('timeslots.edit', compact('timeslot'),$data);
     }
-    
     public function fetchTimeslots(Request $request)
 {
     if ($request->ajax()) {
-        $timeslots = Timeslot::with(['user', 'company'])
+        $user = auth()->user();
+        $query = Timeslot::with(['user', 'company'])
             ->select('timeslots.*')
             ->orderBy('id', 'desc');
 
-        if ($request->has('company_id')) {
-            $timeslots->where('company_id', $request->company_id);
+        if ($user->user_type == 'O') {
+            // Restrict to timeslots created by the logged-in user
+            $query->where('user_id', $user->id);
         }
 
-        return DataTables::eloquent($timeslots)
+        return DataTables::eloquent($query)
             ->addColumn('check', function ($timeslot) {
                 return '<input type="checkbox" name="ids[]" value="' . $timeslot->id . '" class="checkbox">';
             })
@@ -187,13 +183,23 @@ Log::info('Editing Timeslot:', [
             ->addColumn('company_name', function ($timeslot) {
                 return $timeslot->company ? $timeslot->company->name : 'N/A';
             })
+            ->addColumn('days_available', function ($timeslot) {
+                return $timeslot->days_available ? implode(', ', json_decode($timeslot->days_available)) : 'N/A';
+            })
             ->addColumn('action', function ($timeslot) {
-                return '<a href="' . route('timeslots.edit', $timeslot->id) . '" class="btn btn-primary">Edit</a>';
+                $editButton = '<a href="' . route('timeslots.edit', $timeslot->id) . '" class="btn btn-primary btn-sm" title="Edit"><i class="fa fa-pencil"></i></a>';
+                $deleteButton = '<form method="POST" action="' . route('timeslots.destroy', $timeslot->id) . '" style="display:inline;" onsubmit="return confirm(\'Are you sure you want to delete this timeslot?\');">
+                                    ' . csrf_field() . method_field('DELETE') . '
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete"><i class="fa fa-trash"></i></button>
+                                 </form>';
+                return $editButton . ' ' . $deleteButton;
             })
             ->rawColumns(['check', 'action'])
             ->make(true);
     }
 }
+
+
 
 
 
@@ -213,6 +219,7 @@ Log::info('Editing Timeslot:', [
         'from_time' => 'required|date_format:H:i',
         'to_time' => 'required|date_format:H:i|after:from_time',
         'Active' => 'required|in:0,1', 
+        'log' => 'string',
         'days_available' => 'array|nullable',
         'days_available.*' => 'string',
     ]);
@@ -221,6 +228,7 @@ Log::info('Editing Timeslot:', [
     $timeslot->from_time = $validated['from_time'];
     $timeslot->Active=$validated['Active'];
     $timeslot->to_time = $validated['to_time'];
+    $timeslot->log = $validated['log'];
     $timeslot->days_available = $validated['days_available'];
     $timeslot->save();
 
@@ -234,6 +242,7 @@ Log::info('Editing Timeslot:', [
      */
     public function destroy($id)
     {
+        
         $timeslot = Timeslot::findOrFail($id);
         $timeslot->delete();
     

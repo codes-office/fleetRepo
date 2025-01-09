@@ -50,8 +50,8 @@ class CompanyTeamController extends Controller
 public function fetch_data(Request $request)
 {
     // Log request data and endpoint
-    \Log::info('Endpoint Hit: ' . $request->url());
-    \Log::info('Request Data: ', $request->all());
+    // \Log::info('Endpoint Hit: ' . $request->url());
+    // \Log::info('Request Data: ', $request->all());
 
     if ($request->ajax()) {
         // Fetch dynamic data
@@ -60,7 +60,7 @@ public function fetch_data(Request $request)
             ->get();
 
         // Log the fetched data
-        \Log::info('Fetched Company Teams Data:', $companyTeams->toArray());
+        // \Log::info('Fetched Company Teams Data:', $companyTeams->toArray());  
 
         return DataTables::of($companyTeams)
             ->addColumn('check', function ($team) {

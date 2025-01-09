@@ -39,6 +39,7 @@
               <th>Log</th>
               <th>From</th>
               <th>To</th>
+              <th>Days Available</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -59,6 +60,7 @@
               <th>Log</th>
               <th>From</th>
               <th>To</th>
+              <th>Days Available</th>
               <th>Actions</th>
             </tr>
           </tfoot>
@@ -73,29 +75,34 @@
 <script type="text/javascript">
   $(function () {
     var table = $('#ajax_data_table').DataTable({
-      language: {
+    language: {
         url: '{{ asset("assets/datatables/")."/". ("fleet.datatable_lang") }}',
-      },
-      processing: true,
-      serverSide: true,
-      ajax: {
+    },
+    processing: true,
+    serverSide: true,
+    ajax: {
         url: "{{ url('admin/timeslot-fetch') }}",
         type: 'POST',
-        data: {},
-      },
-      columns: [
-        { data: 'check', name: 'check', orderable: false, searchable: false },
-        { data: 'id', name: 'id' },
-        { data: 'user_name', name: 'user_name' },
-        { data: 'company_name', name: 'company_name' },
-        { data: 'active', name: 'active' },
-        { data: 'log', name: 'log' },
-        { data: 'from_time', name: 'from_time' },
-        { data: 'to_time', name: 'to_time' },
-        { data: 'action', name: 'action', orderable: false, searchable: false },
-      ],
-      order: [[1, 'desc']],
-    });
+        data: {
+            _token: '{{ csrf_token() }}', // Include CSRF token
+        },
+    },
+    columns: [
+    { data: 'check', name: 'check', orderable: false, searchable: false },
+    { data: 'id', name: 'id' },
+    { data: 'user_name', name: 'user_name' },
+    { data: 'company_name', name: 'company_name' },
+    { data: 'active', name: 'active' },
+    { data: 'log', name: 'log' },
+    { data: 'from_time', name: 'from_time' },
+    { data: 'to_time', name: 'to_time' },
+    { data: 'days_available', name: 'days_available' },
+    { data: 'action', name: 'action', orderable: false, searchable: false },
+],
+
+    order: [[1, 'desc']],
+});
+
 
     $('#chk_all').on('click', function () {
       $('.checkbox').prop('checked', this.checked);

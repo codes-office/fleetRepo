@@ -88,7 +88,7 @@ Route::namespace ('Admin')->group(function () {
         Route::post('timeslots/store', 'TimeslotController@store')->name('timeslots.store');
         Route::get('timeslots', 'TimeslotController@index')->name('timeslots.index');
         Route::get('timeslots/{id}/edit', 'TimeslotController@edit')->name('timeslots.edit');
-        Route::delete('timeslots/{id}', 'TimeslotController@destroy')->name('timeslots.destroy');
+        Route::delete('timeslots/{id}/delete', 'TimeslotController@destroy')->name('timeslots.destroy');
         Route::put('timeslots/{id}', 'TimeslotController@update')->name('timeslots.update');
         // Fetch timeslot data for DataTable
         Route::post('/timeslot-fetch', 'TimeslotController@fetchTimeslots');
