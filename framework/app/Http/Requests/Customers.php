@@ -42,6 +42,9 @@ class Customers extends FormRequest {
 			'phone' => 'required|numeric|digits_between:7,15',
 			'gender' => 'required',
 			'address' => 'required',
+			'company' => 'required', // Ensure the company exists
+        'team' => 'required', // Ensure the team exists
+
 
 		];
 	}

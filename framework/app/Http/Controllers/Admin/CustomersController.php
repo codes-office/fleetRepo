@@ -148,26 +148,65 @@ class CustomersController extends Controller {
 		}
 	}
 	
-	public function create() {
-		$user = Auth::user();
-
-    // Initialize an empty array to store data to pass to the view
+	public function create()
+{
+    $user = Auth::user();
+    
     $data = [];
-
-    // Check the user_type and fetch customers only for super admin
+    
+    // Check user type
     if ($user->user_type === 'S') {
-        // Fetch customers for super admin
+        // Fetch customers for super admin (S)
         $customerIds = UserData::where('key', 'client')
                                ->where('value', 1)
                                ->pluck('user_id')
                                ->toArray();
-        $data['customers'] = User::whereIn('id', $customerIds)->get();
-    }
 
+        // Fetch customers and prepare an array of company_id => name
+        $data['customers'] = User::whereIn('id', $customerIds)
+                                 ->pluck('name', 'id')
+                                 ->toArray();
+    } elseif ($user->user_type === 'O') {
+        // Fetch customers for 'O' user type (based on login)
+        $customerIds = UserData::where('key', 'client')
+                               ->where('value', 1)
+                               ->pluck('user_id')
+                               ->toArray();
+        
+        // Fetch customers and prepare an array of company_id => name
+        $data['customers'] = User::whereIn('id', $customerIds)
+                                 ->pluck('name', 'id')
+                                 ->toArray();
+
+        // Fetch the selected customer (if available)
+        $customer = UserData::where('user_id', $user->id)
+                            ->where('key', 'client')
+                            ->where('value', 1)
+                            ->first();
+        // Set the selected customer ID
+        $data['selected_customer_id'] = $customer ? $customer->user_id : null;
+    }
+    
     $data['user_id'] = $user->id;
-	$teams = CompanyTeam::all()->pluck('name', 'id');
-		return view("customers.create",compact('data', 'teams'));
-	}
+    
+    // Do not fetch teams here; teams will be loaded dynamically via AJAX
+    return view("customers.create", compact('data', 'user'));
+}
+
+	
+	
+	
+	// Add this method to your CustomerController
+public function getTeamsByCompany(Request $request) {
+    $companyId = $request->input('company_id');
+
+    // Fetch teams associated with the given company_id
+    $teams = CompanyTeam::where('company_id', $companyId)
+                        ->pluck('Team_name', 'id'); // Retrieve as id => name pairs
+
+    return response()->json($teams);
+}
+
 
 	public function assignAdmin(Request $request)
 	{
@@ -232,7 +271,8 @@ public function fetch_admin_data(Request $request) {
 
 	public function store(CustomerRequest $request)
 {
-	
+	// dd($request->all());
+	// exit;
     // Create the customer user
     $id = User::create([
         "name" => $request->get("first_name") . " " . $request->get("last_name"),
@@ -251,6 +291,8 @@ public function fetch_admin_data(Request $request) {
     $user->mobno = $request->get("phone");
     $user->gender = $request->get('gender');
     $user->address = $request->get("address");
+	$user->assigned_admin=$request->get('company');
+	$user->team_id=$request->get('team');
     $user->save();
 
     // Assign permissions
@@ -261,7 +303,7 @@ public function fetch_admin_data(Request $request) {
 		$user->setMeta(['emsourcelong' => $request->get('longitude')]);
 		$user->setMeta(['address' => $request->get('address')]);
 	
-		// Save user changes
+		// Save user changes	
 		$user->save();
 
     // Redirect to customers list
