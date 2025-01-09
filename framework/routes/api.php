@@ -24,6 +24,7 @@ Route::namespace ('Api')->middleware(['throttle', 'auth:api'])->group(function (
 	Route::post('/edit-user-profile', 'UsersApi@edit_profile');
 	Route::post('/change-password', 'UsersApi@change_password');
 	Route::post('/message-us', 'UsersApi@message_us');
+	Route::post('/active-slots', 'UsersApi@getActiveSlots');
 	Route::post('/book-now', 'UsersApi@book_now');
 	Route::post('/book-later', 'UsersApi@book_later');
 	Route::post('/update-destination', 'UsersApi@update_destination');
