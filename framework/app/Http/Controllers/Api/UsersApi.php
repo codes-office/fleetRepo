@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Validator;
 use Twilio\Rest\Client;
+use App\Model\Timeslot;
 
 class UsersApi extends Controller {
 	public function send_otp(Request $request) {
@@ -110,9 +111,10 @@ class UsersApi extends Controller {
 	public function verify_otp(Request $request) {
 		// Define validation rules
 		$validationRules = [
-			'mobile_number' => 'required|string|regex:/^[0-9]{10,15}$/', // Allow 10 to 15 digits
+			'mobile_number' => 'required|string', // Allow 10 to 15 digits
 			'otp' => 'required|string|size:4', // Assume OTP is always 4 digits
 			'fcm_id' => 'required|string|max:255', // FCM ID should be a string with a max length of 255
+			'device_token' => 'required|string|max:255', // Device token should be a string with a max length of 255
 		];
 	
 		// Validate the request
@@ -131,13 +133,14 @@ class UsersApi extends Controller {
 		$mobileNumber = $request->get('mobile_number');
 		$otp = $request->get('otp');
 		$fcm_id = $request->get('fcm_id'); // Get FCM ID from the request
-	
-		Log::info('verify_otp - Received Mobile Number: ' . $mobileNumber);
-		Log::info('verify_otp - Received OTP: ' . $otp);
+		$device_token = $request->get('device_token'); // Get device token from the request
+		
+		// Log::info('verify_otp - Received Mobile Number: ' . $mobileNumber);
+		// Log::info('verify_otp - Received OTP: ' . $otp);
 	
 		// Validate input
 		if (empty($mobileNumber) || empty($otp)) {
-			Log::info('verify_otp - Mobile number or OTP is empty.');
+			// Log::info('verify_otp - Mobile number or OTP is empty.');
 			return [
 				'success' => 0,
 				'message' => 'Mobile number and OTP are required.'
@@ -200,6 +203,7 @@ class UsersApi extends Controller {
 
 			// Update user login status
 			$user->login_status = 1;
+			$user->device_token = $device_token;
             $user->save();
 
 			 // Update FCM ID by calling the update_fcm function
@@ -263,9 +267,37 @@ class UsersApi extends Controller {
 			];
 		}
 	}
-		
-	
-	
+
+
+	public function getActiveSlots()
+    {
+        // Fetch and filter the timeslot data
+        $timeslots = Timeslot::where('active', 1)
+            ->whereIn('log', ['login', 'logout'])
+            ->get();
+
+        // Process the data
+        $response = [];
+        foreach ($timeslots as $slot) {
+            $company = $slot->created_to;
+            $slotData = [
+                'from_to' => $slot->from . '-' . $slot->to,
+                'log' => $slot->log,
+                'days_available' => $slot->days_available,
+            ];
+
+            if (!isset($response[$company])) {
+                $response[$company] = [];
+            }
+
+            $response[$company][] = $slotData;
+        }
+
+        // Return the response as JSON
+        return response()->json($response, 200);
+    }
+
+
 	public function map_api(Request $request) {
 
 		$validation = Validator::make($request->all(), [
