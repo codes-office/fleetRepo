@@ -51,8 +51,8 @@
           <th>Office Address</th>
           <th>@lang('fleet.action')</th>
           
-          <th>Employee Assigned To</th>
-          <th>Employee Assigned Under</th>
+          {{-- <th>Employee Assigned To</th>
+          <th>Employee Assigned Under</th> --}}
           
         </tr>
       </thead>
@@ -72,8 +72,8 @@
           <th>Office Address</th>
           <th>@lang('fleet.action')</th>
           @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'O')
-          <th>Employee Assigned To</th>
-          <th>Employee Assigned Under</th>
+          {{-- <th>Employee Assigned To</th>
+          <th>Employee Assigned Under</th> --}}
           @endif
         </tr>
       </tfoot>
@@ -208,7 +208,7 @@
 <!-- Modal -->
 
 <!-- Modal -->
-<div id="changepass" class="modal fade" role="dialog">
+{{-- <div id="changepass" class="modal fade" role="dialog">
   <div class="modal-dialog">
     <!-- Modal content-->
     <div class="modal-content">
@@ -243,7 +243,7 @@
     </div>
   </div>
 </div>
-<!-- Modal -->
+<!-- Modal --> --}}
 
 
 @endsection
@@ -309,8 +309,8 @@
          {data: 'home_address', name: 'user_data.value'},
         {data: 'office_address', name: 'user_data.value'},
           {data: 'action',name:'action',  searchable:false, orderable:false},
-          {data : 'assign_admin',name:'assign_admin'},
-          {data : 'assigned_admin',name:'assigned_admin'}
+          // {data : 'assign_admin',name:'assign_admin'},
+          // {data : 'assigned_admin',name:'assigned_admin'}
       ],
       order: [[1, 'desc']],
       "initComplete": function() {

@@ -63,10 +63,21 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/users-fetch', 'UsersController@fetch_data');
         Route::post('assign-admin-user', 'UsersController@assignAdmin'); // assing the admin 
         Route::post('/mltusers-fetch', 'UsersController@mlt_fetch_data');
+
+        Route::post('Companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::post('/assign-admin', 'DriversController@assignAdmin');
         Route::resource('/users', 'UsersController');
-        
+
         Route::get('mlt', 'UsersController@mltindex');
+        Route::get('companyteam', 'CompanyTeamController@index');
+        Route::post('/companyteam-fetch', 'CompanyTeamController@fetch_data');
+        Route::get('companyteam/create', 'CompanyTeamController@create');
+        Route::post('companyteam/store', 'CompanyTeamController@store'); 
+        Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');
+        Route::post('companyteam/update/{id}', 'CompanyTeamController@update');
+        
+
+
 
         Route::get('twilio-settings', 'TwilioController@index');
         Route::post('twilio-settings', 'TwilioController@update');
@@ -77,8 +88,11 @@ Route::namespace ('Admin')->group(function () {
         Route::post('timeslots/store', 'TimeslotController@store')->name('timeslots.store');
         Route::get('timeslots', 'TimeslotController@index')->name('timeslots.index');
         Route::get('timeslots/{id}/edit', 'TimeslotController@edit')->name('timeslots.edit');
-        Route::delete('timeslots/{id}', 'TimeslotController@destroy')->name('timeslots.destroy');
+        Route::delete('timeslots/{id}/delete', 'TimeslotController@destroy')->name('timeslots.destroy');
         Route::put('timeslots/{id}', 'TimeslotController@update')->name('timeslots.update');
+        // Fetch timeslot data for DataTable
+        Route::post('/timeslot-fetch', 'TimeslotController@fetchTimeslots');
+
         
 
         Route::get('fetch-data', 'Testcontroller@fetch');
@@ -214,6 +228,7 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('/income', 'IncomeController');
         Route::resource('/settings', 'SettingsController');
         Route::post('/customers-fetch', 'CustomersController@fetch_data');
+        Route::post('/get-teams-by-company', 'CustomersController@getTeamsByCompany');
         Route::resource('/customers', 'CustomersController');
         Route::post('assign-admin-customer', 'CustomersController@assignAdmin'); // assing the admin 
         Route::post('customer-admin-fetch', 'CustomersController@fetch_admin_data');

@@ -1,102 +1,129 @@
 @extends('layouts.app')
 
-@section('extra_css')
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
-    <style>
-        /* Make the table and text a little bit bigger */
-        .table {
-            font-size: 15px; /* Slightly increase font size */
-            width: 100%; /* Make the table take the full width */
-            table-layout: auto; /* Allow table to adjust width based on content */
-        }
-        .table th, .table td {
-            padding: 12px; /* Slightly increase padding */
-        }
-        .table th {
-            text-align: center; /* Center align table headers */
-        }
-        .table td {
-            text-align: center; /* Center align table data */
-        }
-    </style>
+@section('breadcrumb')
+<li class="breadcrumb-item active">Timeslot Management</li>
 @endsection
 
-@section('breadcrumb')
-    <li class="breadcrumb-item "><a href="{{ route('timeslots.index') }}">All Timeslots</a></li>
-    <li class="breadcrumb-item active">Timeslots</li>
+@section('extra_css')
+<style type="text/css">
+  .checkbox,
+  #chk_all {
+    width: 20px;
+    height: 20px;
+  }
+</style>
 @endsection
 
 @section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card card-success">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        Timeslot List
-                    </h3>
-                </div>
-
-                <div class="card-body">
-                    <!-- Success message -->
-                    @if(session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Created By</th>
-                                <th>Slot</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($timeslots as $timeslot)
-                                <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $timeslot->user->name ?? 'Unknown' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($timeslot->pickup_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($timeslot->drop_time)->format('H:i') }}</td>
-                                    <td>
-                                        <a href="{{ route('timeslots.edit', $timeslot->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                        <form action="{{ route('timeslots.destroy', $timeslot->id) }}" method="POST" style="display: inline-block;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center">No timeslots available.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    <!-- Create new timeslot button -->
-                    <a href="{{ route('timeslots.create') }}" class="btn btn-success mt-3">Create Timeslot</a>
-                </div>
-            </div>
-        </div>
+<div class="row">
+  <div class="col-md-12">
+    <div class="card card-info">
+      <div class="card-header">
+        <h3 class="card-title">Timeslots &nbsp;
+          @can('Users add')
+          <a href="{{ route('timeslots.create') }}" class="btn btn-success" title="Add Timeslot">
+            <i class="fa fa-plus"></i>
+          </a>
+          @endcan
+        </h3>
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table" id="ajax_data_table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="chk_all"></th>
+              <th>@lang('fleet.id')</th>
+              <th>Created By</th>
+              <th>Created To</th>
+              <th>Active</th>
+              <th>Log</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days Available</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <th>
+                @can('Users delete')
+                <button class="btn btn-danger" id="bulk_delete" disabled>
+                  <i class="fa fa-trash"></i>
+                </button>
+                @endcan
+              </th>
+              <th>@lang('fleet.id')</th>
+              <th>Created By</th>
+              <th>Created To</th>
+              <th>Active</th>
+              <th>Log</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days Available</th>
+              <th>Actions</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
+  </div>
 </div>
 @endsection
 
 @section('script')
-    <script>
-        // Ensure jQuery is loaded and use the following to fade out success messages after 3 seconds
-        $(document).ready(function() {
-            // Check if a success message is present
-            @if(session('success'))
-                // Fade out the success message after 3 seconds
-                setTimeout(function() {
-                    $(".alert-success").fadeOut("slow");
-                }, 3000); // 3000ms = 3 seconds
-            @endif
+<script type="text/javascript">
+  $(function () {
+    var table = $('#ajax_data_table').DataTable({
+    language: {
+        url: '{{ asset("assets/datatables/")."/". ("fleet.datatable_lang") }}',
+    },
+    processing: true,
+    serverSide: true,
+    ajax: {
+        url: "{{ url('admin/timeslot-fetch') }}",
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}', // Include CSRF token
+        },
+    },
+    columns: [
+    { data: 'check', name: 'check', orderable: false, searchable: false },
+    { data: 'id', name: 'id' },
+    { data: 'user_name', name: 'user_name' },
+    { data: 'company_name', name: 'company_name' },
+    { data: 'active', name: 'active' },
+    { data: 'log', name: 'log' },
+    { data: 'from_time', name: 'from_time' },
+    { data: 'to_time', name: 'to_time' },
+    { data: 'days_available', name: 'days_available' },
+    { data: 'action', name: 'action', orderable: false, searchable: false },
+],
+
+    order: [[1, 'desc']],
+});
+
+
+    $('#chk_all').on('click', function () {
+      $('.checkbox').prop('checked', this.checked);
+      $('#bulk_delete').prop('disabled', !this.checked);
+    });
+
+    $(document).on('click', '.checkbox', function () {
+      $('#chk_all').prop('checked', $('.checkbox:checked').length === $('.checkbox').length);
+      $('#bulk_delete').prop('disabled', $('.checkbox:checked').length === 0);
+    });
+
+    $('#bulk_delete').on('click', function () {
+      if ($('.checkbox:checked').length > 0) {
+        $('.checkbox:checked').each(function () {
+          $('#bulk_hidden').append('<input type="hidden" name="ids[]" value="' + $(this).val() + '">');
         });
-    </script>
+        $('#bulkModal').modal('show');
+      } else {
+        alert('No rows selected');
+      }
+    });
+  });
+</script>
 @endsection
