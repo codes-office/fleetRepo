@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\DB;
 use Validator;
+use Illuminate\Support\Facades\Log; 
 
 class CustomersController extends Controller {
 	public function __construct() {
@@ -82,71 +83,145 @@ class CustomersController extends Controller {
 		return view("customers.index");
 	}
 
-	public function fetch_data(Request $request) {
-		if ($request->ajax()) {
-			// Fetch customers with their meta data
-			$users = User::select('users.*')
-				->with(['user_data']) // Ensure you load the user_data relationship
-				->whereUser_type("C")
-				->orderBy('users.id', 'desc')
-				->groupBy('users.id');
+	public function fetch_data(Request $request)
+{
+    // Retrieve `teamId` from the request
+    $teamId = $request->input('teamId');
+    
+    // Log the received `teamId` for debugging purposes
+    \Log::info('Team ID received in fetch_data:', ['teamId' => $teamId]);
+
+    if ($request->ajax()) {
+        // Fetch users filtered by teamId
+        $users = User::select('users.*')
+            ->with(['user_data']) // Ensure related data is loaded
+            ->where('user_type', 'C') // Filter for customers
+            ->when($teamId, function ($query) use ($teamId) {
+                // Filter users by `teamId` if it's provided
+                return $query->where('team_id', $teamId);
+            })
+            ->orderBy('users.id', 'desc')
+            ->groupBy('users.id');
+
+        // Fetch all admins
+        $admins = User::with(['metas'])
+            ->where('user_type', 'O')
+            ->whereHas('metas', function ($query) {
+                $query->where('key', 'client')->where('value', 1);
+            })
+            ->select('id', 'name')->get();
+
+        // Return the data as a DataTables response
+        return DataTables::eloquent($users)
+            ->addColumn('check', function ($user) {
+                return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\' />';
+            })
+            ->addColumn('mobno', function ($user) {
+                return $user->getMeta('mobno');
+            })
+            ->editColumn('name', function ($user) {
+                return '<a href="' . route('customers.show', $user->id) . '">' . $user->name . '</a>';
+            })
+            ->addColumn('gender', function ($user) {
+                return $user->getMeta('gender') ? "Male" : "Female";
+            })
+            ->addColumn('home_address', function ($user) {
+                return $user->address; // Assuming this is the user's home address
+            })
+            ->addColumn('office_address', function ($user) {
+                if ($user->assigned_admin) {
+                    $admin = User::find($user->assigned_admin);
+                    return $admin ? $admin->address : 'No Admin Assigned';
+                }
+                return 'Company Not Assigned';
+            })
+            ->addColumn('assign_admin', function ($user) use ($admins) {
+                $dropdown = '<select class="form-control assign-admin-customer" data-customer-id="' . $user->id . '">';
+                $dropdown .= '<option value="">Select Admin</option>';
+                foreach ($admins as $admin) {
+                    $selected = $user->assigned_admin == $admin->id ? 'selected' : '';
+                    $dropdown .= '<option value="' . $admin->id . '" ' . $selected . '>' . $admin->name . '</option>';
+                }
+                $dropdown .= '</select>';
+                return $dropdown;
+            })
+            ->addColumn('assigned_admin', function ($user) {
+                return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';
+            })
+            ->addColumn('action', function ($user) {
+                return view('customers.list-actions', ['row' => $user]);
+            })
+            ->rawColumns(['action', 'check', 'name', 'assign_admin'])
+            ->make(true);
+    }
+}
+
 	
-			// Fetch all admins
-			$admins = User::with(['metas'])
-			->where(function ($query) {
-				$query->where('user_type', 'O');
-			})
-			->whereHas('metas', function ($query) {
-				$query->where('key', 'client')->where('value', 1);
-			})
-			->select('id', 'name')->get();
+	// public function fetch_data(Request $request) {
+	// 	if ($request->ajax()) {
+	// 		// Fetch customers with their meta data
+	// 		$users = User::select('users.*')
+	// 			->with(['user_data']) // Ensure you load the user_data relationship
+	// 			->whereUser_type("C")
+	// 			->orderBy('users.id', 'desc')
+	// 			->groupBy('users.id');
 	
-			return DataTables::eloquent($users)
-				->addColumn('check', function ($user) {
-					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
-				})
-				->addColumn('mobno', function ($user) {
-					return $user->getMeta('mobno');
-				})
-				->editColumn('name', function ($user) {
-					return "<a href=" . route('customers.show', $user->id) . ">$user->name</a>";
-				})
-				->addColumn('gender', function ($user) {
-					return ($user->getMeta('gender')) ? "Male" : "Female";
-				})
-				->addColumn('home_address', function ($user) {
-					return $user->address; // Assuming this is the user's home address
-				})
-				->addColumn('office_address', function ($user) {
-					// Fetch the assigned admin address
-					if ($user->assigned_admin) { // CHECK IF ADMIN IS ASSIGNED
-						$admin = User::find($user->assigned_admin); // FETCH ADMIN DETAILS
-						return $admin ? $admin->address : 'No Admin Assigned'; // RETURN ADMIN'S ADDRESS
-					}
-					return 'Company Not Assigned'; // RETURN IF NO ADMIN IS ASSIGNED
-				})
-				->addColumn('assign_admin', function ($user) use ($admins) {
-					$dropdown = '<select class="form-control assign-admin-customer" data-customer-id="' . $user->id . '">';
-					$dropdown .= '<option value="">Select Admin</option>';
+	// 		// Fetch all admins
+	// 		$admins = User::with(['metas'])
+	// 		->where(function ($query) {
+	// 			$query->where('user_type', 'O');
+	// 		})
+	// 		->whereHas('metas', function ($query) {
+	// 			$query->where('key', 'client')->where('value', 1);
+	// 		})
+	// 		->select('id', 'name')->get();
 	
-					foreach ($admins as $admin) {
-						$selected = $user->assigned_admin == $admin->id ? 'selected' : '';
-						$dropdown .= '<option value="' . $admin->id . '" ' . $selected . '>' . $admin->name . '</option>';
-					}
+	// 		return DataTables::eloquent($users)
+	// 			->addColumn('check', function ($user) {
+	// 				return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
+	// 			})
+	// 			->addColumn('mobno', function ($user) {
+	// 				return $user->getMeta('mobno');
+	// 			})
+	// 			->editColumn('name', function ($user) {
+	// 				return "<a href=" . route('customers.show', $user->id) . ">$user->name</a>";
+	// 			})
+	// 			->addColumn('gender', function ($user) {
+	// 				return ($user->getMeta('gender')) ? "Male" : "Female";
+	// 			})
+	// 			->addColumn('home_address', function ($user) {
+	// 				return $user->address; // Assuming this is the user's home address
+	// 			})
+	// 			->addColumn('office_address', function ($user) {
+	// 				// Fetch the assigned admin address
+	// 				if ($user->assigned_admin) { // CHECK IF ADMIN IS ASSIGNED
+	// 					$admin = User::find($user->assigned_admin); // FETCH ADMIN DETAILS
+	// 					return $admin ? $admin->address : 'No Admin Assigned'; // RETURN ADMIN'S ADDRESS
+	// 				}
+	// 				return 'Company Not Assigned'; // RETURN IF NO ADMIN IS ASSIGNED
+	// 			})
+	// 			->addColumn('assign_admin', function ($user) use ($admins) {
+	// 				$dropdown = '<select class="form-control assign-admin-customer" data-customer-id="' . $user->id . '">';
+	// 				$dropdown .= '<option value="">Select Admin</option>';
 	
-					$dropdown .= '</select>';
-					return $dropdown;
-				})
-				->addColumn('assigned_admin', function($user){
-					return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
-				})
-				->addColumn('action', function ($user) {
-					return view('customers.list-actions', ['row' => $user]);
-				})
-				->rawColumns(['action', 'check', 'name', 'assign_admin'])
-				->make(true);
-		}
-	}
+	// 				foreach ($admins as $admin) {
+	// 					$selected = $user->assigned_admin == $admin->id ? 'selected' : '';
+	// 					$dropdown .= '<option value="' . $admin->id . '" ' . $selected . '>' . $admin->name . '</option>';
+	// 				}
+	
+	// 				$dropdown .= '</select>';
+	// 				return $dropdown;
+	// 			})
+	// 			->addColumn('assigned_admin', function($user){
+	// 				return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
+	// 			})
+	// 			->addColumn('action', function ($user) {
+	// 				return view('customers.list-actions', ['row' => $user]);
+	// 			})
+	// 			->rawColumns(['action', 'check', 'name', 'assign_admin'])
+	// 			->make(true);
+	// 	}
+	// }
 	
 	public function create()
 {

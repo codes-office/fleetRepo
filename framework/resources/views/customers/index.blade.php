@@ -79,7 +79,7 @@
       </tfoot>
     </table>
     @endif
-    @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" && Auth::user()->user_type != "M"   && Auth::user()->user_type != 'S')
+    @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"    && Auth::user()->user_type != 'S')
     
             <table class="table" id="ajax_admin_data_table" style="padding-bottom: 25px">
           <thead class="thead-inverse">
@@ -252,13 +252,14 @@
 
 <script type="text/javascript">
 
-  $("#del_btn").on("click",function(){
-    var id=$(this).data("submit");
-    $("#form_"+id).submit();
-  });
 
-  $('#myModal').on('show.bs.modal', function(e) {
-    var id = e.relatedTarget.dataset.id;
+$("#del_btn").on("click",function(){
+  var id=$(this).data("submit");
+  $("#form_"+id).submit();
+});
+
+$('#myModal').on('show.bs.modal', function(e) {
+  var id = e.relatedTarget.dataset.id;
     $("#del_btn").attr("data-submit",id);
   });
 
@@ -267,27 +268,32 @@
     $("#driver_id").val(id);
   });
 
-   $("#changepass_form").on("submit",function(e){
+  $("#changepass_form").on("submit",function(e){
     $.ajax({
       type: "POST",
       url: $(this).attr("action"),
       data: $(this).serialize(),
       success: function(data){
-
-       new PNotify({
-            title: 'Success!',
-            text: "@lang('fleet.passwordChanged')",
-            type: 'info'
+        
+        new PNotify({
+          title: 'Success!',
+          text: "@lang('fleet.passwordChanged')",
+          type: 'info'
         });
       },
-
+      
       dataType: "html"
     });
     $('#changepass').modal("hide");
     e.preventDefault();
   });
+
+
   $(function(){
-  
+    
+    var teamId = '{{ $teamId }}';// For debugging purposes
+    
+     console.log("Team ID: " + teamId);
   var table = $('#ajax_data_table').DataTable({
         "language": {
             "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
@@ -298,7 +304,9 @@
       ajax: {
         url: "{{ url('admin/customers-fetch') }}",
         type: 'POST',
-        data:{}
+         data: function (d) { // Add additional data to the request
+                d.teamId = teamId; // Pass the teamId
+            },
       },
       columns: [
           {data: 'check',name:'check', searchable:false, orderable:false},
@@ -322,6 +330,9 @@
             });
           }
   });
+
+
+
 
  $(document).on('change', '.assign-admin-customer', function() {
     var customerId = $(this).data('customer-id');
@@ -352,9 +363,15 @@
 
 
 });
-// fetch the data to admins
+
+
+
 $(function() {
-    var adminId = {{ Auth::user()->id }}; // Get the current admin's ID
+   var teamId = '{{ $teamId }}';// For debugging purposes
+   
+    // console.log("Team ID: " + teamId);
+
+    // var adminId = {{ Auth::user()->id }}; // Get the current admin's ID
 
     var table = $('#ajax_admin_data_table').DataTable({
         "language": {
@@ -367,6 +384,7 @@ $(function() {
             type: 'POST',
             data: function (d) {
                 d.admin_id = adminId; // Send the admin ID with the request
+                d.team_id = teamId;   // Send the team ID with the request
             }
         },
         columns: [
