@@ -382,7 +382,7 @@ public function fetch_admin_data(Request $request) {
 		$user->save();
 
     // Redirect to customers list
-    return redirect()->route("customers.index");
+    return redirect()->route("Companyteam");
 }
 
 	
