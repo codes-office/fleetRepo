@@ -24,7 +24,7 @@ class Timeslot extends Model
     }
     public function company()
     {
-        return $this->belongsTo(User::class, 'company_id');  // company_id maps to user_id in users table
+        return $this->belongsTo(User::class, 'company_id');  // companygit _id maps to user_id in users table
     }
  
     
