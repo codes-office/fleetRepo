@@ -103,7 +103,7 @@ class TimeslotController extends Controller
             'company_id' => $companyId,     // Company ID from the request
             'active' => $request->Active,   // Active status from the request
             'log' => $request->log,         // Log type (login/logout)
-            'shift' => $request->from_time,     // To time from the request
+            'shift' => $request->shift, // From time from the request
             'days_available' => $daysAvailableJson, // Store days_available as JSON
         ]);
     

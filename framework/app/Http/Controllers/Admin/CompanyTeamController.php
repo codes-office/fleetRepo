@@ -162,6 +162,19 @@ public function edit($id)
     return view('company_team.edit', $data);
 }
 
+public function show($id) {
+    // Assign $id to a variable named teamId
+    $teamId = $id;
+log::info($teamId);
+    // Pass the variable to the view
+    return view('customers.index', [
+        'teamId' => $teamId, // $teamId should be a valid PHP variable
+    ]);
+    
+}
+
+
+
 public function update(Request $request, $id)
 {
 

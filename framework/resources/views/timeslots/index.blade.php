@@ -37,7 +37,7 @@
               <th>Created To</th>
               <th>Active</th>
               <th>Log</th>
-              <th>Shift</th>
+              <th>shift</th>
               <th>Days Available</th>
               <th>Actions</th>
             </tr>
@@ -57,7 +57,7 @@
               <th>Created To</th>
               <th>Active</th>
               <th>Log</th>
-              <th>Shift</th>
+              <th>shift</th>
               <th>Days Available</th>
               <th>Actions</th>
             </tr>
