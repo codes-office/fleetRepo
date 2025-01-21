@@ -37,8 +37,7 @@
               <th>Created To</th>
               <th>Active</th>
               <th>Log</th>
-              <th>From</th>
-              <th>To</th>
+              <th>Shift</th>
               <th>Days Available</th>
               <th>Actions</th>
             </tr>
@@ -58,8 +57,7 @@
               <th>Created To</th>
               <th>Active</th>
               <th>Log</th>
-              <th>From</th>
-              <th>To</th>
+              <th>Shift</th>
               <th>Days Available</th>
               <th>Actions</th>
             </tr>
@@ -94,8 +92,7 @@
     { data: 'company_name', name: 'company_name' },
     { data: 'active', name: 'active' },
     { data: 'log', name: 'log' },
-    { data: 'from_time', name: 'from_time' },
-    { data: 'to_time', name: 'to_time' },
+    { data: 'shift', name: 'shift' },
     { data: 'days_available', name: 'days_available' },
     { data: 'action', name: 'action', orderable: false, searchable: false },
 ],

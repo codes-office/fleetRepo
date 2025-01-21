@@ -13,8 +13,7 @@ class Timeslot extends Model
         'company_id',     // Company associated with the timeslot
         'active',         // Indicates if the timeslot is active
         'log',            // Type of log (login or logout)
-        'from_time',      // Starting time of the timeslot in hh:mm format
-        'to_time',        // Ending time of the timeslot in hh:mm format
+        'shift',      // Ending time of the timeslot in hh:mm format
         'days_available', // JSON array for the available days
     ];
     

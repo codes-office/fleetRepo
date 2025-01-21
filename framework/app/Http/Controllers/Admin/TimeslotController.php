@@ -80,8 +80,7 @@ class TimeslotController extends Controller
                     }
                 }
             },
-            'from_time' => 'required|date_format:H:i',
-            'to_time' => 'required|date_format:H:i|after:from_time',
+            'shift' => 'required|date_format:H:i',
             'days_available' => 'required|array', // Ensure days_available is an array
             'log' => 'required|in:Login,Logout',  // Ensure the log value is either 'Login' or 'Logout'
             'Active' => 'required|in:0,1',       // Ensure Active is either true or false
@@ -104,8 +103,7 @@ class TimeslotController extends Controller
             'company_id' => $companyId,     // Company ID from the request
             'active' => $request->Active,   // Active status from the request
             'log' => $request->log,         // Log type (login/logout)
-            'from_time' => $request->from_time, // From time from the request
-            'to_time' => $request->to_time,     // To time from the request
+            'shift' => $request->from_time,     // To time from the request
             'days_available' => $daysAvailableJson, // Store days_available as JSON
         ]);
     
@@ -216,8 +214,7 @@ Log::info('Editing Timeslot:', [
         // dd($request->all());
         // exit;   
     $validated = $request->validate([
-        'from_time' => 'required|date_format:H:i',
-        'to_time' => 'required|date_format:H:i|after:from_time',
+        'shift' => 'required|date_format:H:i',
         'Active' => 'required|in:0,1', 
         'log' => 'string',
         'days_available' => 'array|nullable',
@@ -225,9 +222,8 @@ Log::info('Editing Timeslot:', [
     ]);
 
     $timeslot = Timeslot::findOrFail($id);
-    $timeslot->from_time = $validated['from_time'];
+    $timeslot->shift = $validated['shift'];
     $timeslot->Active=$validated['Active'];
-    $timeslot->to_time = $validated['to_time'];
     $timeslot->log = $validated['log'];
     $timeslot->days_available = $validated['days_available'];
     $timeslot->save();

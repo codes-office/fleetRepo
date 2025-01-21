@@ -165,14 +165,10 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="from_time">From</label>
-                                    <input type="time" name="from_time" id="from_time" class="form-control time-input" value="{{ old('pickup_time') }}" required>
+                                    <label for="shift">Shift</label>
+                                    <input type="time" name="shift" id="shift" class="form-control time-input" value="{{ old('shift') }}" required>
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="to_time">To</label>
-                                    <input type="time" name="to_time" id="to_time" class="form-control time-input" value="{{ old('drop_time') }}" required>
-                                </div>
 
                                 @if (Auth::user()->user_type == 'S')
                                 <div class="form-group">
