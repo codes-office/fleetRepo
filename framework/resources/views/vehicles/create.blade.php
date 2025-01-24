@@ -97,7 +97,7 @@
 
       <div class="card-body">
         <div class="nav-tabs-custom">
-          <ul class="nav nav-pills custom">
+          <ul class="nav nav-pills custom xxx">
             <li class="nav-item"><a class="nav-link active" href="#info-tab" data-toggle="tab">
                 @lang('fleet.general_info') <i class="fa"></i></a></li>
           </ul>

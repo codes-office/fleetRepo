@@ -40,6 +40,7 @@ Design and developed by Hyvikk Solutions <https://hyvikk.com/>  -->
 
   <!-- Theme style -->
   <link rel="stylesheet" href="{{asset('assets/css/dist-adminlte.min.css')}}">
+  <link rel="stylesheet" href="{{asset('assets/css/style.css')}}">
   <!-- iCheck -->
   {{-- <link rel="stylesheet" href="{{asset('assets/css/plugins-icheck-flat-blue.css')}}"> --}}
   <!-- iCheck for checkboxes and radio inputs -->
@@ -835,6 +836,15 @@ input:checked + .slider:before {
                     </a>
                   </li>
                   @endcan
+                  @can('VehicleType list')
+                  <li class="nav-item">
+                    <a href="{{ route('vehiclecontracts.index')}}"
+                      class="nav-link @if(Request::is('admin/vehicle-contracts*')) active @endif">
+                      <i class="fa fa-th-list nav-icon"></i>
+                      <p>Vehicle Contract</p>
+                    </a>
+                  </li>
+                  @endcan
                   {{-- @can('Vehicles list')
                   <li class="nav-item">
                     <a href="{{ url('admin/driver-logs')}}"
@@ -843,6 +853,8 @@ input:checked + .slider:before {
                       <p>@lang('fleet.driver_logs')</p>
                     </a>
                   </li>
+
+
                   @endcan --}}
                   @can('VehicleGroup list')
                   <li class="nav-item">
@@ -1971,8 +1983,12 @@ input:checked + .slider:before {
   <script>var current_route = "{{Route::current()->getName() ?? '' }}"; </script>
   {{-- <script>var google_api = "{{ Hyvikk::api('google_api') }}"; </script>  --}}
   <script src="{{ asset('assets/js/pnotify.custom.min.js')}}"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   @yield('script')
+
+
 
   <script> var base_url = '{{ url("/") }}'; </script>
 

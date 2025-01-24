@@ -8,6 +8,7 @@
     width: 20px;
     height: 20px;
   }
+  
 </style>
 @endsection
 @section('content')
@@ -85,6 +86,7 @@
               <th>@lang('fleet.service_interval')</th>
               <th>@lang('fleet.create_reminder')</th>
               <th>@lang('fleet.action')</th>
+              <th></th>
             </tr>
           </tfoot>
         </table>
@@ -92,7 +94,7 @@
     </div>
   </div>
 </div>
-
+<!-- 
 <!-- Modal -->
 <div id="bulkModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -115,7 +117,7 @@
     </div>
   </div>
 </div>
-<!-- Modal -->
+Modal -->
 
 <!-- Modal -->
 <div id="myModal" class="modal fade" role="dialog">

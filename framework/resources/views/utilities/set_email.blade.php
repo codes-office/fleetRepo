@@ -30,7 +30,7 @@
       </div>
       <div class="card-body">
         <div>
-          <ul class="nav nav-pills custom">
+          <ul class="nav nav-pills custom ">
             <li class="nav-item"><a href="#insurance" data-toggle="tab" class="nav-link active"> @lang('fleet.i_notify') <i class="fa"></i></a></li>
             <li class="nav-item"><a href="#vehicle-licence" data-toggle="tab" class="nav-link"> @lang('fleet.v_lic') <i class="fa"></i></a></li>
             <li class="nav-item"><a href="#driver-licence" data-toggle="tab" class="nav-link"> @lang('fleet.d_lic') <i class="fa"></i></a></li>

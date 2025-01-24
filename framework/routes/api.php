@@ -1,5 +1,6 @@
 <?php
 
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 Route::namespace ('Api')->middleware(['throttle'])->group(function () {

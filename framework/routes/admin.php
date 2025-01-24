@@ -1,9 +1,15 @@
 <?php
+use App\Http\Controllers\Admin\contractcontroller;
 Auth::routes();
 Route::namespace ('Admin')->group(function () {
     // Route::get('export-events', 'HomeController@export_calendar');
 
     Route::get('test-login', 'Testcontroller@login');
+    Route::get('/vehiclecontracts', [contractcontroller::class, 'index'])->name('vehiclecontracts.index');
+    
+    Route::put('vehiclecontracts/{contract}', [contractcontroller::class, 'update'])->name('vehiclecontracts.update');
+
+
 
     Route::get('/migrate', function () {
         \Artisan::call('migrate');
@@ -28,8 +34,37 @@ Route::namespace ('Admin')->group(function () {
     //     }
     // });
 // dd('test');
+
+        // Route::post('/admin/fare-settings', [SettingsController::class, 'storeFareSettings'])->name('fare-settings.store');
+        // Route::get('fare-settings', [App\Http\Controllers\Admin\SettingsController::class, 'fare_settings']);
+       
+
+Route::post('/admin/fare-settings', [SettingsController::class, 'storeFareSettings'])->name('fare-settings.store');
+Route::post('/fare-settings/store', [SettingsController::class, 'store_F'])->name('fare-settings.store_F');
+
+
+
+Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')->group(function () {
+        Route::get('/', [contractcontroller::class, 'index'])->name('index');
+        Route::post('/fetch', [contractcontroller::class, 'fetchData'])->name('fetch');
+        Route::get('/create', [contractcontroller::class, 'create'])->name('create');
+        Route::post('/', [contractcontroller::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [contractcontroller::class, 'edit'])->name('edit');
+        Route::put('/{id}', [contractcontroller::class, 'update'])->name('update');
+        Route::delete('/{id}', [contractcontroller::class, 'destroy'])->name('destroy');
+        Route::post('/bulk_delete', [contractcontroller::class, 'bulkDelete'])->name('bulkDelete');
+    });
+    
+
+    Route::get('vehiclecontracts/create', [contractcontroller::class, 'create'])->name('vehiclecontracts.create');
+    Route::resource('vehiclecontracts', contractcontroller::class);
+
+        Route::resource('vehiclecontracts', contractcontroller::class);
+
+
+
     Route::get("/", 'HomeController@index')->middleware(['lang_check', 'auth']);
-    Route::group(['middleware' => ['lang_check', 'auth', 'officeadmin', 'IsInstalled']], function () {
+        Route::group(['middleware' => ['lang_check', 'auth', 'officeadmin', 'IsInstalled']], function () {
 
        
         Route::get('/vehicles-track/{id?}','TrackerController@vehicles_track');
@@ -55,6 +90,45 @@ Route::namespace ('Admin')->group(function () {
         // Route::post('vehicle-model-fetch', 'VehicleModelController@fetch_data');
         // Route::resource('vehicle-model', 'VehicleModelController');
         // Route::post('delete-vehicle-model', 'VehicleModelController@bulk_delete');
+
+
+        ////////////////// VEHICLE CONTRACT /////////////////////////
+
+        
+        
+
+
+////////////////////////////////
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ////////////////// END VEHICLE CONTRACT /////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
 
         Route::get('firebase', 'FirebaseController@index');
 
@@ -194,6 +268,7 @@ Route::namespace ('Admin')->group(function () {
         // Route::get('fb', 'SettingsController@fb_create')->name('fb');
         Route::post('firebase-settings', 'SettingsController@firebase');
         Route::get('fare-settings', 'SettingsController@fare_settings');
+
         Route::post('fare-settings', 'SettingsController@store_fareSettings');
         Route::post('store-key', 'SettingsController@store_key');
         Route::get('test-key', 'SettingsController@test_key');

@@ -59,5 +59,6 @@ class Kernel extends HttpKernel {
 		'auth_user' => \App\Http\Middleware\AuthUser::class,
 		'lang_check_user' => \App\Http\Middleware\SetLocaleUser::class,
 		'front_enable' => \App\Http\Middleware\CheckFrontEnable::class,
+		'custom.auth' => \App\Http\Middleware\CustomAuthenticate::class,
 	];
 }

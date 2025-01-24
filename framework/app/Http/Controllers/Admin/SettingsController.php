@@ -309,15 +309,58 @@ class SettingsController extends Controller {
 	}
 
 	public function fare_settings() {
-		$data['settings'] = FareSettings::all();
+		$data['settings'] = FareSettings::all()->groupBy('type_id');
 		$vehicle_types = VehicleTypeModel::get();
 		$all = array();
+	
 		foreach ($vehicle_types as $type) {
-			$all[] = $type->vehicletype;
+			$all[$type->id] = $type->vehicletype;
 		}
-		$data['types'] = array_unique($all);
+	
+		$data['types'] = $all; // Pass vehicle types with their IDs as keys
 		return view('utilities.fare_settings', $data);
 	}
+	
+
+
+	
+	/////////////////////////////////////////////////////////////
+	public function store_F(Request $request)
+{
+    $slabs = $request->input('slabs');
+
+    foreach ($slabs as $type => $data) {
+        foreach ($data as $slab) {
+            FareSettings::updateOrCreate(
+                [
+                    'key_name' => "{$type}_base_fare",
+                    'type_id' => $type,
+                ],
+                [
+                    'key_value' => $slab['base_fare'],
+                ]
+            );
+
+            FareSettings::updateOrCreate(
+                [
+                    'key_name' => "{$type}_base_km",
+                    'type_id' => $type,
+                ],
+                [
+                    'key_value' => $slab['base_km'],
+                ]
+            );
+        }
+    }
+
+    return response()->json(['success' => true, 'message' => 'Fare settings updated successfully!']);
+}
+	
+		
+	//////////////////////////////////////////////////////////
+
+
+
 
 	public function store_fareSettings(Request $request) {
 		foreach ($request->get('name') as $key => $val) {

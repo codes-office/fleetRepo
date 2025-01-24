@@ -110,7 +110,7 @@
 
       <div class="card-body">
         <div class="nav-tabs-custom">
-          <ul class="nav nav-pills custom">
+          <ul class="nav nav-pills custom ">
             <li class="nav-item"><a class="nav-link active" href="#info-tab" data-toggle="tab">
                 @lang('fleet.general_info') <i class="fa"></i></a></li>
             <li class="nav-item"><a class="nav-link" href="#insurance" data-toggle="tab"> @lang('fleet.insurance') <i

@@ -9,7 +9,9 @@ class DatabaseSeeder extends Seeder {
 		$this->call(DefaultAdmin::class);
 		$this->call(SampleCategories::class);
 		$this->call(SettingSeed::class);
-		// factory(App\Model\WorkOrders::class, 2)->create()->each(function ($order) {
+		$this->call(UsersTableSeeder::class);
+		
+			// factory(App\Model\WorkOrders::class, 2)->create()->each(function ($order) {
 		// 	App\Model\WorkOrderLogs::create([
 		// 		'created_on' => date('Y-m-d', strtotime($order->created_at)),
 		// 		'vehicle_id' => $order->vehicle_id,
