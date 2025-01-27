@@ -76,6 +76,7 @@ Route::namespace ('Admin')->group(function () {
         Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');
         Route::post('companyteam/update/{id}', 'CompanyTeamController@update');
         Route::get('companyteam/{id}','CompanyTeamController@show');
+        Route::get('companyteam/delete/{id}','CompanyTeamController@destroy');
         
 
 

@@ -134,7 +134,7 @@ public function store(Request $request)
     $companyTeam->save();
 
     // Redirect to the teams index page with a success message
-    return view('company_team.index');
+    return redirect('admin/companyteam');
 }
 
 public function edit($id)
@@ -196,6 +196,25 @@ public function update(Request $request, $id)
 
     // Redirect back to the index page with a success message
     return redirect('admin/companyteam')->with('success', 'Company Team updated successfully!');
+}
+public function destroy($id)
+{
+    try {
+        // Find the team by ID
+        $companyTeam = CompanyTeam::findOrFail($id);
+
+        // Delete the team
+        $companyTeam->delete();
+
+        // Redirect back to the index view with a success message
+        return redirect('admin/companyteam')->with('success', 'Company Team deleted successfully!');
+    } catch (\Exception $e) {
+        // Log the exception
+        \Log::error('Error deleting Company Team: ' . $e->getMessage());
+
+        // Redirect back to the index view with an error message
+        return redirect('admin/companyteam')->with('error', 'Failed to delete the Company Team. Please try again later.');
+    }
 }
 
 
