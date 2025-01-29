@@ -281,9 +281,10 @@ class UsersApi extends Controller {
         foreach ($timeslots as $slot) {
             $company = $slot->created_to;
             $slotData = [
-                'from_to' => $slot->from . '-' . $slot->to,
+                'shift' => $slot->from . '-' . $slot->to,
                 'log' => $slot->log,
                 'days_available' => $slot->days_available,
+
             ];
 
             if (!isset($response[$company])) {

@@ -26,6 +26,8 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceItemsModel;
 use App\Model\User;
+use App\Model\Driver;
+use App\Model\Vendor;
 use App\Model\VehicleModel;
 use App\Model\VehicleTypeModel;
 use Carbon\Carbon;
@@ -770,18 +772,20 @@ public function assignAdmin(Request $request)
 		return back();
 	}
 
-	public function create() {
-
-		// $exclude = DriverVehicleModel::select('vehicle_id')->get('vehicle_id')->pluck('vehicle_id')->toArray();
-		// // dd($exclude);
-		// $data['vehicles'] = VehicleModel::whereNotIn('id', $exclude)->get();
-
-		# new vehicles get after many-to-many driver vehicle.
-		$data['vehicles'] = VehicleModel::get();
-
-		$data['phone_code'] = $this->phone_code;
-		return view("drivers.create", $data);
-	}
+		public function create() {
+			// Retrieve all vehicles
+			$data['vehicles'] = VehicleModel::get();
+		
+			// Retrieve all vendors
+			$data['vendors'] = Vendor::all();
+		
+			// Pass phone codes
+			$data['phone_code'] = $this->phone_code;
+		
+			// Return the view with vehicles and vendors data
+			return view("drivers.create", $data);
+		}
+		
 
 	public function edit(User $driver) {
 		if ($driver->user_type != "D") {
@@ -799,18 +803,23 @@ public function assignAdmin(Request $request)
 		return view("drivers.edit", compact("driver", "phone_code", 'vehicles'));
 	}
 
-	private function upload_file($file, $field, $id) {
-		$destinationPath = './uploads'; // upload path
-		$extension = $file->getClientOriginalExtension();
 
-		$fileName1 = Str::uuid() . '.' . $extension;
 
-		$file->move($destinationPath, $fileName1);
-		$user = User::find($id);
-		$user->setMeta([$field => $fileName1]);
-		$user->save();
+	//old upload_file function
 
-	}
+
+	// private function upload_file($file, $field, $id) {
+	// 	$destinationPath = './uploads'; // upload path
+	// 	$extension = $file->getClientOriginalExtension();
+
+	// 	$fileName1 = Str::uuid() . '.' . $extension;
+
+	// 	$file->move($destinationPath, $fileName1);
+	// 	$user = User::find($id);
+	// 	$user->setMeta([$field => $fileName1]);
+	// 	$user->save();
+
+	// }
 
 	public function update(DriverRequest $request) {
 		$id = $request->get('id');
@@ -897,94 +906,100 @@ public function assignAdmin(Request $request)
 		return redirect()->route("drivers.index");
 	}
 
-	public function store(DriverRequest $request) {
-		// dd($request->all());
-		// $request->validate([
-		// 	'emp_id' => ['required', new UniqueEId],
-		// 	'license_number' => ['required', new UniqueLicenceNumber],
-		// 	'contract_number' => ['required', new UniqueContractNumber],
-		// 	'first_name' => 'required',
-		// 	'last_name' => 'required',
-		// 	'address' => 'required',
-		// 	'phone' => 'required|numeric',
-		// 	'email' => 'required|email|unique:users,email,' . \Request::get("id"),
-		// 	'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
-		// 	'start_date' => 'date|date_format:Y-m-d',
-		// 	'issue_date' => 'date|date_format:Y-m-d',
-		// 	'end_date' => 'nullable|date|date_format:Y-m-d',
-		// 	'driver_image' => 'nullable|mimes:jpg,png,jpeg',
-		// 	'license_image' => 'nullable|mimes:jpg,png,jpeg',
-		// 	'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
-		// 	'driver_commision_type' => 'required',
-		// 	'driver_commision' => 'required|numeric',
-		// ]);
 
-		$id = User::create([
-			"name" => $request->get("first_name") . " " . $request->get("last_name"),
-			"email" => $request->get("email"),
-			"password" => bcrypt($request->get("password")),
-			"user_type" => "D",
-			'api_token' => str_random(60),
-		])->id;
-		$user = User::find($id);
-		$user->user_id = Auth::user()->id;
+	private function upload_file($file, $field, $id)
+{
+    $destinationPath = public_path('uploads'); // Use the public directory for uploads
+    $extension = $file->getClientOriginalExtension();
+    $fileName = Str::uuid() . '.' . $extension;
 
-		if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
+    $file->move($destinationPath, $fileName);
 
-			$this->upload_file($request->file('driver_image'), "driver_image", $id);
-		}
+    // Update the driver's file field
+    $driver = Driver::find($id);
+    $driver->update([$field => $fileName]);
+}
 
-		if ($request->file('license_image') && $request->file('license_image')->isValid()) {
-			$this->upload_file($request->file('license_image'), "license_image", $id);
-			$user->id_proof_type = "License";
-			$user->save();
-		}
-		if ($request->file('documents')) {
-			$this->upload_file($request->file('documents'), "documents", $id);
 
-		}
+	public function store(DriverRequest $request)
+{
+	// dd($request->all());
+	// exit();	
+    $validated = $request->validate([
+        'first_name' => 'required|string',
+        'city' => 'required|string',
+        'DOB' => 'required|date',
+        'phone_code' => 'required|string',
+        'phone' => 'required|numeric',
+        'emp_id' => 'required|string|unique:drivers,emp_id',
+        'vendor_id' => 'required|numeric',
+        'license_number' => 'required|string|unique:drivers,license_number',
+        'license_number_date' => 'date',
+        'induction_date' => 'date',
+        'badge_number' => 'string',
+        'badge_number_date' => 'date',
+        'alternate_gov_id' => 'string',
+        'alternate_gov_id_number' => 'string',
+        'background_verification_status' => 'string',
+        'background_verification_date' => 'date',
+        'police_verification_status' => 'string',
+        'police_verification_date' => 'date',
+        'medical_verification_status' => 'string',
+        'medical_verification_date' => 'date',
+		'training_verification_status' => 'string',
+        'training_date' => 'date',
+        'eye_test_date' => 'date',
+        'driver_License_image' => 'nullable|mimes:jpg,png,jpeg',
+        'induction_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'alternate_gov_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'background_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'police_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'medical_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'training_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'eye_test_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'documents_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'current_address_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+    ]);
 
-		$form_data = $request->all();
-		unset($form_data['driver_image']);
-		unset($form_data['documents']);
-		unset($form_data['license_image']);
-		$user->first_name = $request->get('first_name');
-		$user->last_name = $request->get('last_name');
+    $data = $request->except([
+        'driver_License_image',
+        'induction_file',
+        'alternate_gov_file',
+        'background_verification_file',
+        'police_verification_file',
+        'medical_verification_file',
+        'training_file',
+        'eye_test_file',
+        'documents_file',
+        'current_address_file',
+    ]);
 
-		$user->address = $request->get('address');
-	
-		// Save additional metadata
-		$form_data = $request->except(['driver_image', 'license_image', 'documents']); // Exclude file fields
-		$user->setMeta($form_data); // Save other form data as meta
-	
-		// Save latitude and longitude as specific keys
-		$user->setMeta(['home_lat' => $request->get('latitude')]);
-		$user->setMeta(['home_lng' => $request->get('longitude')]);
-		$user->setMeta(['address' => $request->get('address')]);
+    // Create the driver record
+    $driver = Driver::create($data);
 
-	
-		// Save user changes
+    // Handle file uploads
+    $fileFields = [
+        'driver_License_image',
+        'induction_file',
+        'alternate_gov_file',
+        'background_verification_file',
+        'police_verification_file',
+        'medical_verification_file',
+        'training_file',
+        'eye_test_file',
+        'documents_file',
+        'current_address_file',
+    ];
 
-		$user->save();
-		$user->givePermissionTo(['Notes add', 'Notes edit', 'Notes delete', 'Notes list', 'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete', 'Fuel list', 'VehicleInspection add', 'Transactions list', 'Transactions add', 'Transactions edit', 'Transactions delete']);
+    foreach ($fileFields as $field) {
+        if ($request->hasFile($field) && $request->file($field)->isValid()) {
+            $this->upload_file($request->file($field), $field, $driver->id);
+        }
+    }
 
-		// $vehicle = VehicleModel::find($request->get('vehicle_id'));
-		// $vehicle->setMeta(['driver_id' => $user->id]);
-		// $vehicle->save();
-		// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
-		// DriverVehicleModel::updateOrCreate(
-		//     ['vehicle_id' => $request->get('vehicle_id')],
-		//     ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
+    return redirect()->route('drivers.index')->with('success', 'Driver created successfully');
+}
 
-		# many-to-many driver vehicle relation.
-		// $user->vehicles()->sync($request->vehicle_id);
-		// foreach ($request->vehicle_id as $v_id) {
-		//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
-		// }
-
-		return redirect()->route("drivers.index");
-
-	}
 
 	public function enable($id) {
 		// $driver = UserMeta::whereUser_id($id)->first();
