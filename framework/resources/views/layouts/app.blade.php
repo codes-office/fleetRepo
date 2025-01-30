@@ -713,7 +713,7 @@ input:checked + .slider:before {
 
               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  )
            
-              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/mlt')) || (Request::is('admin/customers*'))
+              @if((Request::is('admin/drivers*')) || (Request::is('admin/users*')) || (Request::is('admin/mlt'))
               || (Request::is('admin/chat')) )
               @php($class="menu-open")
               @php($active="active")
@@ -765,7 +765,7 @@ input:checked + .slider:before {
                     </a>
                   </li>
                   @endcan
-                  @can('Customer list')
+                  {{-- @can('Customer list')
                   <li class="nav-item">
                     <a href="{{ route('customers.index')}}"
                       class="nav-link @if(Request::is('admin/customers*')) active @endif">
@@ -773,7 +773,7 @@ input:checked + .slider:before {
                       <p>Emplyoees</p>
                     </a>
                   </li>
-                  @endcan
+                  @endcan --}}
                   @if (!empty(Hyvikk::chat('pusher_app_id')) && !empty(Hyvikk::chat ('pusher_app_key')) &&
                   !empty(Hyvikk::chat('pusher_app_secret')) && !empty(Hyvikk::chat('pusher_app_cluster')))
 

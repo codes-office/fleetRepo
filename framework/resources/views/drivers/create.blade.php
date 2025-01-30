@@ -12,6 +12,10 @@
     display: flex;
     /* width: calc(100% / 2); */
   }
+
+  .tab-content {
+    margin-top: 20px;
+  }
 </style>
 @endsection
 @section("breadcrumb")
@@ -39,195 +43,265 @@
         @endif
 
         {!! Form::open(['route' => 'drivers.store','files'=>true,'method'=>'post','id'=>'driver-create-form']) !!}
-        {!! Form::hidden('is_active',1) !!}
-        {!! Form::hidden('is_available',0) !!}
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('first_name', __('fleet.firstname'), ['class' => 'form-label required','autofocus']) !!}
-              {!! Form::text('first_name', null,['class' => 'form-control','required','autofocus']) !!}
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs" id="formTabs" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">PERSONAL DETAILS</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="documents-tab" data-toggle="tab" href="#documents" role="tab" aria-controls="documents" aria-selected="false">DOCUMENTS</a>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="formTabsContent">
+          <!-- Information Tab -->
+          <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  {!! Form::label('first_name', __('DRIVER NAME'), ['class' => 'form-label required','autofocus']) !!}
+                  {!! Form::text('first_name', null,['class' => 'form-control','required','autofocus']) !!}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  {!! Form::label('city', __('CITY'), ['class' => 'form-label']) !!}
+                  {!! Form::text('city', null,['class' => 'form-control']) !!}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  {!! Form::label('DOB', __('DATE OF BIRTH'), ['class' => 'form-label required']) !!}
+                  {!! Form::date('DOB', null,['class' => 'form-control','required']) !!}
+                </div>
+              </div>
+            </div>
+
+            <!-- Additional Fields for Information Tab -->
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group">
+                  {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      {!! Form::select('phone_code',$phone_code,null,['class' => 'form-control code','required','style'=>'width:80px']) !!}
+                    </div>
+                    {!! Form::number('phone', null,['class' => 'form-control','required']) !!}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
+                  {!! Form::text('emp_id', null,['class' => 'form-control','required']) !!}
+                </div>
+              </div>
+              <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('vendor_id', __('VENDORS'), ['class' => 'form-label required']) !!}
+                {!! Form::select('vendor_id', $vendors->pluck('name','user_id'), null, ['class' => 'form-control', 'placeholder' => __('Select a Vendor'), 'required']) !!}
+              </div>
+            </div>
+
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('middle_name', __('fleet.middlename'), ['class' => 'form-label']) !!}
-              {!! Form::text('middle_name', null,['class' => 'form-control']) !!}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('last_name', __('fleet.lastname'), ['class' => 'form-label required']) !!}
-              {!! Form::text('last_name', null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-        </div>
-        <div class="row">
+
+       <!-- Documents Tab -->
+<div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+  <div class="table-responsive">
+    <table class="table" style="border-collapse: collapse; width: 100%;">
+      
+      <tbody>
+      <!-- License Number -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>License Number</td>
+          <td>
+          {!! Form::text('license_number', null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+           Expiry Date
+          </td>
+          <td>
+            {!! Form::date('license_number_date', null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Document
+          </td>
           
-          <div class="col-md-12">
-            <div class="form-group">
-              {!! Form::label('address', __('fleet.address'), ['class' => 'form-label required']) !!}
-              {!! Form::text('address', null, ['class' => 'form-control', 'id' => 'address', 'required', 'placeholder' => 'Select an address']) !!}
-          </div>
-          <!-- Map for Address Selection -->
-          <div id="address_map" style="height: 400px; margin-top: 10px; width: 100%;"></div>
-        </div>
-        
-        <!-- Hidden Fields for Latitude and Longitude -->
-        {!! Form::hidden('latitude', null, ['id' => 'latitude']) !!}
-        {!! Form::hidden('longitude', null, ['id' => 'longitude']) !!}  
-        
+          <td>
+            {!! Form::file('driver_license_image', null, ['class' => 'form-control', 'required']) !!}
+          </td>
+        </tr>
+        <!-- Induction Date -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Induction Date</td>
 
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('email', __('fleet.email'), ['class' => 'form-label required']) !!}
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fa fa-envelope"></i></span>
-                </div>
-                {!! Form::email('email', null,['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  {!! Form::select('phone_code',$phone_code,null,['class' => 'form-control
-                  code','required','style'=>'width:80px']) !!}
-                </div>
-                {!! Form::number('phone', null,['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
-              {!! Form::text('emp_id', null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('contract_number', __('fleet.contract'), ['class' => 'form-label']) !!}
-              {!! Form::text('contract_number', null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('license_number', __('fleet.licenseNumber'), ['class' => 'form-label required']) !!}
-              {!! Form::text('license_number', null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
+          <td>
+            {!! Form::date('induction_date', null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Documents
+          </td>
+          <td>
+            {!! Form::file('induction_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!-- Badge Number -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Badge Number</td>
+          <td>
+          {!! Form::text('badge_number', null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Expiry Date
+          </td>
+          <td>
+            {!! Form::date('badge_number_date', null, ['class' => 'form-control']) !!}
+          </td>
+          
+        </tr>
+       
+        <!-- Alternate Govt.ID -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Alternate Govt.ID</td>
 
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('issue_date', __('fleet.issueDate'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('issue_date', null,['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
+          <td>
+          {!! Form::select('alternate_gov_id', ['AdharCard' => 'AdharCard', 'Rationcard' => 'Ration card'], null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            ID Number
+            </td>
+            <td>
+              {!! Form::text('alternate_gov_id_number', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('alternate_gov_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!-- BackGround Verification -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>BackGround Verification</td>
 
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('exp_date', __('fleet.expirationDate'), ['class' => 'form-label required']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('exp_date', null,['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('start_date', __('fleet.join_date'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('start_date', null,['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('end_date', __('fleet.leave_date'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('end_date', null,['class' => 'form-control']) !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('password', __('fleet.password'), ['class' => 'form-label']) !!}
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fa fa-lock"></i></span>
-                </div>
-                {!! Form::password('password', ['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('driver_commision_type', __('fleet.driver_commision_type'), ['class' => 'form-label']) !!}
-              
-                {!! Form::select('driver_commision_type',['amount'=>__('fleet.amount'), 'percent'=> __('fleet.percent')],null,['class' => 'form-control', 'placeholder' =>__('fleet.select'), 'required']) !!}            
-            </div>
-          </div>
-          <div class="col-md-4" id="driver_commision_container" style="display: none;">
-            <div class="form-group">
-              {!! Form::label('driver_commision', __('fleet.driver_commision'), ['class' => 'form-label']) !!}              
-                {!! Form::number('driver_commision',null,['class' => 'form-control']) !!}            
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('gender', __('fleet.gender') , ['class' => 'form-label']) !!}<br>
-              <input type="radio" name="gender" class="flat-red gender" value="1" checked> @lang('fleet.male')<br>
+          <td>
+          {!! Form::select('background_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Expiry Date
+            </td>
+            <td>
+            {!! Form::date('background_verification_date', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('background_verification_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!-- Police Verification -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Police Verification</td>
 
-              <input type="radio" name="gender" class="flat-red gender" value="0"> @lang('fleet.female')
-            </div>
+          <td>
+          {!! Form::select('police_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Expiry Date
+            </td>
+            <td>
+            {!! Form::date('police_verification_date', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('police_verification_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!-- Medical verification -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Medical verification</td>
 
-            <div class="form-group">
-              {!! Form::label('driver_image', __('fleet.driverImage'), ['class' => 'form-label']) !!}
+          <td>
+          {!! Form::select('medical_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Expiry Date
+            </td>
+            <td>
+            {!! Form::date('medical_verification_date', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('medical_verification_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!--Training verification -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Training verification</td>
 
-              {!! Form::file('driver_image',null,['class' => 'form-control','required']) !!}
-            </div>
-            <div class="form-group">
-              {!! Form::label('documents', __('fleet.documents'), ['class' => 'form-label']) !!}
-              {!! Form::file('documents',null,['class' => 'form-control','required']) !!}
-            </div>
+          <td>
+          {!! Form::select('training_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          </td>
+          <td>
+            Expiry Date
+            </td>
+            <td>
+            {!! Form::date('training_date', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('training_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <!--Eye test -->
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Eye Test Expiry Date</td>
+
+            <td>
+            {!! Form::date('eye_test_date', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('eye_test_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+         <!--Letter of Undertaking -->
+         <tr style="border-bottom: 1px solid #dee2e6;">
+          <td>Letter of Undertaking</td>
+
+            <td>
+            {!! Form::file('documents_file', null, ['class' => 'form-control']) !!}
+          <td>
+            Document
+          </td>
+          <td>
+            {!! Form::file('current_address_file', null, ['class' => 'form-control']) !!}
+          </td>
+        </tr>
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <!-- <td>@lang('fleet.emergency_details')</td>
+          <td colspan="5">
+            {!! Form::textarea('econtact', null, ['class' => 'form-control']) !!}
+          </td> -->
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 
-            <div class="form-group">
-              {!! Form::label('license_image', __('fleet.licenseImage'), ['class' => 'form-label']) !!}
-              {!! Form::file('license_image',null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('econtact', __('fleet.emergency_details'), ['class' => 'form-label']) !!}
-              {!! Form::textarea('econtact',null,['class' => 'form-control']) !!}
-            </div>
-          </div>
-        </div>
+
+        <!-- Submit Button -->
         <div class="col-md-12">
           {!! Form::submit(__('fleet.saveDriver'), ['class' => 'btn btn-success']) !!}
         </div>
+
         {!! Form::close() !!}
       </div>
     </div>
@@ -237,210 +311,35 @@
 @endsection
 
 @section("script")
-<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
-<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ Hyvikk::api('api_key') }}&callback=initMap" async defer></script>
 <script>
-  let map, marker, geocoder;
-
-// Function to initialize the map
-function initMap() {
-  geocoder = new google.maps.Geocoder();
-
-  // Try to get the user's current location
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(position) {
-      const userLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-
-      // Initialize map with user's location
-      map = new google.maps.Map(document.getElementById('address_map'), {
-        center: userLocation,
-        zoom: 13,
-      });
-
-      // Place a draggable marker at the user's location
-      marker = new google.maps.Marker({
-        position: userLocation,
-        map: map,
-        draggable: true,
-        title: "Drag to select location",
-      });
-
-      // Update latitude, longitude, and address when the marker is dragged
-      marker.addListener('dragend', function() {
-        const position = marker.getPosition();
-        updateLocation(position);
-      });
-
-      // Update latitude, longitude, and address when the map is clicked
-      map.addListener('click', function(event) {
-        const position = event.latLng;
-        marker.setPosition(position);
-        updateLocation(position);
-      });
-
-      // Set the initial location
-      updateLocation(userLocation);
-
-    }, function() {
-      handleLocationError(true);
-    });
-  } else {
-    // Browser doesn't support Geolocation
-    handleLocationError(false);
-  }
-}
-
-// Function to handle location errors
-function handleLocationError(error) {
-  const defaultLocation = { lat: 13.0380, lng: 77.4812 }; // Bengaluru as a fallback
-  map = new google.maps.Map(document.getElementById('address_map'), {
-    center: defaultLocation,
-    zoom: 13,
-  });
-
-  marker = new google.maps.Marker({
-    position: defaultLocation,
-    map: map,
-    draggable: true,
-    title: "Drag to select location",
-  });
-
-  // Set default values for address, lat, and lng
-  updateLocation(defaultLocation);
-}
-
-// Function to update the hidden fields and address
-function updateLocation(latLng) {
-  const lat = latLng.lat();
-  const lng = latLng.lng();
-
-  // Update the latitude and longitude hidden fields
-  document.getElementById('latitude').value = lat;
-  document.getElementById('longitude').value = lng;
-
-  console.log('Updated Latitude:', lat); // Debugging line
-  console.log('Updated Longitude:', lng); // Debugging line
-
-  // Reverse geocode to get the address
-  geocoder.geocode({ location: latLng }, function(results, status) {
-    if (status === 'OK' && results[0]) {
-      document.getElementById('address').value = results[0].formatted_address;
-    } else {
-      document.getElementById('address').value = "Location not found";
-    }
-  });
-}
-
-</script>
-
-<script type="text/javascript">
-  $(document).ready(function() {
-    $('#driver_commision_type').on('change', function(){
-      var val = $(this).val();
-      if(val==''){
-        $('#driver_commision_container').hide();
-      }else{
-        if(val =='amount'){
-          $('#driver_commision').attr('placeholder',"@lang('fleet.enter_amount')");
-        }else{
-          $('#driver_commision').attr('placeholder',"@lang('fleet.enter_percent')")
-        }
-        $('#driver_commision_container').show();
-      }
-    });
-    
-    $('.code').select2();
-    $('#vehicle_id').select2({
-      placeholder:"@lang('fleet.selectVehicle')"
-    });
-    
-    $("#first_name").focus();
-    $('#end_date').datepicker({
-      autoclose: true,
-      format: 'yyyy-mm-dd'
-    }).on('show', function() {
-    var pickupdate = $( "#start_date" ).datepicker('getDate');
-    if (pickupdate) {
-      $("#end_date").datepicker('setStartDate', pickupdate);
-    }
-  
-  });
-    $('#exp_date').datepicker({
-      autoclose: true,
-      format: 'yyyy-mm-dd'
-    }).on('show', function() {
-    var pickupdate = $( "#issue_date" ).datepicker('getDate');
-    if (pickupdate) {
-      $("#exp_date").datepicker('setStartDate', pickupdate);
-    }
-  });
-    $('#issue_date').datepicker({
-      autoclose: true,
-      format: 'yyyy-mm-dd'
-    });
-    $('#start_date').datepicker({
-      autoclose: true,
-      format: 'yyyy-mm-dd'
-    });
-
-    $("#driver-create-form").validate({
-      // in 'rules' user have to specify all the constraints for respective fields
-      rules: {        
+  $(document).ready(function () {
+    $('#driver-create-form').validate({
+      rules: {
         password: {
-          required:true,
+          required: true,
           minlength: 6
         }
       },
-      // in 'messages' user have to specify message as per rules
       messages: {
-        vehicle_id: "Assign Vehicle field is required.",           
+        vehicle_id: "Assign Vehicle field is required.",
       },
       errorPlacement: function (error, element) {
-        if(element.hasClass('select2-hidden-accessible') && element.next('.select2-container').length) {
-            error.insertAfter(element.next('.select2-container'));
-        }else if (element.parent('.input-group').length) {
-            error.insertAfter(element.parent());
-        }
-        else if (element.prop('type') === 'radio' && element.parent('.radio-inline').length) {
-            error.insertAfter(element.parent().parent());
-        }
-        else if (element.prop('type') === 'checkbox' || element.prop('type') === 'radio') {
-            error.appendTo(element.parent().parent());
+        if (element.hasClass('select2-hidden-accessible') && element.next('.select2-container').length) {
+          error.insertAfter(element.next('.select2-container'));
+        } else if (element.parent('.input-group').length) {
+          error.insertAfter(element.parent());
         }
         else {
-            error.insertAfter(element);
+          error.insertAfter(element);
         }
       },
       highlight: function (element, errorClass, validClass) {
-        if($(element).hasClass('select2-hidden-accessible') && $(element).next('.select2-container').length) {
-          
-          $(element).next('.select2-container').find('.select2-selection').addClass('border-danger');
-        }else{
-
-        $(element).addClass('is-invalid');     
-        }
-        // return false;
+        $(element).addClass('is-invalid');
       },
       unhighlight: function (element, errorClass, validClass) {
-        if($(element).hasClass('select2-hidden-accessible') && $(element).next('.select2-container').length) {
-        console.log(element, errorClass, validClass)
-
-          $(element).next('.select2-container').find('.select2-selection').removeClass('border-danger');
-        }else{
-          $(element).removeClass('is-invalid');
-        }
+        $(element).removeClass('is-invalid');
       }
     });
-    
-    //Flat red color scheme for iCheck
-    // $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
-    //   checkboxClass: 'icheckbox_flat-green',
-    //   radioClass   : 'iradio_flat-green'
-    // })
   });
 </script>
 @endsection

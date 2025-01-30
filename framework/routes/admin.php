@@ -148,12 +148,14 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
         Route::resource('/users', 'UsersController');
 
         Route::get('mlt', 'UsersController@mltindex');
-        Route::get('companyteam', 'CompanyTeamController@index');
+        Route::get('companyteam', 'CompanyTeamController@index')->name('Companyteam');
         Route::post('/companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::get('companyteam/create', 'CompanyTeamController@create');
         Route::post('companyteam/store', 'CompanyTeamController@store'); 
         Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');
         Route::post('companyteam/update/{id}', 'CompanyTeamController@update');
+        Route::get('companyteam/{id}','CompanyTeamController@show');
+        Route::get('companyteam/delete/{id}','CompanyTeamController@destroy');
         
 
 
