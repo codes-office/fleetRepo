@@ -19,7 +19,7 @@ class FareSettings extends Model {
 	use SoftDeletes;
 	protected $dates = ['deleted_at'];
 	protected $fillable = [
-		'key_name', 'key_value', 'type_id',
+		'fare_name', 'fare_value', 'type_id', 'slab_index',
 	];
 	protected $table = "fare_settings";
 
@@ -27,5 +27,9 @@ class FareSettings extends Model {
 
 		return ApiSettings::whereName($key)->first()->key_value;
 
+	}
+	public function vehicleType()
+	{
+		return $this->belongsTo(VehicleTypeModel::class, 'type_id');
 	}
 }

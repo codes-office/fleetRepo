@@ -309,68 +309,103 @@ class SettingsController extends Controller {
 	}
 
 	public function fare_settings() {
-		$data['settings'] = FareSettings::all()->groupBy('type_id');
-		$vehicle_types = VehicleTypeModel::get();
-		$all = array();
-	
-		foreach ($vehicle_types as $type) {
-			$all[$type->id] = $type->vehicletype;
-		}
-	
-		$data['types'] = $all; // Pass vehicle types with their IDs as keys
+		$data['settings'] = FareSettings::all();
+		\Log::info("Settings saved", ['vinay' => $data['settings']]);
+		$vehicle_types = VehicleTypeModel::select('id', 'vehicletype')->get();
+		$data['types'] = $vehicle_types->pluck('vehicletype', 'id')->toArray();
+		
+		// Group slabs by type_id and slab_index
+		$data['slabs'] = FareSettings::all()->groupBy(['type_id', 'slab_index']);
+		
 		return view('utilities.fare_settings', $data);
 	}
+	public function store_fareSettings(Request $request)
+	{
+		$request->validate([
+			'type_id' => 'required|exists:vehicle_types,id',
+			'name' => 'required|array',
+			'name.*.*' => 'numeric|min:0',
+		]);
 	
-
-
+		FareSettings::where('type_id', $request->type_id)->delete();
 	
-	/////////////////////////////////////////////////////////////
-	public function store_F(Request $request)
-{
-    $slabs = $request->input('slabs');
-
-    foreach ($slabs as $type => $data) {
-        foreach ($data as $slab) {
-            FareSettings::updateOrCreate(
-                [
-                    'key_name' => "{$type}_base_fare",
-                    'type_id' => $type,
-                ],
-                [
-                    'key_value' => $slab['base_fare'],
-                ]
-            );
-
-            FareSettings::updateOrCreate(
-                [
-                    'key_name' => "{$type}_base_km",
-                    'type_id' => $type,
-                ],
-                [
-                    'key_value' => $slab['base_km'],
-                ]
-            );
-        }
-    }
-
-    return response()->json(['success' => true, 'message' => 'Fare settings updated successfully!']);
-}
-	
-		
-	//////////////////////////////////////////////////////////
-
-
-
-
-	public function store_fareSettings(Request $request) {
-		foreach ($request->get('name') as $key => $val) {
-			FareSettings::where('key_name', $key)->update(['key_value' => $val]);
+		foreach ($request->get('name') as $slabIndex => $slabData) {
+			foreach ($slabData as $key => $value) {
+				FareSettings::create([
+					'fare_name' => $key, // Corrected from 'key_name'
+					'fare_value' => $value, // Corrected from 'key_value'
+					'type_id' => $request->type_id,
+					'slab_index' => $slabIndex,
+				]);
+			}
 		}
-		$tab = $_GET['tab'];
-
-		return redirect('admin/fare-settings?tab=' . $tab);
-
+	
+		return redirect('admin/fare-settings')->with('success', 'Fare settings updated.');
 	}
+
+
+public function update_fareSettings(Request $request)
+{
+    try {
+        // Validate only for updates (ID must exist)
+        if ($request->has('id')) {
+            $request->validate([
+                'id' => 'required|exists:fare_settings,id',
+                'field' => 'required|string',
+                'value' => 'required|numeric|min:0',
+            ]);
+
+            $fareSetting = FareSettings::findOrFail($request->id);
+            $fareSetting->update(['fare_value' => $request->value]);
+        }
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        \Log::error('Update error: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+public function saveAll(Request $request) {
+    try {
+        $typeId = $request->type_id;
+        
+        foreach ($request->slabs as $slabData) {
+            $slabIndex = $slabData['slab_index'];
+            
+            // Update existing records
+            foreach ($slabData['updates'] as $update) {
+                FareSettings::where('id', $update['id'])
+                    ->update([
+                        'fare_value' => $update['value'],
+                        'slab_index' => $slabIndex
+                    ]);
+            }
+
+            // Create new records
+            foreach ($slabData['creates'] as $create) {
+                FareSettings::create([
+                    'fare_name' => $create['name'],
+                    'fare_value' => $create['value'],
+                    'type_id' => $typeId,
+                    'slab_index' => $slabIndex
+                ]);
+            }
+        }
+
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        \Log::error('SaveAll error: '.$e->getMessage());
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+
+
+
+
+
+
+
 
 	public function send_email() {
 		$data['users'] = User::where('user_type', '!=', 'C')->where('user_type', '!=', 'D')->get();

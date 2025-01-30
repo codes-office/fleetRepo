@@ -41,6 +41,11 @@ Route::namespace ('Admin')->group(function () {
 
 Route::post('/admin/fare-settings', [SettingsController::class, 'storeFareSettings'])->name('fare-settings.store');
 Route::post('/fare-settings/store', [SettingsController::class, 'store_F'])->name('fare-settings.store_F');
+// For saving fare settings (both updates and new slabs)
+
+// Inside your admin route group:
+// Route::post('fare-settings/save-all', [SettingsController::class, 'saveAll'])
+//      ->name('admin.fare-settings.save-all');
 
 
 
@@ -264,12 +269,23 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
         Route::get('messages', 'ContactUs@index');
         Route::get('api-settings', 'SettingsController@api_settings');
         Route::post('api-settings', 'SettingsController@store_settings');
+        //
+
+
+
+        // For resource controller
+        Route::resource('fare-settings', SettingsController::class);
+
+        // Or for individual routes
+        Route::post('/admin/fare-settings/save-all', [SettingsController::class, 'saveAll']);
 
         // Route::get('fb', 'SettingsController@fb_create')->name('fb');
         Route::post('firebase-settings', 'SettingsController@firebase');
         Route::get('fare-settings', 'SettingsController@fare_settings');
 
         Route::post('fare-settings', 'SettingsController@store_fareSettings');
+        Route::post('fare-settings/update', 'SettingsController@update_fareSettings')->name('fare-settings.update');
+
         Route::post('store-key', 'SettingsController@store_key');
         Route::get('test-key', 'SettingsController@test_key');
         Route::post('store-api', 'SettingsController@store_api');

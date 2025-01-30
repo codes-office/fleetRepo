@@ -65,4 +65,8 @@ class VehicleModel extends Model {
 		return $this->hasOne("App\Model\VehicleTypeModel", "id", "type_id")->withTrashed();
 	}
 
+	public function fareSettings() {
+    return $this->hasMany(FareSettings::class, 'type_id');
+}
+
 }
