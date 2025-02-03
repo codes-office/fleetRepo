@@ -187,66 +187,205 @@ class UsersController extends Controller {
 		return redirect()->route('users.index');
 	}
 
-	private function upload_file($file, $field, $id) {
-		$destinationPath = './uploads'; // upload path
-		$extension = $file->getClientOriginalExtension();
-		$fileName1 = Str::uuid() . '.' . $extension;
 
-		$file->move($destinationPath, $fileName1);
-		$user = User::find($id);
-		$user->setMeta([$field => $fileName1]);
-		$user->save();
+	public function store(DriverRequest $request)
+{
+    // Validate request
+    $validated = $request->validate([
+        'first_name' => 'required|string',
+        'city' => 'required|string',
+        'DOB' => 'required|date',
+        'phone_code' => 'required|string',
+        'phone' => 'required|numeric|unique:users,number',
+        'emp_id' => 'required|string',
+        'vendor_id' => 'required|numeric',
+        'license_number' => 'required|string',
+        'license_number_date' => 'nullable|date',
+        'induction_date' => 'nullable|date',
+        'badge_number' => 'nullable|string',
+        'badge_number_date' => 'nullable|date',
+        'alternate_gov_id' => 'nullable|string',
+        'alternate_gov_id_number' => 'nullable|string',
+        'background_verification_status' => 'nullable|string',
+        'background_verification_date' => 'nullable|date',
+        'police_verification_status' => 'nullable|string',
+        'police_verification_date' => 'nullable|date',
+        'medical_verification_status' => 'nullable|string',
+        'medical_verification_date' => 'nullable|date',
+        'training_verification_status' => 'nullable|string',
+        'training_date' => 'nullable|date',
+        'eye_test_date' => 'nullable|date',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+        'address' => 'nullable|string',
 
-	}
+        // File validation
+        'driver_license_image' => 'nullable|mimes:jpg,png,jpeg',
+        'induction_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'alternate_gov_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'background_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'police_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'medical_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'training_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'eye_test_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'documents_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+    ]);
 
-	public function store(UserRequest $request) {
+    // Create user with only necessary fields
+    $user = User::create([
+        "name" => $validated['first_name'],
+        "user_type" => "D",
+        "api_token" => Str::random(60),
+        "number" => $validated['phone']
+    ]);
 
-		$role = Role::find($request->role_id)->toArray();
+    // Prepare metadata (everything except first_name, user_type, api_token, and phone)
+    $metaData = collect($validated)->except(['first_name', 'phone'])->toArray();
 
-		if ($role['name'] == "Super Admin") {
-			$user_type = 'S';
-		} else if($role['name'] == "MLT Admin") {
-			$user_type = 'O';
-			$client ="0";
+    // Handle file uploads and store paths in user_meta
+    $this->handleFileUploads($request, $user, $metaData);
+
+    // Save metadata in users_meta table
+    $this->storeUserMeta($user->id, $metaData);
+
+    // Assign permissions
+    $user->givePermissionTo([
+        'Notes add', 'Notes edit', 'Notes delete', 'Notes list',
+        'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete',
+        'Fuel list', 'VehicleInspection add', 'Transactions list',
+        'Transactions add', 'Transactions edit', 'Transactions delete'
+    ]);
+
+    return redirect()->route("drivers.index");
+}
+
+/**
+ * Handle file uploads and store file paths in user_meta.
+ */
+private function handleFileUploads($request, $user, &$metaData)
+{
+    $fileFields = [
+        'driver_license_image' => 'driver_license',
+        'induction_file' => 'induction',
+        'alternate_gov_file' => 'alternate_gov',
+        'background_verification_file' => 'background_verification',
+        'police_verification_file' => 'police_verification',
+        'medical_verification_file' => 'medical_verification',
+        'training_file' => 'training',
+        'eye_test_file' => 'eye_test',
+        'documents_file' => 'documents',
+    ];
+
+    foreach ($fileFields as $requestField => $metaKey) {
+        if ($request->hasFile($requestField) && $request->file($requestField)->isValid()) {
+            $filePath = $this->uploadFile($request->file($requestField), $metaKey, $user->id);
+            $metaData[$metaKey . "_file_path"] = $filePath; // Store in user_meta
+        }
+    }
+}
+
+/**
+ * Store metadata in users_meta table as key-value pairs.
+ */
+private function storeUserMeta($userId, $metaData)
+{
+    $userMetaEntries = [];
+    
+    foreach ($metaData as $key => $value) {
+        if (!is_null($value)) {
+            $userMetaEntries[] = [
+                'user_id' => $userId,
+                'meta_key' => $key,
+                'meta_value' => is_array($value) ? json_encode($value) : $value,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+    }
+
+    if (!empty($userMetaEntries)) {
+        DB::table('users_meta')->insert($userMetaEntries);
+    }
+}
+
+/**
+ * Upload file and return the file path.
+ */
+private function uploadFile($file, $field, $id)
+{
+    $destinationPath = public_path('uploads'); // Directory for uploads
+    $extension = $file->getClientOriginalExtension();
+    $fileName = Str::uuid() . '.' . $extension;
+
+    $file->move($destinationPath, $fileName);
+
+    return 'uploads/' . $fileName; // Return file path for storage in user_meta
+}
+
+
+	// private function upload_file($file, $field, $id) {
+	// 	$destinationPath = './uploads'; // upload path
+	// 	$extension = $file->getClientOriginalExtension();
+	// 	$fileName1 = Str::uuid() . '.' . $extension;
+
+	// 	$file->move($destinationPath, $fileName1);
+	// 	$user = User::find($id);
+	// 	$user->setMeta([$field => $fileName1]);
+	// 	$user->save();
+
+	// }
+
+	// public function store(UserRequest $request) {
+
+	// 	// dd($request->all());
+	// 	// exit();
+
+	// 	$role = Role::find($request->role_id)->toArray();
+
+	// 	if ($role['name'] == "Super Admin") {
+	// 		$user_type = 'S';
+	// 	} else if($role['name'] == "MLT Admin") {
+	// 		$user_type = 'O';
+	// 		$client ="0";
 			
-		} else {
-			$user_type = 'O';
-			$client ="1";
-		}
+	// 	} else {
+	// 		$user_type = 'O';
+	// 		$client ="1";
+	// 	}
 
-		$id = User::create([
-			"name" => $request->get("first_name") . " " . $request->get("last_name"),
-			"email" => $request->get("email"),
-			"password" => bcrypt($request->get("password")),
-			"user_type" => $user_type,
-			"address" => $request->get("address"),
-			"group_id" => $request->get("group_id"),
-			'api_token' => str_random(60),
-		])->id;
+	// 	$id = User::create([
+	// 		"name" => $request->get("first_name") . " " . $request->get("last_name"),
+	// 		"email" => $request->get("email"),
+	// 		"password" => bcrypt($request->get("password")),
+	// 		"user_type" => $user_type,
+	// 		"address" => $request->get("address"),
+	// 		"group_id" => $request->get("group_id"),
+	// 		'api_token' => str_random(60),
+	// 	])->id;
 
-		$user = User::find($id);
-		$user->user_id = Auth::user()->id;
-		$user->module = serialize($request->get('module'));
-		// $user->language = 'English-en';
-		$user->language = Auth::user()->language;
-		$user->first_name = $request->get("first_name");
-		$user->last_name = $request->get("last_name");
-		$user->setMeta(['emsourcelat' => $request->get('latitude')]);
-		$user->setMeta(['emsourcelong' => $request->get('longitude')]);
-		$user->setMeta(['address' => $request->get('address')]);
-		$user->setMeta(['Client' => $client]);
-		$user->save();
-		$role = Role::find($request->role_id);
-		$user->assignRole($role);
-		if ($request->file('profile_image') && $request->file('profile_image')->isValid()) {
-			$this->upload_file($request->file('profile_image'), "profile_image", $id);
-		}
-		return Redirect::route("users.index");
+	// 	$user = User::find($id);
+	// 	$user->user_id = Auth::user()->id;
+	// 	$user->module = serialize($request->get('module'));
+	// 	// $user->language = 'English-en';
+	// 	$user->language = Auth::user()->language;
+	// 	$user->first_name = $request->get("first_name");
+	// 	$user->last_name = $request->get("last_name");
+	// 	$user->setMeta(['emsourcelat' => $request->get('latitude')]);
+	// 	$user->setMeta(['emsourcelong' => $request->get('longitude')]);
+	// 	$user->setMeta(['address' => $request->get('address')]);
+	// 	$user->setMeta(['Client' => $client]);
+	// 	$user->save();
+	// 	$role = Role::find($request->role_id);
+	// 	$user->assignRole($role);
+	// 	if ($request->file('profile_image') && $request->file('profile_image')->isValid()) {
+	// 		$this->upload_file($request->file('profile_image'), "profile_image", $id);
+	// 	}
+	// 	return Redirect::route("users.index");
 
-	}
+	// }
 	public function edit($id) {
 		$user = User::find($id);
-		log:info($user);
+		// log:info($user);
 		$groups = VehicleGroupModel::all();
 		$roles = Role::get();
 		return view("users.edit", compact("user", 'groups', "roles"));

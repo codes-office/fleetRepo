@@ -27,6 +27,7 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceReminderModel;
 use App\Model\User;
+use App\Model\Timeslot;
 use App\Model\VehicleModel;
 use App\Model\VehicleTypeModel;
 use App\Model\ReasonsModel;
@@ -39,6 +40,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
+use Illuminate\Support\Facades\Log;
+
 
 class BookingsController extends Controller {
 	public function __construct() {
@@ -61,8 +64,8 @@ class BookingsController extends Controller {
 		$bookings = collect(); // Initialize as an empty collection
 	
 		if ($startTime && $endTime && $date) {
-			$start = Carbon::createFromFormat('Y-m-d H:i', "{$date} {$startTime}");
-			$end = Carbon::createFromFormat('Y-m-d H:i', "{$date} {$endTime}");
+			$start = Carbon::createFromFormat('Y-m-d ', "{$date} {$startTime}");
+			$end = Carbon::createFromFormat('Y-m-d ', "{$date} {$endTime}");
 	
 			// Filter bookings by date and time
 			$bookings = Bookings::whereBetween('pickup', [$startTime, $endTime])->get();
@@ -719,21 +722,30 @@ private function generateTimeSlots() {
 		$data['customers'] = User::where('user_type', 'C')->get();
 		$drivers = User::whereUser_type("D")->get();
 		$data['drivers'] = [];
-
+	
 		foreach ($drivers as $d) {
 			if ($d->getMeta('is_active') == 1) {
 				$data['drivers'][] = $d;
 			}
-
 		}
+	
 		$data['addresses'] = Address::where('customer_id', Auth::user()->id)->get();
+	
 		if ($user == null) {
 			$data['vehicles'] = VehicleModel::whereIn_service("1")->get();
 		} else {
-			$data['vehicles'] = VehicleModel::where([['group_id', $user], ['in_service', '1']])->get();}
+			$data['vehicles'] = VehicleModel::where([['group_id', $user], ['in_service', '1']])->get();
+		}
+	
+		// Fetch available time slots
+		$data['timeSlots'] = TimeSlot::all();
+		Log::info("hi there ");
+		Log::info($data);
+	
 		return view("bookings.create", $data);
-		//dd($data['vehicles']);
 	}
+
+	
 
 	public function edit($id) {
 		$booking = Bookings::whereId($id)->get()->first();
@@ -799,6 +811,12 @@ private function generateTimeSlots() {
 	}
 
 	public function store(BookingRequest $request) {
+
+
+		
+
+
+
 		$max_seats = VehicleModel::find($request->get('vehicle_id'))->types->seats;
 		$xx = $this->check_booking($request->get("pickup"), $request->get("dropoff"), $request->get("vehicle_id"));
 		if ($xx) {

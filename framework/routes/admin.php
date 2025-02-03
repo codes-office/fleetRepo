@@ -66,6 +66,7 @@ Route::namespace ('Admin')->group(function () {
 
         Route::post('Companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::post('/assign-admin', 'DriversController@assignAdmin');
+        // Route::get('/drivers/{id}/edit', 'DriversController@edit');
         Route::resource('/users', 'UsersController');
 
         Route::get('mlt', 'UsersController@mltindex');

@@ -39,6 +39,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\Models\Role;
 use Redirect;
 
 class DriversController extends Controller {
@@ -365,7 +366,7 @@ class DriversController extends Controller {
 	}
 
 	public function fetch_data(Request $request) {
-		if ($request->ajax()) {
+		if ($request->ajax()) {    
 
 			$users = User::select('users.*')
 				->leftJoin('users_meta', 'users_meta.user_id', '=', 'users.id')
@@ -800,7 +801,8 @@ public function assignAdmin(Request $request)
 				->get();
 		}
 		$phone_code = $this->phone_code;
-		return view("drivers.edit", compact("driver", "phone_code", 'vehicles'));
+		$vendors = Vendor::all();
+		return view("drivers.edit", compact("driver", "phone_code", 'vehicles','vendors'));
 	}
 
 
@@ -907,49 +909,39 @@ public function assignAdmin(Request $request)
 	}
 
 
-	private function upload_file($file, $field, $id)
-{
-    $destinationPath = public_path('uploads'); // Use the public directory for uploads
-    $extension = $file->getClientOriginalExtension();
-    $fileName = Str::uuid() . '.' . $extension;
-
-    $file->move($destinationPath, $fileName);
-
-    // Update the driver's file field
-    $driver = Driver::find($id);
-    $driver->update([$field => $fileName]);
-}
-
-
 	public function store(DriverRequest $request)
 {
-	// dd($request->all());
-	// exit();	
+    // Validate request
     $validated = $request->validate([
         'first_name' => 'required|string',
         'city' => 'required|string',
         'DOB' => 'required|date',
         'phone_code' => 'required|string',
-        'phone' => 'required|numeric',
-        'emp_id' => 'required|string|unique:drivers,emp_id',
+        'phone' => 'required|numeric|unique:users,number',
+        'emp_id' => 'required|string|',
         'vendor_id' => 'required|numeric',
-        'license_number' => 'required|string|unique:drivers,license_number',
-        'license_number_date' => 'date',
-        'induction_date' => 'date',
-        'badge_number' => 'string',
-        'badge_number_date' => 'date',
-        'alternate_gov_id' => 'string',
-        'alternate_gov_id_number' => 'string',
-        'background_verification_status' => 'string',
-        'background_verification_date' => 'date',
-        'police_verification_status' => 'string',
-        'police_verification_date' => 'date',
-        'medical_verification_status' => 'string',
-        'medical_verification_date' => 'date',
-		'training_verification_status' => 'string',
-        'training_date' => 'date',
-        'eye_test_date' => 'date',
-        'driver_License_image' => 'nullable|mimes:jpg,png,jpeg',
+        'license_number' => 'required|string|',
+        'license_number_date' => 'nullable|date',
+        'induction_date' => 'nullable|date',
+        'badge_number' => 'nullable|string',
+        'badge_number_date' => 'nullable|date',
+        'alternate_gov_id' => 'nullable|string',
+        'alternate_gov_id_number' => 'nullable|string',
+        'background_verification_status' => 'nullable|string',
+        'background_verification_date' => 'nullable|date',
+        'police_verification_status' => 'nullable|string',
+        'police_verification_date' => 'nullable|date',
+        'medical_verification_status' => 'nullable|string',
+        'medical_verification_date' => 'nullable|date',
+        'training_verification_status' => 'nullable|string',
+        'training_date' => 'nullable|date',
+        'eye_test_date' => 'nullable|date',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+        'address' => 'nullable|string',
+
+        // File validation
+        'driver_license_image' => 'nullable|mimes:jpg,png,jpeg',
         'induction_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'alternate_gov_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'background_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
@@ -958,47 +950,96 @@ public function assignAdmin(Request $request)
         'training_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'eye_test_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'documents_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
-        'current_address_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
     ]);
 
-    $data = $request->except([
-        'driver_License_image',
-        'induction_file',
-        'alternate_gov_file',
-        'background_verification_file',
-        'police_verification_file',
-        'medical_verification_file',
-        'training_file',
-        'eye_test_file',
-        'documents_file',
-        'current_address_file',
+    // Create user with only necessary fields
+    $user = User::create([
+        "name" => $validated['first_name'],
+        "user_type" => "D",
+        "api_token" => Str::random(60),
+        "number" => $validated['phone']
     ]);
 
-    // Create the driver record
-    $driver = Driver::create($data);
+    // Prepare metadata (everything except first_name, user_type, api_token, and phone)
+    $metaData = collect($validated)->except(['first_name', 'phone'])->toArray();
 
-    // Handle file uploads
-    $fileFields = [
-        'driver_License_image',
-        'induction_file',
-        'alternate_gov_file',
-        'background_verification_file',
-        'police_verification_file',
-        'medical_verification_file',
-        'training_file',
-        'eye_test_file',
-        'documents_file',
-        'current_address_file',
-    ];
+    // Handle file uploads and store paths in user_meta
+    $this->handleFileUploads($request, $user, $metaData);
 
-    foreach ($fileFields as $field) {
-        if ($request->hasFile($field) && $request->file($field)->isValid()) {
-            $this->upload_file($request->file($field), $field, $driver->id);
+    // Save metadata
+    $user->setMeta($metaData);
+
+    // Assign permissions
+    $user->givePermissionTo([
+        'Notes add', 'Notes edit', 'Notes delete', 'Notes list',
+        'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete',
+        'Fuel list', 'VehicleInspection add', 'Transactions list',
+        'Transactions add', 'Transactions edit', 'Transactions delete'
+    ]);
+
+    return redirect()->route("drivers.index");
+}
+private function setMeta($userId, $metaData)
+{
+    $userMetaEntries = [];
+    
+    foreach ($metaData as $key => $value) {
+        if (!is_null($value)) {
+            $userMetaEntries[] = [
+                'user_id' => $userId,
+                'meta_key' => $key,
+                'meta_value' => is_array($value) ? json_encode($value) : $value,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
     }
 
-    return redirect()->route('drivers.index')->with('success', 'Driver created successfully');
+    if (!empty($userMetaEntries)) {
+        DB::table('users_meta')->insert($userMetaEntries);
+    }
 }
+
+
+/**
+ * Handle file uploads and store file paths in user_meta.
+ */
+private function handleFileUploads($request, $user, &$metaData)
+{
+    $fileFields = [
+        'driver_license_image' => 'driver_license',
+        'induction_file' => 'induction',
+        'alternate_gov_file' => 'alternate_gov',
+        'background_verification_file' => 'background_verification',
+        'police_verification_file' => 'police_verification',
+        'medical_verification_file' => 'medical_verification',
+        'training_file' => 'training',
+        'eye_test_file' => 'eye_test',
+        'documents_file' => 'documents',
+    ];
+
+    foreach ($fileFields as $requestField => $metaKey) {
+        if ($request->hasFile($requestField) && $request->file($requestField)->isValid()) {
+            $filePath = $this->uploadFile($request->file($requestField), $metaKey, $user->id);
+            $metaData[$metaKey . "_file_path"] = $filePath; // Store in user_meta
+        }
+    }
+}
+
+/**
+ * Upload file and return the file path.
+ */
+private function uploadFile($file, $field, $id)
+{
+    $destinationPath = public_path('uploads'); // Directory for uploads
+    $extension = $file->getClientOriginalExtension();
+    $fileName = Str::uuid() . '.' . $extension;
+
+    $file->move($destinationPath, $fileName);
+
+    return 'uploads/' . $fileName; // Return file path for storage in user_meta
+}
+
 
 
 	public function enable($id) {

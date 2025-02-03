@@ -32,7 +32,7 @@ class User extends Authenticatable {
 	protected $table = "users";
 	protected $metaTable = 'users_meta'; //optional.
 	protected $fillable = [
-		'name', 'email', 'password', 'user_type','address', 'group_id', 'api_token','assigned_admin','team_id',
+		'name', 'email','number','password', 'user_type','address', 'group_id', 'api_token','assigned_admin','team_id',
 	];
 
 	protected $hidden = ['password', 'remember_token', 'api_token'];

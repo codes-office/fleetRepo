@@ -29,11 +29,11 @@ class BookingRequest extends FormRequest {
 		return [
 
 			'customer_id' => 'required',
-			'pickup' => 'required',
-			'dropoff' => 'required|different:pickup',
-			'vehicle_id' => 'required',
-			'pickup_addr' => 'required',
-			'dest_addr' => 'required|different:pickup_addr',
+			// 'pickup' => 'required',
+			// 'dropoff' => 'required|different:pickup',
+			// 'vehicle_id' => 'required',
+			// 'pickup_addr' => 'required',
+			// 'dest_addr' => 'required|different:pickup_addr',
 
 		];
 	}

@@ -44,4 +44,14 @@ class Driver extends Model
         'documents_file',
         'current_address_file',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($driver) {
+            // Find and delete the associated user
+            User::where('name', $driver->first_name)->delete();
+        });
+    }
 }

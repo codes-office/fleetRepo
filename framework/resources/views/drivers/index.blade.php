@@ -398,7 +398,7 @@
          processing: true,
          serverSide: true,
          ajax: {
-          url: "{{ url('admin/drivers-admin-fetch') }}",
+          url: "{{ url('admin/drivers-fetch') }}",
           type: 'POST',
           data:{}
          },
