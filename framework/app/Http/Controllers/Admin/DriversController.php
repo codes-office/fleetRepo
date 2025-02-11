@@ -26,6 +26,7 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceItemsModel;
 use App\Model\User;
+use App\Model\UserData;
 use App\Model\Driver;
 use App\Model\Vendor;
 use App\Model\VehicleModel;
@@ -41,6 +42,7 @@ use Kreait\Laravel\Firebase\Facades\Firebase;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 use Redirect;
+use Illuminate\Support\Facades\Storage;
 
 class DriversController extends Controller {
 	public function __construct() {
@@ -365,110 +367,150 @@ class DriversController extends Controller {
 		return view("drivers.index");
 	}
 
-	public function fetch_data(Request $request) {
-		if ($request->ajax()) {    
+	// public function fetch_data(Request $request) {
+	// 	if ($request->ajax()) {    
 
-			$users = User::select('users.*')
-				->leftJoin('users_meta', 'users_meta.user_id', '=', 'users.id')
-				->leftJoin('driver_vehicle', 'driver_vehicle.driver_id', '=', 'users.id')
-				->leftJoin('vehicles', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
+	// 		$users = User::select('users.*')
+	// 			->leftJoin('users_meta', 'users_meta.user_id', '=', 'users.id')
+	// 			->leftJoin('driver_vehicle', 'driver_vehicle.driver_id', '=', 'users.id')
+	// 			->leftJoin('vehicles', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
 
-				->with(['metas'])->whereUser_type("D")->groupBy('users.id');
-            	// Fetch all admins
-			$admins = User::with(['metas'])
-			->where(function ($query) {
-				$query->where('user_type', 'O');
-			})
-			->whereHas('metas', function ($query) {
-				$query->where('key', 'client')->where('value', 0);
-			})
-			->select('id', 'name')->get();
-			return DataTables::eloquent($users)
-				->addColumn('check', function ($user) {
-					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
-				})
-				->editColumn('name', function ($user) {
-					return "<a href=" . route('drivers.show', $user->id) . ">$user->name</a>";
-				})
-				->addColumn('driver_image', function ($user) {
-					$src = ($user->driver_image != null)?asset('uploads/' . $user->driver_image): asset('assets/images/no-user.jpg');
+	// 			->with(['metas'])->whereUser_type("D")->groupBy('users.id');
+    //         	// Fetch all admins
+	// 		$admins = User::with(['metas'])
+	// 		->where(function ($query) {
+	// 			$query->where('user_type', 'O');
+	// 		})
+	// 		->whereHas('metas', function ($query) {
+	// 			$query->where('key', 'client')->where('value', 0);
+	// 		})
+	// 		->select('id', 'name')->get();
+	// 		return DataTables::eloquent($users)
+	// 			->addColumn('check', function ($user) {
+	// 				return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
+	// 			})
+	// 			->editColumn('name', function ($user) {
+	// 				return "<a href=" . route('drivers.show', $user->id) . ">$user->name</a>";
+	// 			})
+	// 			->addColumn('driver_image', function ($user) {
+	// 					$src = ($user->driver_image != null)?asset('uploads/' . $user->driver_image): asset('assets/images/no-user.jpg');
 
-					return '<img src="' . $src . '" height="70px" width="70px">';
-				})
-			// ->addColumn('vehicle', function ($user) {
-			//     // return ($user->vehicle_id != null) ? $user->driver_vehicle->vehicle->make_name . '-' . $user->driver_vehicle->vehicle->model_name . '-' . $user->driver_vehicle->vehicle->license_plate : '';
+	// 				return '<img src="' . $src . '" height="70px" width="70px">';
+	// 			})
+	// 		// ->addColumn('vehicle', function ($user) {
+	// 		//     // return ($user->vehicle_id != null) ? $user->driver_vehicle->vehicle->make_name . '-' . $user->driver_vehicle->vehicle->model_name . '-' . $user->driver_vehicle->vehicle->license_plate : '';
 
-			//     # below code is using many-to-many relations
-			//     // dd($user);
-			//     $vehicles = [];
-			//     foreach ($user->vehicles as $vehicle) {
-			//         $vehicles[] = $vehicle->make_name . '-' . $vehicle->model_name . '-' . $vehicle->license_plate;
-			//     }
+	// 		//     # below code is using many-to-many relations
+	// 		//     // dd($user);
+	// 		//     $vehicles = [];
+	// 		//     foreach ($user->vehicles as $vehicle) {
+	// 		//         $vehicles[] = $vehicle->make_name . '-' . $vehicle->model_name . '-' . $vehicle->license_plate;
+	// 		//     }
 
-			//     return implode(', ', $vehicles);
+	// 		//     return implode(', ', $vehicles);
 
-			// })
-			// ->filterColumn('vehicle', function ($query, $keyword) {
-			//     $query->whereRaw("CONCAT(vehicles.make_name , '-' , vehicles.model_name , '-' , vehicles.license_plate) like ?", ["%$keyword%"]);
-			//     return $query;
-			// })
-				->addColumn('is_active', function ($user) {
-					return ($user->is_active == 1) ? "YES" : "NO";
-				})
-				->addColumn('phone', function ($user) {
-					return $user->phone_code . ' ' . $user->phone;
-				})
+	// 		// })
+	// 		// ->filterColumn('vehicle', function ($query, $keyword) {
+	// 		//     $query->whereRaw("CONCAT(vehicles.make_name , '-' , vehicles.model_name , '-' , vehicles.license_plate) like ?", ["%$keyword%"]);
+	// 		//     return $query;
+	// 		// })
+	// 			->addColumn('is_active', function ($user) {
+	// 				return ($user->is_active == 1) ? "YES" : "NO";
+	// 			})
+	// 			->addColumn('phone', function ($user) {
+	// 				return $user->phone_code . ' ' . $user->phone;
+	// 			})
 
-				->addColumn('start_date', function ($user) {
-					return $user->start_date;
-				})
-    			->addColumn('assign_admin', function ($user) use ($admins) {
-                     $dropdown = '<select class="form-control assign-admin" data-driver-id="' . $user->id . '">';
-                        $dropdown .= '<option value="">Select Admin</option>';
-                        foreach ($admins as $admin) {
-                            $dropdown .= '<option value="' . $admin->id . '">' . $admin->name . '</option>';
-                        }
-                        $dropdown .= '</select>';
-                        return $dropdown;
-                })
-                ->addColumn('assigned_admin',function($user){
-                  return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
-                })
-				->addColumn('action', function ($user) {
-					return view('drivers.list-actions', ['row' => $user]);
-				})
-				->filterColumn('is_active', function ($query, $keyword) {
-					$query->whereHas("metas", function ($q) use ($keyword) {
-						$q->where('key', 'is_active');
-						$q->whereRaw("IF(value = 1 , 'YES', 'NO') like ? ", ["%{$keyword}%"]);
-					});
-					return $query;
-				})
-				->filterColumn('phone', function ($query, $keyword) {
-					$query->whereHas("metas", function ($q) use ($keyword) {
-						$q->where(function ($q) use ($keyword) {
-							$q->where('key', 'phone');
-							$q->where("value", 'like', "%$keyword%");
-						})->orWhere(function ($q) use ($keyword) {
-							$q->where('key', 'phone_code');
-							$q->where("value", 'like', "%$keyword%");
-						});
-					});
-					return $query;
-				})
-				->filterColumn('start_date', function ($query, $keyword) {
-					$query->whereHas("metas", function ($q) use ($keyword) {
-						$q->where('key', 'start_date');
-						$q->where("value", 'like', "%$keyword%");
-					});
-					return $query;
-				})
-				->rawColumns(['driver_image', 'action', 'check', 'name','assign_admin'])
-				->make(true);
-			//return datatables(User::all())->toJson();
+	// 			->addColumn('start_date', function ($user) {
+	// 				return $user->start_date;
+	// 			})
+    // 			->addColumn('assign_admin', function ($user) use ($admins) {
+    //                  $dropdown = '<select class="form-control assign-admin" data-driver-id="' . $user->id . '">';
+    //                     $dropdown .= '<option value="">Select Admin</option>';
+    //                     foreach ($admins as $admin) {
+    //                         $dropdown .= '<option value="' . $admin->id . '">' . $admin->name . '</option>';
+    //                     }
+    //                     $dropdown .= '</select>';
+    //                     return $dropdown;
+    //             })
+    //             ->addColumn('assigned_admin',function($user){
+    //               return $user->assigned_admin ? User::find($user->assigned_admin)->name : 'No Admin Assigned';  
+    //             })
+	// 			->addColumn('action', function ($user) {
+	// 				return view('drivers.list-actions', ['row' => $user]);
+	// 			})
+	// 			->filterColumn('is_active', function ($query, $keyword) {
+	// 				$query->whereHas("metas", function ($q) use ($keyword) {
+	// 					$q->where('key', 'is_active');
+	// 					$q->whereRaw("IF(value = 1 , 'YES', 'NO') like ? ", ["%{$keyword}%"]);
+	// 				});
+	// 				return $query;
+	// 			})
+	// 			->filterColumn('phone', function ($query, $keyword) {
+	// 				$query->whereHas("metas", function ($q) use ($keyword) {
+	// 					$q->where(function ($q) use ($keyword) {
+	// 						$q->where('key', 'phone');
+	// 						$q->where("value", 'like', "%$keyword%");
+	// 					})->orWhere(function ($q) use ($keyword) {
+	// 						$q->where('key', 'phone_code');
+	// 						$q->where("value", 'like', "%$keyword%");
+	// 					});
+	// 				});
+	// 				return $query;
+	// 			})
+	// 			->filterColumn('start_date', function ($query, $keyword) {
+	// 				$query->whereHas("metas", function ($q) use ($keyword) {
+	// 					$q->where('key', 'start_date');
+	// 					$q->where("value", 'like', "%$keyword%");
+	// 				});
+	// 				return $query;
+	// 			})
+	// 			->rawColumns(['driver_image', 'action', 'check', 'name','assign_admin'])
+	// 			->make(true);
+	// 		//return datatables(User::all())->toJson();
 
-		}
-	}
+	// 	}
+	// }
+
+   //new fetch function
+
+   public function fetch_data(Request $request) {
+    if ($request->ajax()) {    
+        $users = User::select('users.id', 'users.name', 'users.number', 'vendors.name as vendor_name')
+            ->leftJoin('users_meta', 'users_meta.user_id', '=', 'users.id')
+            ->leftJoin('vendors', 'vendors.id', '=', 'users_meta.value') // Join vendors table
+            ->with(['metas'])
+            ->where('users.user_type', 'D')
+            ->where('users_meta.key', 'vendor_id') // Ensure correct meta key
+            ->groupBy('users.id', 'vendors.name'); // Group by vendor name
+
+        return DataTables::eloquent($users)
+            ->addIndexColumn()
+            ->addColumn('check', function ($user) {
+                return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
+            })
+            ->editColumn('name', function ($user) {
+                return "<a href='" . route('drivers.show', $user->id) . "'>$user->name</a>";
+            })
+            ->addColumn('license_number', function ($user) {
+                $meta = $user->metas->where('key', 'license_number')->first();
+                return $meta ? $meta->value : 'N/A';
+            })
+            ->addColumn('vendor', function ($user) {
+                return $user->vendor_name ?? 'N/A'; // Display vendor name
+            })
+            ->addColumn('number', function ($user) {
+                return $user->number ?? 'N/A';
+            })
+            ->addColumn('action', function ($user) {
+                return view('drivers.list-actions', ['row' => $user]);
+            })
+            ->rawColumns(['check', 'name', 'action'])
+            ->make(true);
+    }
+}
+
+
 	
 public function assignAdmin(Request $request)
 {
@@ -579,14 +621,15 @@ public function assignAdmin(Request $request)
 	}
 	
 	
-	public function show($id) {
-		$index['driver'] = User::find($id);
-		// $index['driver']->load('metas');
-		// $index['bookings'] = Bookings::where('driver_id', $id)->latest()->get();
-		// $index['bookings']->load(['metas','vehicle.metas','driver','vehicle.maker','vehicle.vehiclemodel','vehicle.types','vehicle.vehiclecolor','customer']);
-		// // dd($index);
-		return view('drivers.show', $index);
-	}
+	public function show($id)
+{
+    $user = User::findOrFail($id);
+    $metaData = DB::table('users_meta')
+                    ->where('user_id', $user->id)
+                    ->pluck('value', 'key');
+
+    return view('drivers.show', compact('user', 'metaData'));
+}
 
 	public function fetch_bookings_data(Request $request) {
 		if ($request->ajax()) {
@@ -788,23 +831,107 @@ public function assignAdmin(Request $request)
 		}
 		
 
-	public function edit(User $driver) {
-		if ($driver->user_type != "D") {
-			return redirect("admin/drivers");
+		public function edit(User $driver) {
+			if ($driver->user_type != "D") {
+				return redirect("admin/drivers");
+			}
+		
+			$driver->load('vehicles');
+		
+			// Fetch user files from users_meta table
+			$userFiles = UserData::where('user_id', $driver->id)
+				->whereIn('key', ['profile_photo','driver_license', 'induction', 'alternate_gov','background_verification','medical_verification','training','eye_test','documents','current_address'])
+				->pluck('value', 'key')
+				->toArray();
+		
+			// Debugging: Log retrieved user files
+			// Log::info('User Files:', $userFiles);
+		
+			// Debugging: Check if profile_photo key exists and path is valid
+			if (isset($userFiles['profile_photo'])) {
+				$profilePhoto = $userFiles['profile_photo'];
+				$fullPath = public_path('uploads/' . $profilePhoto);
+				// Log::info("Profile Photo Path: " . $fullPath);
+				
+				if (!file_exists($fullPath)) {
+					Log::error("Profile photo does not exist: " . $fullPath);
+				}
+			} else {
+				Log::error("No profile photo found for user ID: " . $driver->id);
+			}
+		
+			// Fetch Vehicles
+			if (Auth::user()->group_id == null || Auth::user()->user_type == "S" || Auth::user()->user_type == "M") {
+				$vehicles = VehicleModel::get();
+			} else {
+				$vehicles = VehicleModel::where('group_id', Auth::user()->group_id)->get();
+			}
+		
+			$userDetails = User::find($driver->id);
+			$canUpload = Auth::user()->user_type == "S" || Auth::user()->user_type == "M";
+			$phone_code = $this->phone_code;
+			$vendors = Vendor::all();
+		
+			return view("drivers.edit", compact("driver", "phone_code", "vehicles", "vendors", "userFiles", "userDetails", "canUpload"));
 		}
-		$driver->load('vehicles');
+		
+		
+		
+			// public function download($filename)
+			// {
+			// 	// dd($filename);
+			// 	// exit();
+			// 	$filePath = asset('assets/images/no-user.jpg');
+			// 	log::info($filePath);
+		
+			// 	if (!file_exists($filePath)) {
+			// 		return abort(404, "File not found");
+			// 	}
+		
+			// 	return response()->download($filePath);
+			// }
+			public function download($filename)
+			{
+				// Define possible file paths
+				$filePath = public_path('uploads/' . $filename); // If stored in 'public/uploads'
+				
+				// Log the actual file path for debugging
+				Log::info("Trying to download: " . $filePath);
+				
+				// Check if the file exists
+				if (!file_exists($filePath)) {
+					Log::error("File not found: " . $filePath);
+					
+					// Return the default image instead
+					return response()->download(public_path('assets/images/no-user.jpg'));
+				}
+				
+				// Return the actual file for download
+				return response()->download($filePath);
+			}
 
-		if (Auth::user()->group_id == null || Auth::user()->user_type == "S" || Auth::user()->user_type == "M") {
-			$vehicles = VehicleModel::get();
-		} else {
-			$vehicles = VehicleModel::where('group_id', Auth::user()->group_id)
-				->get();
-		}
-		$phone_code = $this->phone_code;
-		$vendors = Vendor::all();
-		return view("drivers.edit", compact("driver", "phone_code", 'vehicles','vendors'));
-	}
-
+			public function view($filename)
+			{
+				// Define possible file paths
+				$filePath = public_path('uploads/' . $filename); // If stored in 'public/uploads'
+				
+				// Log the actual file path for debugging
+				Log::info("Trying to download: " . $filePath);
+				
+				// Check if the file exists
+				if (!file_exists($filePath)) {
+					Log::error("File not found: " . $filePath);
+					
+					// Return the default image instead
+					return response()->file(public_path('assets/images/no-user.jpg'));
+				}
+				
+				// Return the actual file for download
+				return response()->file($filePath);
+			}
+			
+			
+			
 
 
 	//old upload_file function
@@ -823,94 +950,178 @@ public function assignAdmin(Request $request)
 
 	// }
 
-	public function update(DriverRequest $request) {
-		$id = $request->get('id');
-		$user = User::find($id);
 
-		if ($user->vehicle_id != $request->vehicle_id) {
-			// $old_vehicle = VehicleModel::find($user->vehicle_id);
-			// if ($old_vehicle) {
-			//     $old_vehicle->driver_id = null;
-			//     $old_vehicle->save();
-			// }
 
-			// $vehicle = VehicleModel::find($request->get('vehicle_id'));
-			// $vehicle->driver_id = $user->id;
-			// $vehicle->save();
-			// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
-			// DriverVehicleModel::updateOrCreate(['driver_id' => $user->id], ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
-		}
+	//old update code
 
-		# many-to-many driver vehicle relation.
-		// $user->vehicles()->sync($request->vehicle_id);
+	// public function update(DriverRequest $request) {
+	// 	$id = $request->get('id');
+	// 	$user = User::find($id);
 
-		// foreach ($request->vehicle_id as $v_id) {
-		//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
-		// }
+	// 	if ($user->vehicle_id != $request->vehicle_id) {
+	// 		// $old_vehicle = VehicleModel::find($user->vehicle_id);
+	// 		// if ($old_vehicle) {
+	// 		//     $old_vehicle->driver_id = null;
+	// 		//     $old_vehicle->save();
+	// 		// }
 
-		if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
-			if (file_exists('./uploads/' . $user->driver_image) && !is_dir('./uploads/' . $user->driver_image)) {
-				unlink('./uploads/' . $user->driver_image);
-			}
-			$this->upload_file($request->file('driver_image'), "driver_image", $id);
-		}
+	// 		// $vehicle = VehicleModel::find($request->get('vehicle_id'));
+	// 		// $vehicle->driver_id = $user->id;
+	// 		// $vehicle->save();
+	// 		// DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $request->get('vehicle_id'), 'date' => date('Y-m-d H:i:s')]);
+	// 		// DriverVehicleModel::updateOrCreate(['driver_id' => $user->id], ['vehicle_id' => $request->get('vehicle_id'), 'driver_id' => $user->id]);
+	// 	}
 
-		if ($request->file('license_image') && $request->file('license_image')->isValid()) {
-			if (file_exists('./uploads/' . $user->license_image) && !is_dir('./uploads/' . $user->license_image)) {
-				unlink('./uploads/' . $user->license_image);
-			}
-			$this->upload_file($request->file('license_image'), "license_image", $id);
-			$user->id_proof_type = "License";
-			$user->save();
-		}
-		if ($request->file('documents')) {
-			if (file_exists('./uploads/' . $user->documents) && !is_dir('./uploads/' . $user->documents)) {
-				unlink('./uploads/' . $user->documents);
-			}
-			$this->upload_file($request->file('documents'), "documents", $id);
+	// 	# many-to-many driver vehicle relation.
+	// 	// $user->vehicles()->sync($request->vehicle_id);
 
-		}
-		// dd($request->all());
+	// 	// foreach ($request->vehicle_id as $v_id) {
+	// 	//     DriverLogsModel::create(['driver_id' => $user->id, 'vehicle_id' => $v_id, 'date' => date('Y-m-d H:i:s')]);
+	// 	// }
 
-		$user->name = $request->get("first_name") . " " . $request->get("last_name");
-		$name = explode(' ', $request->name);
+	// 	if ($request->file('driver_image') && $request->file('driver_image')->isValid()) {
+	// 		if (file_exists('./uploads/' . $user->driver_image) && !is_dir('./uploads/' . $user->driver_image)) {
+	// 			unlink('./uploads/' . $user->driver_image);
+	// 		}
+	// 		$this->upload_file($request->file('driver_image'), "driver_image", $id);
+	// 	}
 
-		$user->first_name = $name[0] ?? '';
-		$user->middle_name = $name[1] ?? '';
-		$user->last_name = $name[2] ?? '';
-		$user->email = $request->get('email');
-		$user->address = $request->get('address');
-		$user->save();
-		// $user->driver_image = $request->get('driver_image');
-		$form_data = $request->all();
-		unset($form_data['driver_image']);
-		unset($form_data['documents']);
-		unset($form_data['license_image']);
+	// 	if ($request->file('license_image') && $request->file('license_image')->isValid()) {
+	// 		if (file_exists('./uploads/' . $user->license_image) && !is_dir('./uploads/' . $user->license_image)) {
+	// 			unlink('./uploads/' . $user->license_image);
+	// 		}
+	// 		$this->upload_file($request->file('license_image'), "license_image", $id);
+	// 		$user->id_proof_type = "License";
+	// 		$user->save();
+	// 	}
+	// 	if ($request->file('documents')) {
+	// 		if (file_exists('./uploads/' . $user->documents) && !is_dir('./uploads/' . $user->documents)) {
+	// 			unlink('./uploads/' . $user->documents);
+	// 		}
+	// 		$this->upload_file($request->file('documents'), "documents", $id);
 
-		$user->setMeta($form_data);
+	// 	}
+	// 	// dd($request->all());
 
-		$to = \Carbon\Carbon::now();
+	// 	$user->name = $request->get("first_name") . " " . $request->get("last_name");
+	// 	$name = explode(' ', $request->name);
 
-		$from = \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('exp_date'));
+	// 	$user->first_name = $name[0] ?? '';
+	// 	$user->middle_name = $name[1] ?? '';
+	// 	$user->last_name = $name[2] ?? '';
+	// 	$user->email = $request->get('email');
+	// 	$user->address = $request->get('address');
+	// 	$user->save();
+	// 	// $user->driver_image = $request->get('driver_image');
+	// 	$form_data = $request->all();
+	// 	unset($form_data['driver_image']);
+	// 	unset($form_data['documents']);
+	// 	unset($form_data['license_image']);
 
-		$diff_in_days = $to->diffInDays($from);
+	// 	$user->setMeta($form_data);
+					
+	// 	$to = \Carbon\Carbon::now();
 
-		if ($diff_in_days > 20) {
-			$t = DB::table('notifications')
-				->where('type', 'like', '%RenewDriverLicence%')
-				->where('data', 'like', '%"vid":' . $user->id . '%')
-				->delete();
+	// 	$from = \Carbon\Carbon::createFromFormat('Y-m-d', $request->get('exp_date'));
 
-		}
+	// 	$diff_in_days = $to->diffInDays($from);
 
-		$user->save();
+	// 	if ($diff_in_days > 20) {
+	// 		$t = DB::table('notifications')
+	// 			->where('type', 'like', '%RenewDriverLicence%')
+	// 			->where('data', 'like', '%"vid":' . $user->id . '%')
+	// 			->delete();
 
-		return redirect()->route("drivers.index");
-	}
+	// 	}
+
+	// 	$user->save();
+
+	// 	return redirect()->route("drivers.index");
+	// }
+
+
+	//New Update code
+
+	public function update(DriverRequest $request, $id)
+{
+    // Find the existing user
+    $user = User::findOrFail($id);
+
+    // Validate request with unique constraints excluding the current user
+    $validated = $request->validate([
+        'first_name' => 'required|string',
+        'city' => 'required|string',
+        'DOB' => 'required|date',
+        'phone_code' => 'required|string',
+        'phone' => 'required|numeric',
+        'emp_id' => 'nullable|string',
+        'vendor_id' => 'required|numeric',
+        'license_number' => 'required|string',
+        'license_number_date' => 'nullable|date',
+        'induction_date' => 'nullable|date',
+        'badge_number' => 'nullable|string',
+        'badge_number_date' => 'nullable|date',
+        'alternate_gov_id' => 'nullable|string',
+        'alternate_gov_id_number' => 'nullable|string',
+        'background_verification_status' => 'nullable|string',
+        'background_verification_date' => 'nullable|date',
+        'police_verification_status' => 'nullable|string',
+        'police_verification_date' => 'nullable|date',
+        'medical_verification_status' => 'nullable|string',
+        'medical_verification_date' => 'nullable|date',
+        'training_verification_status' => 'nullable|string',
+        'training_date' => 'nullable|date',
+        'eye_test_date' => 'nullable|date',
+        'address' => 'nullable|string',
+
+        // File validation
+        'driver_license_image' => 'nullable|mimes:jpg,png,jpeg',
+        'induction_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'alternate_gov_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'background_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'police_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'medical_verification_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'training_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'eye_test_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'documents_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+        'current_address_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+    ]);
+
+    // Update user fields
+    $user->update([
+        "name" => $validated['first_name'],
+        "number" => $validated['phone'],
+    ]);
+
+    // Prepare metadata (excluding first_name, phone, and emp_id)
+    $metaData = collect($validated)->except(['first_name', 'phone'])->toArray();
+
+    // Handle file uploads and update metaData
+    $this->handleFileUploads($request, $user, $metaData);
+
+    // Update metadata in the database
+    $this->updateMeta($user->id, $metaData);
+
+    return redirect()->route("drivers.index")->with('success', 'Driver updated successfully.');
+}
+
+private function updateMeta($userId, $metaData)
+{
+    foreach ($metaData as $key => $value) {
+        DB::table('users_meta')->updateOrInsert(
+            ['user_id' => $userId, 'key' => $key],
+            ['value' => is_array($value) ? json_encode($value) : $value, 'updated_at' => now()]
+        );
+    }
+}
+
 
 
 	public function store(DriverRequest $request)
 {
+	// dd($request->all());
+	// exit();
+
     // Validate request
     $validated = $request->validate([
         'first_name' => 'required|string',
@@ -936,11 +1147,10 @@ public function assignAdmin(Request $request)
         'training_verification_status' => 'nullable|string',
         'training_date' => 'nullable|date',
         'eye_test_date' => 'nullable|date',
-        'latitude' => 'nullable|numeric',
-        'longitude' => 'nullable|numeric',
         'address' => 'nullable|string',
 
         // File validation
+		'profile_photo' => 'nullable|mimes:jpg,png,jpeg|max:2048',
         'driver_license_image' => 'nullable|mimes:jpg,png,jpeg',
         'induction_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'alternate_gov_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
@@ -950,6 +1160,7 @@ public function assignAdmin(Request $request)
         'training_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'eye_test_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
         'documents_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
+		'current_address_file' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx',
     ]);
 
     // Create user with only necessary fields
@@ -961,34 +1172,35 @@ public function assignAdmin(Request $request)
     ]);
 
     // Prepare metadata (everything except first_name, user_type, api_token, and phone)
-    $metaData = collect($validated)->except(['first_name', 'phone'])->toArray();
+    $metaData = collect($validated)->except(['first_name', 'phone','api_token','number'])->toArray();
 
     // Handle file uploads and store paths in user_meta
     $this->handleFileUploads($request, $user, $metaData);
 
     // Save metadata
-    $user->setMeta($metaData);
+    $this->setMeta($user->id, $metaData);
 
     // Assign permissions
-    $user->givePermissionTo([
-        'Notes add', 'Notes edit', 'Notes delete', 'Notes list',
-        'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete',
-        'Fuel list', 'VehicleInspection add', 'Transactions list',
-        'Transactions add', 'Transactions edit', 'Transactions delete'
-    ]);
+    // $user->givePermissionTo([
+    //     'Notes add', 'Notes edit', 'Notes delete', 'Notes list',
+    //     'Drivers list', 'Fuel add', 'Fuel edit', 'Fuel delete',
+    //     'Fuel list', 'VehicleInspection add', 'Transactions list',
+    //     'Transactions add', 'Transactions edit', 'Transactions delete'
+    // ]);
 
     return redirect()->route("drivers.index");
 }
 private function setMeta($userId, $metaData)
 {
     $userMetaEntries = [];
-    
+
     foreach ($metaData as $key => $value) {
         if (!is_null($value)) {
             $userMetaEntries[] = [
                 'user_id' => $userId,
-                'meta_key' => $key,
-                'meta_value' => is_array($value) ? json_encode($value) : $value,
+                'type' => 'string', // Adjust type based on your needs
+                'key' => $key,
+                'value' => is_array($value) ? json_encode($value) : $value,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -1007,6 +1219,7 @@ private function setMeta($userId, $metaData)
 private function handleFileUploads($request, $user, &$metaData)
 {
     $fileFields = [
+		'profile_photo' => 'profile_photo',
         'driver_license_image' => 'driver_license',
         'induction_file' => 'induction',
         'alternate_gov_file' => 'alternate_gov',
@@ -1016,13 +1229,14 @@ private function handleFileUploads($request, $user, &$metaData)
         'training_file' => 'training',
         'eye_test_file' => 'eye_test',
         'documents_file' => 'documents',
+		'current_address_file' => 'current_address',
     ];
 
     foreach ($fileFields as $requestField => $metaKey) {
         if ($request->hasFile($requestField) && $request->file($requestField)->isValid()) {
             $filePath = $this->uploadFile($request->file($requestField), $metaKey, $user->id);
-            $metaData[$metaKey . "_file_path"] = $filePath; // Store in user_meta
-        }
+			$metaData[$metaKey] = $filePath; 
+		       }
     }
 }
 
@@ -1031,14 +1245,16 @@ private function handleFileUploads($request, $user, &$metaData)
  */
 private function uploadFile($file, $field, $id)
 {
-    $destinationPath = public_path('uploads'); // Directory for uploads
-    $extension = $file->getClientOriginalExtension();
-    $fileName = Str::uuid() . '.' . $extension;
+    // Generate a unique filename
+    $fileName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+    
+    // Move file directly to public/uploads/ directory
+    $file->move(public_path('uploads'), $fileName);
 
-    $file->move($destinationPath, $fileName);
-
-    return 'uploads/' . $fileName; // Return file path for storage in user_meta
+    // Return only the file name instead of the full path
+    return $fileName;
 }
+
 
 
 

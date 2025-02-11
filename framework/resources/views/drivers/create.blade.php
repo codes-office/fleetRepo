@@ -16,6 +16,28 @@
   .tab-content {
     margin-top: 20px;
   }
+
+  .image-upload-container {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+    height: 150px;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+}
+
+.btn-sm {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+}
+
 </style>
 @endsection
 @section("breadcrumb")
@@ -56,57 +78,81 @@
 
         <!-- Tab Content -->
         <div class="tab-content" id="formTabsContent">
-          <!-- Information Tab -->
-          <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
-            <div class="row">
-              <div class="col-md-4">
-                <div class="form-group">
-                  {!! Form::label('first_name', __('DRIVER NAME'), ['class' => 'form-label required','autofocus']) !!}
-                  {!! Form::text('first_name', null,['class' => 'form-control','required','autofocus']) !!}
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-group">
-                  {!! Form::label('city', __('CITY'), ['class' => 'form-label']) !!}
-                  {!! Form::text('city', null,['class' => 'form-control']) !!}
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-group">
-                  {!! Form::label('DOB', __('DATE OF BIRTH'), ['class' => 'form-label required']) !!}
-                  {!! Form::date('DOB', null,['class' => 'form-control','required']) !!}
-                </div>
-              </div>
+         <!-- Information Tab -->
+<div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+    <div class="row">
+        <!-- Profile Image (Left Side) -->
+        <div class="col-md-4 text-center">
+            <div class="image-upload-container">
+                <!-- Image Preview -->
+                <img id="profilePreview" src="{{ asset('path/to/default-image.jpg') }}" 
+                     class="img-thumbnail profile-img" 
+                     alt="Profile Image" />
+                <!-- Hidden File Input -->
+                <input type="file" id="profilePhotoInput" name="profile_photo" 
+                       class="d-none" accept="image/png, image/jpeg, image/jpg">
+                <!-- Upload Button -->
+                <button type="button" class="btn btn-primary btn-sm mt-2" 
+                        onclick="document.getElementById('profilePhotoInput').click();">
+                    <i class="fa fa-pencil"></i> Add Image (JPG, JPEG & PNG)
+                </button>
             </div>
+        </div>
 
-            <!-- Additional Fields for Information Tab -->
+        <!-- Personal Information (Right Side) -->
+        <div class="col-md-8">
             <div class="row">
-              <div class="col-md-4">
-                <div class="form-group">
-                  {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      {!! Form::select('phone_code',$phone_code,null,['class' => 'form-control code','required','style'=>'width:80px']) !!}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('first_name', __('DRIVER NAME'), ['class' => 'form-label required','autofocus']) !!}
+                        {!! Form::text('first_name', null,['class' => 'form-control','required','autofocus']) !!}
                     </div>
-                    {!! Form::number('phone', null,['class' => 'form-control','required']) !!}
-                  </div>
                 </div>
-              </div>
-              <div class="col-md-4">
-                <div class="form-group">
-                  {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
-                  {!! Form::text('emp_id', null,['class' => 'form-control','required']) !!}
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('city', __('CITY'), ['class' => 'form-label']) !!}
+                        {!! Form::text('city', null,['class' => 'form-control']) !!}
+                    </div>
                 </div>
-              </div>
-              <div class="col-md-4">
-              <div class="form-group">
-                {!! Form::label('vendor_id', __('VENDORS'), ['class' => 'form-label required']) !!}
-                {!! Form::select('vendor_id', $vendors->pluck('name','user_id'), null, ['class' => 'form-control', 'placeholder' => __('Select a Vendor'), 'required']) !!}
-              </div>
             </div>
 
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('DOB', __('DATE OF BIRTH'), ['class' => 'form-label required']) !!}
+                        {!! Form::date('DOB', null,['class' => 'form-control','required']) !!}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                {!! Form::select('phone_code',$phone_code,null,['class' => 'form-control code','required','style'=>'width:80px']) !!}
+                            </div>
+                            {!! Form::number('phone', null,['class' => 'form-control','required']) !!}
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
+                        {!! Form::text('emp_id', null,['class' => 'form-control','required']) !!}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {!! Form::label('vendor_id', __('VENDORS'), ['class' => 'form-label required']) !!}
+                        {!! Form::select('vendor_id', $vendors->pluck('name','user_id'), null, ['class' => 'form-control', 'placeholder' => __('Select a Vendor'), 'required']) !!}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
        <!-- Documents Tab -->
 <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
@@ -187,7 +233,7 @@
           <td>BackGround Verification</td>
 
           <td>
-          {!! Form::select('background_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          {!! Form::select('background_verification_status', ['Pending' => 'Pending', 'Success' => 'Success', 'Rejected' => 'Rejected'], null, ['class' => 'form-control']) !!}
           </td>
           <td>
             Expiry Date
@@ -206,7 +252,7 @@
           <td>Police Verification</td>
 
           <td>
-          {!! Form::select('police_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          {!! Form::select('police_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], null, ['class' => 'form-control']) !!}
           </td>
           <td>
             Expiry Date
@@ -225,7 +271,7 @@
           <td>Medical verification</td>
 
           <td>
-          {!! Form::select('medical_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          {!! Form::select('medical_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], null, ['class' => 'form-control']) !!}
           </td>
           <td>
             Expiry Date
@@ -244,7 +290,7 @@
           <td>Training verification</td>
 
           <td>
-          {!! Form::select('training_verification_status', ['Pending' => 'Pending', 'Success' => 'Success'], null, ['class' => 'form-control']) !!}
+          {!! Form::select('training_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], null, ['class' => 'form-control']) !!}
           </td>
           <td>
             Expiry Date
@@ -312,6 +358,18 @@
 
 @section("script")
 <script>
+document.getElementById('profilePhotoInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profilePreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+
   $(document).ready(function () {
     $('#driver-create-form').validate({
       rules: {

@@ -31,7 +31,7 @@
                     {!! Form::hidden('user_id', Auth::user()->id) !!}
                     <!-- {!! Form::hidden('status', 0) !!} -->
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 {!! Form::label('customer_id', __('fleet.selectCustomer'), ['class' => 'form-label']) !!}
                                 @if (Auth::user()->user_type != 'C')
@@ -58,48 +58,64 @@
                     
                   
                      <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="form-group">
             {!! Form::label('action', __('Action'), ['class' => 'form-label']) !!}
             {!! Form::select('action', 
                 ['' => __('Select')] + ['login' => 'Login', 'logout' => 'Logout'], 
-                '',  // Empty value sets "Select" as the default
+                '', 
                 ['class' => 'form-control', 'required', 'style' => 'height:50px', 'id' => 'actionDropdown']
             ) !!}
         </div>
     </div>
 </div>
 
+<!-- Datepicker Section (Initially Hidden) -->
+<div id="datepickerSection" class="row" style="display: none;">
+    <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('date', __('Select Date'), ['class' => 'form-label']) !!}
+            {!! Form::text('date', null, ['class' => 'form-control', 'id' => 'datePicker', 'readonly' => 'readonly', 'required']) !!}
+        </div>
+    </div>
+</div>
+
+
 
 
     <!-- Timeslot Dropdown (Initially Hidden) -->
-    <div class="row" id="timeslotSection" style="display: none;">
-        <div class="col-md-4">
-            <div class="form-group">
-                {!! Form::label('Timeslot', __('Timeslot'), ['class' => 'form-label']) !!}
-                {!! Form::select('timeslot', 
-                        $timeSlots->pluck('slot', 'id')->toArray(), 
-                        null, 
-                        ['class' => 'form-control', 'required', 'style' => 'height:50px']
-                ) !!}
-            </div>
+    <!-- <div class="row" id="timeslotSection" style="display: none;">
+    <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('timeslot', __('Timeslot'), ['class' => 'form-label']) !!}
+            {!! Form::select('timeslot', [], null, [
+                'class' => 'form-control', 
+                'required', 
+                'id' => 'timeslotSelect', 
+                'placeholder' => __('Select Timeslot')
+            ]) !!}
         </div>
     </div>
+</div> -->
 
-
-               
-            
-
-
-                    <div class="blank"></div>
-                    <div class="col-md-12">
-                        {!! Form::submit(__('fleet.save_booking'), ['class' => 'btn btn-success']) !!}
-                    </div>
-                    {!! Form::close() !!}
-                </div>
-            </div>
+<!-- <div class="row" id="dateSection" style="display: none;">
+    <div class="col-md-3">
+        <div class="form-group">
+            {!! Form::label('date', __('Select Dates'), ['class' => 'form-label']) !!}
+            {!! Form::text('date', null, ['class' => 'form-control', 'id' => 'datePicker', 'autocomplete' => 'off']) !!}
         </div>
     </div>
+</div>           -->
+
+<div class="blank"></div>
+        <div class="col-md-12">
+             {!! Form::submit(__('fleet.save_booking'), ['class' => 'btn btn-success']) !!}
+        </div>
+             {!! Form::close() !!}
+             </div>
+        </div>
+     </div>
+</div>
 
 
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
@@ -204,28 +220,145 @@
             }
         </script>
 
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-multidatespicker/1.6.6/jquery-ui.multidatespicker.min.js"></script>
+<style>
+    /* Highlight selected dates while dragging */
+    .ui-selected {
+        background: #007bff !important;
+        color: white !important;
+    }
+</style>
+
 <script>
-    $(document).ready(function() {
-    // Initially hide the timeslot section
-    $('#timeslotSection').hide();
+
+$(document).ready(function () {
+    // Initially hide the datepicker section
+    $('#datepickerSection').hide();
 
     // When the 'action' dropdown changes
-    $('#actionDropdown').change(function() {
+    $('#actionDropdown').change(function () {
         var selectedAction = $(this).val();
+        console.log("Selected Action: ", selectedAction); // Debugging
 
-        console.log("Selected Action: ", selectedAction); // Debugging to see the value
+        // Hide the datepicker section by default
+        $('#datepickerSection').hide();
 
-        // Hide the timeslot section by default
-        $('#timeslotSection').hide();
-
-        // Show the timeslot section only if 'login' or 'logout' is selected
+        // Show the datepicker section only if 'login' or 'logout' is selected
         if (selectedAction === 'login' || selectedAction === 'logout') {
-            $('#timeslotSection').show();
+            $('#datepickerSection').show();
         }
     });
+    $(document).ready(function () {
+    // Ensure MultiDatesPicker Plugin is Loaded
+    if ($.fn.multiDatesPicker) {
+        $('#datePicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            minDate: 0, // Disable past dates
+            beforeShowDay: function (date) {
+                let day = date.getDay();
+                return (day === 0 || day === 6) ? [false, "", "Weekend Off"] : [true, "", ""];
+            },
+            onSelect: function (dateText, inst) {
+                console.log("onSelect triggered");
+
+                let selectedDate = new Date(dateText);
+                console.log("Selected Date:", selectedDate);
+
+                // Fix: Move to Monday if selected on weekend
+                if (selectedDate.getDay() === 0) {
+                    selectedDate.setDate(selectedDate.getDate() + 1);
+                } else if (selectedDate.getDay() === 6) {
+                    selectedDate.setDate(selectedDate.getDate() + 2);
+                }
+
+                let selectedDates = [];
+                let count = 0;
+                let nextDate = new Date(selectedDate.getTime()); // Fix: Clone the date
+                let weekdays = { "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [], "Friday": [] };
+
+                while (count < 30) {
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    let dayIndex = nextDate.getDay();
+                    let dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayIndex];
+
+                    if (dayIndex !== 0 && dayIndex !== 6) { // Skip weekends
+                        let formattedDate = $.datepicker.formatDate('yy-mm-dd', nextDate);
+                        selectedDates.push(formattedDate);
+                        weekdays[dayName].push(formattedDate);
+                        count++;
+                    }
+                }
+
+                console.log(" Selected Dates:", selectedDates);
+                console.log(" Dates Grouped by Weekday:", weekdays);
+
+                localStorage.setItem("selectedWeekdayDates", JSON.stringify(weekdays));
+
+                $('#datePicker').multiDatesPicker('resetDates', 'disabled'); // Fix: Correct resetDates
+                $('#datePicker').multiDatesPicker('addDates', selectedDates);
+            }
+        });
+    } else {
+        console.error("multiDatesPicker plugin not found!");
+    }
 });
+})
+</script>
+
+
+<script>
+public function getAvailableDays(Request $request)
+{
+	$days_available = []; // Initialize an empty array
+
+	if ($request->ajax()) {
+		Log::info('days_avail');
+		$days_available = $request->timeslot;// Get the selected timeslot from the request
+		Log::info($days_available);
+
+		// Fetch the days_available from the database, which will be a comma-separated string of days (e.g., "Sunday,Monday,Wednesday")
+		$days_available = Timeslot::where('shift', $timeslot)->pluck('days_available')->first();
+		
+		// If days are stored as a comma-separated string, convert to an array
+		$days_available = explode(',' , $days_available);
+		
+		// Get the current month and year (you can adjust the month if needed)
+		$currentMonth = Carbon::now()->month;
+		$currentYear = Carbon::now()->year;
+
+		// Generate the specific dates for the available days in the current month
+		$dates = [];
+		
+		// Loop through the days available (e.g., Sunday, Monday, Wednesday)
+		foreach ($days_available as $day) {
+			// Get the first date of the current month
+			$firstDayOfMonth = Carbon::create($currentYear, $currentMonth, 1);
+			
+			// Find the first occurrence of this day in the current month
+			$date = $firstDayOfMonth->copy()->next($day); // Carbon's next() will get the next occurrence of that day of the week
+			
+			// Loop to get all occurrences of the specified day in the month
+			while ($date->month === $currentMonth) {
+				$dates[] = $date->toDateString(); // Push the date in YYYY-MM-DD format
+				$date->addWeek(); // Move to the next occurrence of that day
+			}
+		}
+
+		// Return the available dates as a JSON response
+		return response()->json(['days_available' => $dates]);
+	}
+
+	return response()->json(['error' => 'Invalid request']);
+}
 
 </script>
+
+
+
 
 
         <script

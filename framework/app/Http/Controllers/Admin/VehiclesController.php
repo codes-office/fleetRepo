@@ -26,6 +26,7 @@ use App\Model\Hyvikk;
 use App\Model\IncomeModel;
 use App\Model\ServiceReminderModel;
 use App\Model\User;
+use App\Model\Vendor;
 use App\Model\VehicleGroupModel;
 use App\Model\VehicleModel;
 use App\Model\VehicleReviewModel;
@@ -242,13 +243,21 @@ class VehiclesController extends Controller {
 		} else {
 			$index['groups'] = VehicleGroupModel::where('id', Auth::user()->group_id)->get();
 		}
-		// $index['types'] = VehicleTypeModel::all();
+	
 		$index['types'] = VehicleTypeModel::where('isenable', 1)->get();
 		$index['makes'] = VehicleModel::groupBy('make_name')->get()->pluck('make_name')->toArray();
 		$index['models'] = VehicleModel::groupBy('model_name')->get()->pluck('model_name')->toArray();
 		$index['colors'] = VehicleModel::groupBy('color_name')->get()->pluck('color_name')->toArray();
+		
+		// Fetch vendors from Vendor table
+		$index['vendors'] = Vendor::all();
+	
+		// Fetch drivers from User table where user_type is 'D'
+		$index['drivers'] = User::where('user_type', 'D')->get();
+	
 		return view("vehicles.create", $index);
 	}
+	
 
 	public function get_models($name) {
 		$makes = VehicleModel::groupBy('make_name')->where('make_name', $name)->get();
@@ -397,7 +406,8 @@ class VehiclesController extends Controller {
 	}
 
 	public function store(VehicleRequest $request) {
-		// dd($request->all());
+		dd($request->all());
+		exit();
 		$user_id = $request->get('user_id');
 		$vehicle = VehicleModel::create([
 			'make_name' => $request->get("make_name"),

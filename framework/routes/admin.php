@@ -216,7 +216,12 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/vendors-fetch', 'VendorController@fetch_data');
         Route::resource('/vendors', 'VendorController');
         Route::post('drivers-fetch', 'DriversController@fetch_data');
-        Route::resource('/drivers', 'DriversController');       
+        Route::resource('/drivers', 'DriversController');   
+        Route::get('/download/{filename}', 'DriversController@download');
+        Route::get('/view/{filename}', 'DriversController@view');
+
+
+
         Route::resource('/parts', 'PartsController');
         Route::post('/vehicles-fetch', 'VehiclesController@fetch_data');
         Route::resource('/vehicles', 'VehiclesController');
@@ -343,6 +348,16 @@ Route::namespace ('Admin')->group(function () {
 
         Route::resource('/cancel-reason', 'ReasonController');
         Route::post('delete-fuel', 'FuelController@bulk_delete')->middleware('IsInstalled');
+
+
+        
+//        Route::get('/getShifts',  'BookingsController@getShifts')->name('getShifts');
+
+
+
+        // Route::get('/get-available-days', 'BookingsController@getAvailableDays')->name('get-available-days');
+
+
     });
 
 });
