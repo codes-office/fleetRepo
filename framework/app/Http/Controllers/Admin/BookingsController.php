@@ -764,18 +764,30 @@ private function generateTimeSlots() {
 // }
 
 
-public function getDaysAvailable(Request $request)
-{
-	// Fetch distinct days_available from the timeslots table
-	$days = Timeslot::distinct()->pluck('days_available');
-	log::info($days);
+ public function getAvailableDays(Request $request)
+    {
+        Log::info("AJAX Request Received", ['request_data' => $request->all()]);
 
-	if ($days->isNotEmpty()) {
-		return response()->json(['success' => true, 'days_available' => $days]);
-	} else {
-		return response()->json(['success' => false, 'message' => 'No available days found.']);
-	}
-}
+        if ($request->ajax()) {
+            Log::info("Request is an AJAX call");
+
+            // Fetch distinct available days
+            $days = Timeslot::distinct()->pluck('days_available')->unique()->values()->toArray();
+
+            Log::info("Days Fetched", ['days' => $days]);
+
+            if (empty($days)) {
+                Log::warning("No days available found in the database.");
+                return response()->json(['success' => false, 'message' => 'No days available found.']);
+            }
+
+            return response()->json(['success' => true, 'days_available' => $days]);
+        }
+
+        Log::warning("Request is not AJAX");
+        return response()->json(['success' => false, 'message' => 'Invalid request']);
+    }
+
 
 
 	public function edit($id) {
@@ -842,9 +854,9 @@ public function getDaysAvailable(Request $request)
 	}
 
 	public function store(BookingRequest $request) {
-
-
-
+		
+		// dd($request->all()); // Dumps all request data
+		// exit();
 		$max_seats = VehicleModel::find($request->get('vehicle_id'))->types->seats;
 		$xx = $this->check_booking($request->get("pickup"), $request->get("dropoff"), $request->get("vehicle_id"));
 		if ($xx) {

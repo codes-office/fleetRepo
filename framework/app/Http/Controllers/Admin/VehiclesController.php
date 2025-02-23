@@ -26,6 +26,7 @@ use App\Model\Hyvikk;
 use App\Model\IncomeModel;
 use App\Model\ServiceReminderModel;
 use App\Model\User;
+use App\Model\Vehicle;
 use App\Model\Vendor;
 use App\Model\VehicleGroupModel;
 use App\Model\VehicleModel;
@@ -405,55 +406,111 @@ class VehiclesController extends Controller {
 
 	}
 
-	public function store(VehicleRequest $request) {
-		dd($request->all());
-		exit();
-		$user_id = $request->get('user_id');
-		$vehicle = VehicleModel::create([
-			'make_name' => $request->get("make_name"),
-			'model_name' => $request->get("model_name"),
-			// 'type' => $request->get("type"),
-			'year' => $request->get("year"),
-			'engine_type' => $request->get("engine_type"),
-			'horse_power' => $request->get("horse_power"),
-			'color_name' => $request->get("color_name"),
-			'vin' => $request->get("vin"),
-			'license_plate' => $request->get("license_plate"),
-			'int_mileage' => $request->get("int_mileage"),
-			'group_id' => $request->get('group_id'),
-			'user_id' => $request->get('user_id'),
-			'lic_exp_date' => $request->get('lic_exp_date'),
-			'reg_exp_date' => $request->get('reg_exp_date'),
-			'in_service' => $request->get("in_service"),
-			'type_id' => $request->get('type_id'),
-			// 'vehicle_image' => $request->get('vehicle_image'),
-			'height' => $request->height,
-			'length' => $request->length,
-			'breadth' => $request->breadth,
-			'weight' => $request->weight,
 
-		])->id;
+	public function store(Request $request)
+{
+    // Validate the incoming request data
+    $request->validate([
+        'user_id' => 'required|integer',
+        'vendor_id' => 'required|integer',
+        'vehicle_id' => 'required|string|max:255',
+        'registration_no' => 'required|string|max:255',
+        'status' => 'required|string|in:active,inactive',
+        'sim_number' => 'nullable|string|max:20',
+        'device_imei' => 'nullable|string|max:50',
+        'vehicle_type' => 'required|string|max:50',
+        'contract' => 'nullable|string|max:50',
+        'working_time' => 'required|integer',
+        'change_contract_from' => 'nullable|string|max:50',
+        'start_hour' => 'required|string|max:2',
+        'start_minute' => 'required|string|max:2',
+        'send_audit_sms' => 'nullable|string|max:50',
+        'driver_id' => 'required|integer',
+        'mobile_number' => 'nullable|string|max:15',
+        'alternative_number' => 'nullable|string|max:15',
+        'comments' => 'nullable|string|max:255',
+    ]);
 
-		if ($request->file('vehicle_image') && $request->file('vehicle_image')->isValid()) {
-			$this->upload_file($request->file('vehicle_image'), "vehicle_image", $vehicle);
-		}
+    // Assign driver_id to send_audit_sms if "Driver" is selected
+    $send_audit_sms = $request->input('send_audit_sms') === 'Driver' ? $request->input('driver_id') : $request->input('send_audit_sms');
 
-		$meta = VehicleModel::find($vehicle);
-		$meta->setMeta([
-			'ins_number' => "",
-			'ins_exp_date' => "",
-			'documents' => "",
-			'traccar_device_id' => $request->traccar_device_id,
-			'traccar_vehicle_id' => $request->traccar_vehicle_id,
-		]);
-		$meta->udf = serialize($request->get('udf'));
-		$meta->average = $request->average;
-		$meta->save();
+    // Create a new vehicle record
+    $vehicle = Vehicle::create([
+        'user_id' => $request->input('user_id'),
+        'vendor_id' => $request->input('vendor_id'),
+        'vehicle_id' => $request->input('vehicle_id'),
+        'registration_no' => $request->input('registration_no'),
+        'status' => $request->input('status'),
+        'inactive_reason' => $request->input('inactive_reason'),
+        'sim_number' => $request->input('sim_number'),
+        'device_imei' => $request->input('device_imei'),
+        'vehicle_type' => $request->input('vehicle_type'),
+        'contract' => $request->input('contract'),
+        'working_time' => $request->input('working_time'),
+        'change_contract_from' => $request->input('change_contract_from'),
+        'start_hour' => $request->input('start_hour'),
+        'start_minute' => $request->input('start_minute'),
+        'send_audit_sms' => $send_audit_sms, // Assign driver_id if applicable
+        'driver_id' => $request->input('driver_id'),
+        'mobile_number' => $request->input('mobile_number'),
+        'alternative_number' => $request->input('alternative_number'),
+        'comments' => $request->input('comments'),
+    ]);
 
-		$vehicle_id = $vehicle;
+    return redirect()->back()->with('success', 'Vehicle added successfully.');
+}
+		//OLD STORE FUNCTION
+	// public function store(VehicleRequest $request) {
+		
+	// 	dd($request->all());
+	// 	exit();
+		
+	// 	$user_id = $request->get('user_id');
+	// 	$vehicle = VehicleModel::create([
+	// 		'make_name' => $request->get("make_name"),
+	// 		'model_name' => $request->get("model_name"),
+	// 		// 'type' => $request->get("type"),
+	// 		'year' => $request->get("year"),
+	// 		'engine_type' => $request->get("engine_type"),
+	// 		'horse_power' => $request->get("horse_power"),
+	// 		'color_name' => $request->get("color_name"),
+	// 		'vin' => $request->get("vin"),
+	// 		'license_plate' => $request->get("license_plate"),
+	// 		'int_mileage' => $request->get("int_mileage"),
+	// 		'group_id' => $request->get('group_id'),
+	// 		'user_id' => $request->get('user_id'),
+	// 		'lic_exp_date' => $request->get('lic_exp_date'),
+	// 		'reg_exp_date' => $request->get('reg_exp_date'),
+	// 		'in_service' => $request->get("in_service"),
+	// 		'type_id' => $request->get('type_id'),
+	// 		// 'vehicle_image' => $request->get('vehicle_image'),
+	// 		'height' => $request->height,
+	// 		'length' => $request->length,
+	// 		'breadth' => $request->breadth,
+	// 		'weight' => $request->weight,
 
-		return redirect("admin/vehicles/" . $vehicle_id . "/edit?tab=vehicle");
-	}
+	// 	])->id;
+
+	// 	if ($request->file('vehicle_image') && $request->file('vehicle_image')->isValid()) {
+	// 		$this->upload_file($request->file('vehicle_image'), "vehicle_image", $vehicle);
+	// 	}
+
+	// 	$meta = VehicleModel::find($vehicle);
+	// 	$meta->setMeta([
+	// 		'ins_number' => "",
+	// 		'ins_exp_date' => "",
+	// 		'documents' => "",
+	// 		'traccar_device_id' => $request->traccar_device_id,
+	// 		'traccar_vehicle_id' => $request->traccar_vehicle_id,
+	// 	]);
+	// 	$meta->udf = serialize($request->get('udf'));
+	// 	$meta->average = $request->average;
+	// 	$meta->save();
+
+	// 	$vehicle_id = $vehicle;
+
+	// 	return redirect("admin/vehicles/" . $vehicle_id . "/edit?tab=vehicle");
+	// }
 
 	public function store_insurance(InsuranceRequest $request) {
 		$vehicle = VehicleModel::find($request->get('vehicle_id'));
@@ -554,7 +611,6 @@ class VehiclesController extends Controller {
 	}
 
 	public function vehicle_inspection_index() {
-
 		$vehicle = DriverLogsModel::where('driver_id', Auth::user()->id)->get()->toArray();
 		if ($vehicle) {
 			// $data['reviews'] = VehicleReviewModel::where('vehicle_id', $vehicle[0]['vehicle_id'])->orderBy('id', 'desc')->get();

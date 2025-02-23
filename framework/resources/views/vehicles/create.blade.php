@@ -102,71 +102,81 @@
             </div>
             <div class="tab-content">
               <!-- Personal Information Tab -->
-              <div class="tab-pane active" id="personal-info">
-                {!! Form::open(['route' => 'vehicles.store','files'=>true, 'method'=>'post','class'=>'form-horizontal','id'=>'accountForm']) !!}
-                {!! Form::hidden('user_id',Auth::user()->id) !!}
-                <div class="row card-body">
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      {!! Form::label('vendor_id', __('fleet.vendor'), ['class' => 'col-xs-5 control-label']) !!}
-                      <div class="col-xs-6">
-                        <select name="vendor_id" class="form-control" required id="vendor_id">
-                          <option value="">Select Vendor</option>
-                          @foreach($vendors as $vendor)
-                          <option value="{{$vendor->id}}">{{$vendor->name}}</option>
-                          @endforeach
-                        </select>
-                      </div>
-                    </div>
+<div class="tab-pane active" id="personal-info">
+    {!! Form::open(['route' => 'vehicles.store','files'=>true, 'method'=>'post','class'=>'form-horizontal','id'=>'accountForm']) !!}
+    {!! Form::hidden('user_id', Auth::user()->id) !!}
 
-                    <div class="form-group">
-                    {!! Form::label('vehicle_id', __('Vehicle ID'), ['class' => 'col-xs-5 control-label']) !!}
-                    <div class="col-xs-6">
-                     {!! Form::text('vehicle_id', null, ['class' => 'form-control', 'required', 'placeholder' => 'Enter vehicle ID']) !!}
-                    </div>
-                    </div>
-
-                    <div class="form-group">
-                    {!! Form::label('registration_no', __('Registration Number'), ['class' => 'col-xs-5 control-label']) !!}
-                    <div class="col-xs-6">
-                    {!! Form::text('registration_no', null, ['class' => 'form-control', 'required', 'placeholder' => 'EX: KA-01-AB-0123']) !!}
-                    </div>
-                    </div>
-
-                    <div class="form-group">
-                    {!! Form::label('status', __('Status'), ['class' => 'col-xs-5 control-label']) !!}
-                    <div class="col-xs-6">
-                    {!! Form::select('status', ['active' => 'Active', 'inactive' => 'Inactive'], null, ['class' => 'form-control', 'required', 'id' => 'status']) !!}
-                    </div>
-                    </div>
-
-
-
-                    <div class="form-group" id="inactive_reason_div" style="display: none;">
-                    {!! Form::label('inactive_reason', __('Inactive Reason'), ['class' => 'col-xs-5 control-label']) !!}
-                    <div class="col-xs-6">
-                    {!! Form::text('inactive_reason', null, ['class' => 'form-control', 'placeholder' => 'Inactive from any random date']) !!}
-                    </div>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group">
-                      {!! Form::label('sim_number', __('Sim Number'), ['class' => 'col-xs-5 control-label']) !!}
-                      <div class="col-xs-6">
-                        {!! Form::text('sim_number', null,['class' => 'form-control','required']) !!}
-                      </div>
-                    </div>
-
-                    <div class="form-group">
-                      {!! Form::label('device_imei', __('Device IMEI'), ['class' => 'col-xs-5 control-label']) !!}
-                      <div class="col-xs-6">
-                        {!! Form::text('device_imei', null,['class' => 'form-control','placeholder' => 'IE121RT842','required']) !!}
-                      </div>
-                    </div>
-                  </div>
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-6">
+            <!-- Vendor -->
+            <div class="form-group">
+                {!! Form::label('vendor_id', __('fleet.vendor'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    <select name="vendor_id" class="form-control" required id="vendor_id">
+                        <option value="">Select Vendor</option>
+                        @foreach($vendors as $vendor)
+                        <option value="{{$vendor->id}}" data-name="{{$vendor->name}}">{{$vendor->name}}</option>
+                        @endforeach
+                    </select>
                 </div>
-              </div>
+            </div>
+
+            <!-- Registration Number -->
+            <div class="form-group">
+                {!! Form::label('registration_no', __('Registration Number'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::text('registration_no', null, ['class' => 'form-control', 'required', 'placeholder' => 'EX: KA-01-AB-0123', 'id' => 'registration_no']) !!}
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+                {!! Form::label('status', __('Status'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::select('status', ['active' => 'Active', 'inactive' => 'Inactive'], null, ['class' => 'form-control', 'required', 'id' => 'status']) !!}
+                </div>
+            </div>
+
+            <!-- Inactive Reason (Hidden initially) -->
+            <div class="form-group" id="inactive_reason_div" style="display: none;">
+                {!! Form::label('inactive_reason', __('Inactive Reason'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::text('inactive_reason', null, ['class' => 'form-control', 'placeholder' => 'Inactive from any random date']) !!}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-6">
+            <!-- Sim Number -->
+            <div class="form-group">
+                {!! Form::label('sim_number', __('Sim Number'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::text('sim_number', null, ['class' => 'form-control', 'required']) !!}
+                </div>
+            </div>
+
+            <!-- Device IMEI -->
+            <div class="form-group">
+                {!! Form::label('device_imei', __('Device IMEI'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::text('device_imei', null, ['class' => 'form-control', 'placeholder' => 'IE121RT842', 'required']) !!}
+                </div>
+            </div>
+
+            <!-- Vehicle ID (Read-Only) -->
+            <div class="form-group">
+                {!! Form::label('vehicle_id', __('Vehicle ID'), ['class' => 'col-xs-5 control-label']) !!}
+                <div class="col-xs-7">
+                    {!! Form::text('vehicle_id', null, ['class' => 'form-control', 'readonly', 'placeholder' => 'Generated Automatically', 'id' => 'vehicle_id']) !!}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- </div> -->
 
               <!-- Contracts Tab -->
               <div class="tab-pane" id="contracts">
@@ -228,14 +238,19 @@
       </div>
 
       <div class="form-group">
-        {!! Form::label('send_audit_sms', __('Send Audit SMS'), ['class' => 'col-xs-5 control-label']) !!}
-        <div class="col-xs-6">
-          <label><input type="radio" name="send_audit_sms" value="Driver" checked> Driver</label>
-          <label class="ml-3"><input type="radio" name="send_audit_sms" value="Other"> To Other</label>
-        </div>
-      </div>
-    </div>
+  {!! Form::label('send_audit_sms', __('Send Audit SMS'), ['class' => 'col-xs-5 control-label']) !!}
+  <div class="col-xs-6">
+    <label>
+      <input type="radio" name="send_audit_sms" value="{{ old('driver_id', isset($driver_id) ? $driver_id : '') }}" checked> Driver
+    </label>
+    <label class="ml-3">
+      <input type="radio" name="send_audit_sms" value="Other"> To Other
+    </label>
   </div>
+</div>
+
+    </div>
+    </div>
 
               <!-- Driver Tab -->
               <div class="tab-pane" id="driver">
@@ -254,19 +269,33 @@
                     </div>
 
                     <div class="form-group">
-                      {!! Form::label('mobile_number', __('Mobile Number'), ['class' => 'col-xs-5 control-label']) !!}
-                      <div class="col-xs-6">
-                        {!! Form::text('mobile_number', null,['class' => 'form-control','placeholder' => '+91 1234567890','required']) !!}
-                      </div>
-                    </div>
+    {!! Form::label('mobile_number', __('Mobile Number'), ['class' => 'col-xs-5 control-label']) !!}
+    <div class="col-xs-6">
+        <div class="input-group">
+            {!! Form::tel('mobile_number', null, [
+                'class' => 'form-control', 
+                'placeholder' => '1234567890', 
+                'required',
+                'pattern' => '[0-9]{10}', // Ensures only 10-digit mobile number input
+                'maxlength' => '10' // Restrict input to 10 digits
+            ]) !!}
+        </div>
+    </div>
+</div>
 
-                    <div class="form-group">
-                      {!! Form::label('alternative_number', __('Alternative Number'), ['class' => 'col-xs-5 control-label']) !!}
-                      <div class="col-xs-6">
-                        {!! Form::text('alternative_number', null,['class' => 'form-control','placeholder' => '+91 1234567890']) !!}
-                      </div>
-                    </div>
-                  </div>
+<div class="form-group">
+    {!! Form::label('alternative_number', __('Alternative Number'), ['class' => 'col-xs-5 control-label']) !!}
+    <div class="col-xs-6">
+        <div class="input-group">
+            {!! Form::tel('alternative_number', null, [
+                'class' => 'form-control', 
+                'placeholder' => '1234567890',
+                'pattern' => '[0-9]{10}', // Ensures only 10-digit alternative number input
+                'maxlength' => '10' // Restrict input to 10 digits
+            ]) !!}
+        </div>
+    </div>
+</div>
 
                   <div class="col-md-6">
                     <div class="form-group">
@@ -307,9 +336,44 @@
     $('#status').change(function() {
       if ($(this).val() == 'inactive') {
         $('#inactive_reason_div').show();
+        
       } else {
         $('#inactive_reason_div').hide();
       }
+    });
+    $('#driver_id').change(function() {
+        let selectedDriver = $(this).val(); // Get selected driver ID
+        if (selectedDriver) {
+            $('input[name="send_audit_sms"][value="Driver"]').prop('checked', true);
+        }
+    });
+    $(document).ready(function() {
+        $('#vendor_id, #registration_no').on('change keyup', function() {
+            generateVehicleID();
+        });
+
+        function generateVehicleID() {
+            let vendorName = $('#vendor_id option:selected').data('name');
+            let registrationNo = $('#registration_no').val();
+
+            if (vendorName && registrationNo.length >= 4) {
+                let vendorPrefix = vendorName.split(' ')[0].toUpperCase(); // First word of Vendor Name
+                let regSuffix = registrationNo.slice(-4); // Last 4 digits of Registration No
+                let vehicleID = vendorPrefix + '-' + regSuffix;
+
+                $('#vehicle_id').val(vehicleID);
+            } else {
+                $('#vehicle_id').val(''); // Clear if conditions are not met
+            }
+        }
+
+        $('#status').change(function() {
+            if ($(this).val() === 'inactive') {
+                $('#inactive_reason_div').show();
+            } else {
+                $('#inactive_reason_div').hide();
+            }
+        });
     });
       });
     </script>

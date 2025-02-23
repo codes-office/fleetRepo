@@ -57,7 +57,7 @@
                      </div>
                     
                   
-                     <div class="row">
+<div class="row">
     <div class="col-md-3">
         <div class="form-group">
             {!! Form::label('action', __('Action'), ['class' => 'form-label']) !!}
@@ -98,14 +98,15 @@
     </div>
 </div> -->
 
-<!-- <div class="row" id="dateSection" style="display: none;">
+<div class="row" id="daysSection" style="display: show;">
     <div class="col-md-3">
         <div class="form-group">
-            {!! Form::label('date', __('Select Dates'), ['class' => 'form-label']) !!}
-            {!! Form::text('date', null, ['class' => 'form-control', 'id' => 'datePicker', 'autocomplete' => 'off']) !!}
+            {!! Form::label('days_available', __('Select Available Days'), ['class' => 'form-label']) !!}
+            {!! Form::select('days_available', [], null, ['class' => 'form-control', 'id' => 'daysDropdown']) !!}
         </div>
     </div>
-</div>           -->
+</div>
+
 
 <div class="blank"></div>
         <div class="col-md-12">
@@ -201,7 +202,8 @@
      
       var fleet_email_already_taken="@lang('fleet.email_already_taken')";
     </script>
-    <script src="{{asset('assets/js/bookings/create.js')}}"></script>    @if (Hyvikk::api('google_api') == '1')
+    <script src="{{asset('assets/js/bookings/create.js')}}"></script>   
+     @if (Hyvikk::api('google_api') == '1')
         <script>
             function initMap() {
                 $('#pickup_addr').attr("placeholder", "");
@@ -222,9 +224,12 @@
 
 
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-multidatespicker/1.6.6/jquery-ui.multidatespicker.min.js"></script>
+
 <style>
     /* Highlight selected dates while dragging */
     .ui-selected {
@@ -239,10 +244,12 @@ $(document).ready(function () {
     // Initially hide the datepicker section
     $('#datepickerSection').hide();
 
+    let selectedAction = ""; //  Define selectedAction in a wider scope
+
     // When the 'action' dropdown changes
     $('#actionDropdown').change(function () {
-        var selectedAction = $(this).val();
-        console.log("Selected Action: ", selectedAction); // Debugging
+        selectedAction = $(this).val(); //  Set value when dropdown changes
+        console.log("Selected Action: ", selectedAction);
 
         // Hide the datepicker section by default
         $('#datepickerSection').hide();
@@ -252,21 +259,22 @@ $(document).ready(function () {
             $('#datepickerSection').show();
         }
     });
-    $(document).ready(function () {
+
     // Ensure MultiDatesPicker Plugin is Loaded
     if ($.fn.multiDatesPicker) {
         $('#datePicker').datepicker({
             dateFormat: 'yy-mm-dd',
             minDate: 0, // Disable past dates
             beforeShowDay: function (date) {
+                console.log("BeforeShowDay Triggered"); 
+                console.log("Selected Action Inside BeforeShowDay:", selectedAction); 
+
                 let day = date.getDay();
                 return (day === 0 || day === 6) ? [false, "", "Weekend Off"] : [true, "", ""];
             },
             onSelect: function (dateText, inst) {
                 console.log("onSelect triggered");
-
                 let selectedDate = new Date(dateText);
-                console.log("Selected Date:", selectedDate);
 
                 // Fix: Move to Monday if selected on weekend
                 if (selectedDate.getDay() === 0) {
@@ -277,10 +285,10 @@ $(document).ready(function () {
 
                 let selectedDates = [];
                 let count = 0;
-                let nextDate = new Date(selectedDate.getTime()); // Fix: Clone the date
+                let nextDate = new Date(selectedDate.getTime()); // Clone the date
                 let weekdays = { "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [], "Friday": [] };
 
-                while (count < 30) {
+                while (count < 10) {
                     nextDate.setDate(nextDate.getDate() + 1);
                     let dayIndex = nextDate.getDay();
                     let dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dayIndex];
@@ -293,8 +301,7 @@ $(document).ready(function () {
                     }
                 }
 
-                console.log(" Selected Dates:", selectedDates);
-                console.log(" Dates Grouped by Weekday:", weekdays);
+                console.log("Dates Grouped by Weekday:", weekdays);
 
                 localStorage.setItem("selectedWeekdayDates", JSON.stringify(weekdays));
 
@@ -306,63 +313,56 @@ $(document).ready(function () {
         console.error("multiDatesPicker plugin not found!");
     }
 });
-})
-</script>
-
-
-<script>
-public function getAvailableDays(Request $request)
-{
-	$days_available = []; // Initialize an empty array
-
-	if ($request->ajax()) {
-		Log::info('days_avail');
-		$days_available = $request->timeslot;// Get the selected timeslot from the request
-		Log::info($days_available);
-
-		// Fetch the days_available from the database, which will be a comma-separated string of days (e.g., "Sunday,Monday,Wednesday")
-		$days_available = Timeslot::where('shift', $timeslot)->pluck('days_available')->first();
-		
-		// If days are stored as a comma-separated string, convert to an array
-		$days_available = explode(',' , $days_available);
-		
-		// Get the current month and year (you can adjust the month if needed)
-		$currentMonth = Carbon::now()->month;
-		$currentYear = Carbon::now()->year;
-
-		// Generate the specific dates for the available days in the current month
-		$dates = [];
-		
-		// Loop through the days available (e.g., Sunday, Monday, Wednesday)
-		foreach ($days_available as $day) {
-			// Get the first date of the current month
-			$firstDayOfMonth = Carbon::create($currentYear, $currentMonth, 1);
-			
-			// Find the first occurrence of this day in the current month
-			$date = $firstDayOfMonth->copy()->next($day); // Carbon's next() will get the next occurrence of that day of the week
-			
-			// Loop to get all occurrences of the specified day in the month
-			while ($date->month === $currentMonth) {
-				$dates[] = $date->toDateString(); // Push the date in YYYY-MM-DD format
-				$date->addWeek(); // Move to the next occurrence of that day
-			}
-		}
-
-		// Return the available dates as a JSON response
-		return response()->json(['days_available' => $dates]);
-	}
-
-	return response()->json(['error' => 'Invalid request']);
-}
 
 </script>
 
 
+<button id="fetchDaysButton">Fetch Available Days</button>
+
+    <script>
+        $(document).ready(function () {
+            // Trigger AJAX request when the button is clicked
+            $('#fetchDaysButton').on('click', function () {
+                fetchAvailableDays();
+            });
+
+            // Function to fetch available days
+            function fetchAvailableDays() {
+                $.ajax({
+                    url: '/get-available-days', // Ensure this matches your route
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (response) {
+                        console.log("AJAX Response:", response); // Debugging
+
+                        if (response.success && response.days_available.length > 0) {
+                            let options = '<option value="">Select a Day</option>';
+                            
+                            // Loop through the days and add them as options
+                            response.days_available.forEach(day => {
+                                options += `<option value="${day}">${day}</option>`;
+                            });
+
+                            // Populate the dropdown
+                            $('#daysDropdown').html(options);
+                            $('#daysSection').show(); // Show the dropdown section
+                        } else {
+                            alert('No available days found.');
+                            $('#daysSection').hide(); // Hide the dropdown section
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("AJAX Error:", xhr.responseText); // Debugging
+                        alert('Error fetching available days.');
+                    }
+                });
+            }
+        });
+    </script>
 
 
-
-        <script
+        <!-- <script
             src="https://maps.googleapis.com/maps/api/js?key={{ Hyvikk::api('api_key') }}&libraries=places&callback=initMap"
-            async defer></script>
+            async defer></script> -->
     @endif
 @endsection

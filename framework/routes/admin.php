@@ -349,13 +349,12 @@ Route::namespace ('Admin')->group(function () {
         Route::resource('/cancel-reason', 'ReasonController');
         Route::post('delete-fuel', 'FuelController@bulk_delete')->middleware('IsInstalled');
 
-
         
 //        Route::get('/getShifts',  'BookingsController@getShifts')->name('getShifts');
 
 
 
-        // Route::get('/get-available-days', 'BookingsController@getAvailableDays')->name('get-available-days');
+        Route::get('/get-available-days', 'BookingsController@getAvailableDays')->name('get-available-days');
 
 
     });
