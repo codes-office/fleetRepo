@@ -836,15 +836,28 @@ input:checked + .slider:before {
                     </a>
                   </li>
                   @endcan
+                  
                   @can('VehicleType list')
-                  <li class="nav-item">
-                    <a href="{{ route('vehiclecontracts.index')}}"
-                      class="nav-link @if(Request::is('admin/vehicle-contracts*')) active @endif">
-                      <i class="fa fa-th-list nav-icon"></i>
-                      <p>Vehicle Contract</p>
-                    </a>
-                  </li>
+                    <li class="nav-item">
+                        <a href="{{ route('vehiclecontracts.index')}}"
+                            class="nav-link @if(Request::is('admin/vehicle-contracts*')) active @endif">
+                            <i class="fa fa-history nav-icon"></i> <!-- Updated icon -->
+                            <p>Vehicle Contract</p>
+                        </a>
+                    </li>
+                    @endcan                    
+
+                    @can('VehicleType list')
+                      <li class="nav-item">
+                          <a href="{{ route('contract-view.index') }}" class="nav-link @if(Request::is('admin/vehicle-contracts*')) active @endif">
+                              <i class="fa fa-history nav-icon"></i> <!-- Updated icon -->
+                              <p>Contract</p>
+                          </a>
+                      </li>
                   @endcan
+
+
+
                   {{-- @can('Vehicles list')
                   <li class="nav-item">
                     <a href="{{ url('admin/driver-logs')}}"
@@ -853,9 +866,9 @@ input:checked + .slider:before {
                       <p>@lang('fleet.driver_logs')</p>
                     </a>
                   </li>
-
-
                   @endcan --}}
+
+
                   @can('VehicleGroup list')
                   <li class="nav-item">
                     <a href="{{ route('vehicle_group.index')}}"

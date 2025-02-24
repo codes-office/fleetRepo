@@ -66,7 +66,6 @@
               <th>@lang('fleet.name')</th>
               <th>@lang('fleet.email')</th>
               <th>@lang('fleet.action')</th> --}}
-            
             </tr>
           </tfoot>
         </table>

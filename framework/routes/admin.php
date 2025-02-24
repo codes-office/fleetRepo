@@ -1,14 +1,12 @@
 <?php
 use App\Http\Controllers\Admin\contractcontroller;
+use App\Http\Controllers\Admin\ContractAdd;
+
 Auth::routes();
 Route::namespace ('Admin')->group(function () {
     // Route::get('export-events', 'HomeController@export_calendar');
 
     Route::get('test-login', 'Testcontroller@login');
-    Route::get('/vehiclecontracts', [contractcontroller::class, 'index'])->name('vehiclecontracts.index');
-    
-    Route::put('vehiclecontracts/{contract}', [contractcontroller::class, 'update'])->name('vehiclecontracts.update');
-
 
 
     Route::get('/migrate', function () {
@@ -47,24 +45,29 @@ Route::post('/fare-settings/store', [SettingsController::class, 'store_F'])->nam
 // Route::post('fare-settings/save-all', [SettingsController::class, 'saveAll'])
 //      ->name('admin.fare-settings.save-all');
 
+////////////////// vehiclecontracts /////////////////////
 
-
-Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')->group(function () {
-        Route::get('/', [contractcontroller::class, 'index'])->name('index');
-        Route::post('/fetch', [contractcontroller::class, 'fetchData'])->name('fetch');
-        Route::get('/create', [contractcontroller::class, 'create'])->name('create');
-        Route::post('/', [contractcontroller::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [contractcontroller::class, 'edit'])->name('edit');
-        Route::put('/{id}', [contractcontroller::class, 'update'])->name('update');
-        Route::delete('/{id}', [contractcontroller::class, 'destroy'])->name('destroy');
-        Route::post('/bulk_delete', [contractcontroller::class, 'bulkDelete'])->name('bulkDelete');
-    });
+        Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')->group(function () {
+                Route::get('/', [contractcontroller::class, 'index'])->name('index');
+                Route::post('/fetch', [contractcontroller::class, 'fetchData'])->name('fetch');
+                Route::get('/create', [contractcontroller::class, 'create'])->name('create');
+                Route::post('/', [contractcontroller::class, 'store'])->name('store');
+                Route::get('/{id}/edit', [contractcontroller::class, 'edit'])->name('edit');
+                Route::put('/{id}', [contractcontroller::class, 'update'])->name('update');
+                Route::delete('/{id}', [contractcontroller::class, 'destroy'])->name('destroy');
+                Route::post('/bulk_delete', [contractcontroller::class, 'bulkDelete'])->name('bulkDelete');
+        });
+    Route::get('/vehiclecontracts', [contractcontroller::class, 'index'])->name('vehiclecontracts.index');
     
+    Route::put('vehiclecontracts/{contract}', [contractcontroller::class, 'update'])->name('vehiclecontracts.update');
 
     Route::get('vehiclecontracts/create', [contractcontroller::class, 'create'])->name('vehiclecontracts.create');
     Route::resource('vehiclecontracts', contractcontroller::class);
 
         Route::resource('vehiclecontracts', contractcontroller::class);
+
+
+/////////////////////////////////////////////// END vehiclecontracts /////////////////////
 
 
 
@@ -95,45 +98,6 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
         // Route::post('vehicle-model-fetch', 'VehicleModelController@fetch_data');
         // Route::resource('vehicle-model', 'VehicleModelController');
         // Route::post('delete-vehicle-model', 'VehicleModelController@bulk_delete');
-
-
-        ////////////////// VEHICLE CONTRACT /////////////////////////
-
-        
-        
-
-
-////////////////////////////////
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        ////////////////// END VEHICLE CONTRACT /////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
 
         Route::get('firebase', 'FirebaseController@index');
 
@@ -181,6 +145,9 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
         //     return view('geocode');
         // });
         Route::post('clear-database', 'SettingsController@clear_database');
+
+
+        
         Route::post('cancel-booking', 'BookingsController@cancel_booking');
         Route::resource('team', 'TeamController');
         Route::resource('company-services', 'CompanyServicesController');
@@ -313,6 +280,22 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
         Route::get("/vehicles/enable/{id}", 'VehiclesController@enable');
         Route::get("/vehicles/disable/{id}", 'VehiclesController@disable');
         Route::post('/bookings-fetch', 'BookingsController@fetch_data');
+
+                   ///////////////////////////////////////////////
+
+        
+        Route::get('/shiftTime', 'BookingsController@shiftdate');
+
+
+        
+
+        Route::post('bookings/ajaxdata', [BookingsController::class, 'ajaxData']);
+        Route::post('bookings/bulk-delete', [BookingsController::class, 'bulkDelete'])->name('bookings.bulk_delete');
+      
+
+                   ///////////////////////////////////////////
+
+
         Route::post('/driver-bookings-fetch', 'DriversController@fetch_bookings_data');
         Route::resource('/bookings', 'BookingsController');
         Route::post('/prev-address', 'BookingsController@prev_address');
@@ -433,6 +416,67 @@ Route::prefix('vehiclecontracts')->name('vehiclecontracts.')->middleware('auth')
 
         Route::resource('/cancel-reason', 'ReasonController');
         Route::post('delete-fuel', 'FuelController@bulk_delete')->middleware('IsInstalled');
+
+
+
+
+                              //////////////////////////////    Contract   //////////////
+
+        Route::view('/cat', 'contract-view.index')->name('contract-view.index');//app.blade to index page
+
+        
+        // Route to store the newly created vehicle contract
+        Route::post('/contracts/store', [ContractAdd::class, 'store'])->name('contract-route.store');  //create page to databnbbae 
+
+Route::middleware(['auth'])->group(function () {
+        Route::post('/contracts/fetch', [ContractAdd::class, 'fetchData'])->name('contracts.fetch');
+    });
+        
+        
+        Route::middleware('auth')->group(function () {
+                Route::get('/contract/create', [ContractAdd::class, 'create'])->name('contract-view.create');// index Add button  to controller create  
+            });
+
+            Route::get('/vehiclecontracts/{id}/edit', [ContractAdd::class, 'edit'])->name('contracts_route.edit');
+            Route::put('/vehiclecontracts/{id}', [ContractAdd::class, 'update'])->name('contract-route.update');
+        //     Route::get('/vehiclecontracts/{id}/edit', [ContractAdd::class, 'edit'])->name('contracts_route.edit');
+
+
+
+Route::middleware(['auth'])->group(function () {
+//     Route::get('/admin/vehiclecontracts', [ContractAdd::class, 'index'])->name('contracts.index');
+//     Route::post('/admin/vehiclecontracts/fetch', [ContractAdd::class, 'fetchData'])->name('contracts.fetch');
+//     Route::get('/admin/vehiclecontracts/create', [ContractAdd::class, 'create'])->name('contract-view.create');
+//     Route::post('/admin/vehiclecontracts/store', [ContractAdd::class, 'store'])->name('contracts.store');
+//     Route::get('/admin/vehiclecontracts/{id}/edit', [ContractAdd::class, 'edit'])->name('contracts.edit');
+//     Route::put('/admin/vehiclecontracts/{id}', [ContractAdd::class, 'update'])->name('contracts.update');
+//     Route::delete('/admin/vehiclecontracts/{id}', [ContractAdd::class, 'destroy'])->name('contracts.destroy');
+    Route::post('/admin/vehiclecontracts/bulk-delete', [ContractAdd::class, 'bulkDelete'])->name('contracts.bulkDelete');
+
+//     Route::get('/contracts/{id}', [ContractAdd::class, 'showView'])->name('contracts.show');
+    Route::get('/contracts/{id}', [ContractAdd::class, 'showView'])->name('contracts.show');
+    Route::get('/contracts/view/{id}', [ContractAdd::class, 'viewButton'])->name('contracts.view');
+
+
+
+
+});
+
+// Route::delete('/admin/contract/{id}', [ContractAdd::class, 'destroy'])->name('contracts_route.delete');
+Route::delete('/contracts/{id}', [ContractAdd::class, 'destroy'])->name('contracts_route.delete');
+
+
+
+
+
+
+
+
+
+
+
+
+
     });
 
 });

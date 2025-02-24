@@ -10,10 +10,12 @@
     height: 20px;
   }
 </style>
+
 @endsection
 @section("breadcrumb")
 <li class="breadcrumb-item active">@lang('menu.bookings')</li>
 @endsection
+
 @section('content')
 @if (count($errors) > 0)
   <div class="alert alert-danger">
@@ -31,29 +33,37 @@
       <div class="card-header with-border">
         <h3 class="card-title"> @lang('fleet.manage_bookings') &nbsp;
           @can('Bookings add')<a href="{{route('bookings.create')}}" class="btn btn-success"
-            title="@lang('fleet.new_booking')"><i class="fa fa-plus"></i></a>@endcan
+          title="@lang('fleet.new_booking')"><i class="fa fa-plus"></i></a>@endcan
         </h3>
       </div>
-
+      
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-responsive display" id="ajax_data_table" style="padding-bottom: 35px; width: 100%">
             <thead class="thead-inverse">
               <tr>
+
+                          <div style="margin-bottom: 10px;">
+                <label for="dateFilter">Select Date: </label>
+                <input type="date" id="dateFilter" class="form-control" style="width: 100px; display: inline-block;">
+                <button id="resetFilter" class="btn btn-secondary">Reset</button>
+            </div>
+
+
                 <th>
                   <input type="checkbox" id="chk_all">
                 </th>
-                <th style="width: 10% !important">@lang('fleet.customer')</th>
-                <th style="width: 10% !important">@lang('fleet.vehicle')</th>
-                <th style="width: 10% !important">@lang('fleet.pickup_addr')</th>
-                <th style="width: 10% !important">@lang('fleet.dropoff_addr')</th>
-                <th style="width: 10% !important">@lang('fleet.pickup')</th>
-                <th style="width: 10% !important">@lang('fleet.dropoff')</th>
-                <th style="width: 10% !important">@lang('fleet.Passengers')</th>
-                <th style="width: 10% !important">@lang('fleet.payment_status')</th>
+                <th style="width: 100px !important">@lang('Shift Time') </th>
+                <th style="width: 8% !important">@lang('fleet.vehicle')</th>
+                <th style="width: 8% !important">@lang('fleet.pickup_addr')</th>
+                <th style="width: 8% !important">@lang('fleet.dropoff_addr')</th>
+                <th style="width: 8% !important">@lang('fleet.pickup')</th>
+                <th style="width: 8% !important">@lang('fleet.dropoff')</th>
+                <th style="width: 8% !important">@lang('fleet.Passengers')</th>
+                <th style="width: 8% !important">@lang('fleet.payment_status')</th>
                 <th>@lang('fleet.booking_status')</th>
-                <th style="width: 10% !important">@lang('fleet.amount')</th>
-                <th style="width: 10% !important">@lang('fleet.action')</th>
+                <th style="width: 8% !important">@lang('fleet.amount')</th>
+                <th style="width: 8% !important">@lang('fleet.action')</th>
               </tr>
             </thead>
             <tbody>
@@ -360,13 +370,7 @@
 </script>
 <script type="text/javascript">
   $(document).on("click", ".open-AddBookDialog", function () {
-    // alert($(this).data('base_km_1'));
-    // window.open("route('bookings.index')/?type="+$(this).data('vehicle-type'));
 
-    // const query = new URLSearchParams(window.location.search);
-    // query.append("type", "true");
-
-    // window.location.search = 'type='+$(".fleet #type").val( type );
 
      var booking_id = $(this).data('booking-id');
 
@@ -527,67 +531,112 @@
     
   });
 
-  $(function(){
-    
+
+// Append Date Selector Button
+$(function() {
+    // Append Date Selector Button only once to the table wrapper
+    $('#ajax_data_table_wrapper').prepend(`
+        <div style="margin-bottom: 10px;">
+            <label for="dateFilter">Select Date: </label>
+            <input type="date" id="dateFilter" class="form-control" style="width: 200px; display: inline-block;">
+            <button id="resetFilter" class="btn btn-secondary">Reset</button>
+        </div>
+    `);
+
+    // Initialize the DataTable
     var table = $('#ajax_data_table').DataTable({
-      dom: 'Bfrtip',
-      buttons: [
-          {
-        extend: 'print',
-        text: '<i class="fa fa-print"></i> {{__("fleet.print")}}',
-
-        exportOptions: {
-           columns: ([1,2,3,4,5,6,7,8,9,10]),
-        },
-        customize: function ( win ) {
-                $(win.document.body)
-                    .css( 'font-size', '10pt' )
-                    .prepend(
-                        '<h3>{{__("fleet.bookings")}}</h3>'
-                    );
-                $(win.document.body).find( 'table' )
-                    .addClass( 'table-bordered' );
-                // $(win.document.body).find( 'td' ).css( 'font-size', '10pt' );
-
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'print',
+                text: '<i class="fa fa-print"></i> {{__("fleet.print")}}',
+                exportOptions: {
+                    columns: ([1,2,3,4,5,6,7,8,9,10]),
+                },
+                customize: function(win) {
+                    $(win.document.body)
+                        .css('font-size', '10pt')
+                        .prepend('<h3>{{__("fleet.bookings")}}</h3>');
+                    $(win.document.body).find('table').addClass('table-bordered');
+                }
             }
-          }
-    ],
-          "language": {
-              "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
-          },
-          processing: true,
-          serverSide: true,
-          ajax: {
+        ],
+        language: {
+            url: '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
+        },
+        processing: true,
+        serverSide: true,
+        ajax: {
             url: "{{ url('admin/bookings-fetch') }}",
             type: 'POST',
-            data:{}
-          },
-          columns: [
-            {data: 'check',   name: 'check', searchable:false, orderable:false},
-            {data: 'customer',   name: 'customer.name'},
-            {data: 'vehicle', name: 'vehicle'},
-            {data: 'pickup_addr',    name: 'pickup_addr'},
-            {data: 'dest_addr',    name: 'dest_addr'},
-            {name: 'pickup',data: {_: 'pickup.display',sort: 'pickup.timestamp'}},
-            {name: 'dropoff',data: {_: 'dropoff.display',sort: 'dropoff.timestamp'}},
-            {data: 'travellers',  name: 'travellers'},
-            {data: 'payment',  name: 'payment'},
-            {data: 'ride_status',  name: 'ride_status'},
-            {data: 'tax_total',  name: 'tax_total',orderable: false},
-            {data: 'action',  name: 'action', searchable:false, orderable:false}
+            data: function(d) {
+                d.selected_date = $('#dateFilter').val(); // Send selected date in AJAX request
+                console.log("Selected Date:", d.selected_date); // Debug log
+            }
+        },
+        columns: [
+            { data: 'check', name: 'check', searchable: false, orderable: false },
+            // { name: 'pickup', data: { _: 'pickup.display', sort: 'pickup.timestamp' } },
+
+////////////////////////////////////////////////////////////////
+
+          // { name: 'pickup', data: { _: 'pickup.display', sort: 'pickup.timestamp' },  render: function(data, type, row) {
+          //    return `<a href="{{ url('admin/shiftTime') }}/${row.id}" title="View Team">${data}</a>`;
+          //        }},
+
+
+          { name: 'pickup', data: { _: 'pickup.display', sort: 'pickup.timestamp' },  render: function(data, type, row) {
+             return `<a href="{{ url('admin/shiftTime') }}" title="View Team">${data}</a>`;
+                 }},
+
+
+////////////////////////////////////////////////////////////////
+            { data: 'customer', name: 'customer.name' },
+            { data: 'pickup_addr', name: 'pickup_addr' },
+            { data: 'vehicle', name: 'vehicle' },
+            { data: 'dest_addr', name: 'dest_addr' },
+            { name: 'dropoff', data: { _: 'dropoff.display', sort: 'dropoff.timestamp' } },
+            { data: 'travellers', name: 'travellers' },
+            { data: 'payment', name: 'payment' },
+            { data: 'ride_status', name: 'ride_status' },
+            { data: 'tax_total', name: 'tax_total', orderable: false },
+            { data: 'action', name: 'action', searchable: false, orderable: false }
         ],
         order: [[1, 'desc']],
-        "initComplete": function() {
-              table.columns().every(function () {
+        initComplete: function() {
+            table.columns().every(function() {
                 var that = this;
-                $('input', this.footer()).on('keyup change', function () {
-                  // console.log($(this).parent().index());
+                $('input', this.footer()).on('keyup change', function() {
                     that.search(this.value).draw();
                 });
-              });
-            }
+            });
+        }
     });
-  });
+
+    // Reload table when the date is selected or reset button is clicked
+    $('#dateFilter').on('change', function() {
+        table.ajax.reload();  // Reload DataTable with the selected date
+    });
+
+    $('#resetFilter').on('click', function() {
+        $('#dateFilter').val('');  // Clear the selected date
+        table.ajax.reload();  // Reload DataTable without any date filter
+    });
+});
+
+// Event Listener for Date Filter
+$('#dateFilter').on('change', function() {
+    table.ajax.reload(); // Reload DataTable on date change
+});
+
+// Reset Filter Button
+$('#resetFilter').on('click', function() {
+    $('#dateFilter').val(''); // Clear date input
+    table.ajax.reload(); // Reload DataTable
+});
+
+
+
 
   $('#bulk_delete').on('click',function(){
     // console.log($( "input[name='ids[]']:checked" ).length);

@@ -130,9 +130,18 @@ private function generateTimeSlots() {
 		return view("bookings.index", $data);
 	}
 
+
+
+	
+
 	public function fetch_data(Request $request) {
 		if ($request->ajax()) {
-			$date_format_setting = (Hyvikk::get('date_format'))?Hyvikk::get('date_format'): 'd-m-Y';
+			$date_format_setting = Hyvikk::get('date_format') ?: 'd-m-Y';
+	
+			// Get the selected date from the request
+			$selected_date = $request->input('selected_date');
+	
+			// Query the bookings based on the user type
 			if (Auth::user()->user_type == "C") {
 				$bookings = Bookings::where('customer_id', Auth::id())->latest();
 			} elseif (Auth::user()->group_id == null || Auth::user()->user_type == "S") {
@@ -141,16 +150,24 @@ private function generateTimeSlots() {
 				$vehicle_ids = VehicleModel::where('group_id', Auth::user()->group_id)->pluck('id')->toArray();
 				$bookings = Bookings::whereIn('vehicle_id', $vehicle_ids)->latest();
 			}
+	
+			// Apply the date filter if a date is selected
+			if (!empty($selected_date)) {
+				// Ensure the date is in the correct format
+				$parsedDate = Carbon::parse($selected_date)->toDateString();  // Format: YYYY-MM-DD
+				$bookings->whereDate('pickup', '=', $parsedDate);
+			}
+	
 			$bookings->select('bookings.*')
 				->leftJoin('vehicles', 'bookings.vehicle_id', '=', 'vehicles.id')
-
 				->leftJoin('bookings_meta', function ($join) {
 					$join->on('bookings_meta.booking_id', '=', 'bookings.id')
 						->where('bookings_meta.key', '=', 'vehicle_typeid');
 				})
 				->leftJoin('vehicle_types', 'bookings_meta.value', '=', 'vehicle_types.id')
 				->with(['customer', 'metas']);
-
+	
+			// Return DataTables response
 			return DataTables::eloquent($bookings)
 				->addColumn('check', function ($user) {
 					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
@@ -168,39 +185,34 @@ private function generateTimeSlots() {
 					return str_replace(",", "<br/>", $row->pickup_addr);
 				})
 				->editColumn('dest_addr', function ($row) {
-					// dd($row->dest_addr);
 					return str_replace(",", "<br/>", $row->dest_addr);
 				})
 				->editColumn('pickup', function ($row) use ($date_format_setting) {
-					$pickup = '';
-					$pickup = [
-						'display' => '',
-						'timestamp' => '',
-					];
 					if (!is_null($row->pickup)) {
-						$pickup = date($date_format_setting . ' h:i A', strtotime($row->pickup));
 						return [
 							'display' => date($date_format_setting . ' h:i A', strtotime($row->pickup)),
-							'timestamp' => Carbon::parse($row->pickup),
+							'timestamp' => strtotime($row->pickup), // Use a numeric timestamp for proper sorting
 						];
 					}
-					return $pickup;
-				})
-				->editColumn('dropoff', function ($row) use ($date_format_setting) {
-					$dropoff = [
+					return [
 						'display' => '',
 						'timestamp' => '',
 					];
+				})
+				
+				->editColumn('dropoff', function ($row) use ($date_format_setting) {
 					if (!is_null($row->dropoff)) {
-						$dropoff = date($date_format_setting . ' h:i A', strtotime($row->dropoff));
 						return [
 							'display' => date($date_format_setting . ' h:i A', strtotime($row->dropoff)),
-							'timestamp' => Carbon::parse($row->dropoff),
+							'timestamp' => strtotime($row->dropoff),
 						];
 					}
-					return $dropoff;
+					return [
+						'display' => '',
+						'timestamp' => '',
+					];
 				})
-
+				
 				->editColumn('payment', function ($row) {
 					if ($row->payment == 1) {
 						return '<span class="text-success"> ' . __('fleet.paid1') . ' </span>';
@@ -209,7 +221,7 @@ private function generateTimeSlots() {
 					}
 				})
 				->editColumn('tax_total', function ($row) {
-					return ($row->tax_total)?Hyvikk::get('currency') . " " . $row->tax_total: "";
+					return ($row->tax_total) ? Hyvikk::get('currency') . " " . $row->tax_total : "";
 				})
 				->addColumn('vehicle', function ($row) {
 					$vehicle_type = VehicleTypeModel::find($row->getMeta('vehicle_typeid'));
@@ -239,7 +251,6 @@ private function generateTimeSlots() {
 				})
 				->filterColumn('payment', function ($query, $keyword) {
 					$query->whereRaw("IF(payment = 1 , '" . __('fleet.paid1') . "', '" . __('fleet.pending') . "') like ? ", ["%{$keyword}%"]);
-
 				})
 				->filterColumn('pickup', function ($query, $keyword) {
 					$query->whereRaw("DATE_FORMAT(pickup,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
@@ -248,12 +259,10 @@ private function generateTimeSlots() {
 					$query->whereRaw("DATE_FORMAT(dropoff,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
 				})
 				->filterColumn('travellers', function ($query, $keyword) {
-					$query->where("travellers",'LIKE','%'.$keyword.'%');
+					$query->where("travellers", 'LIKE', '%' . $keyword . '%');
 				})
 				->rawColumns(['payment', 'action', 'check', 'pickup_addr', 'dest_addr'])
 				->make(true);
-			//return datatables(User::all())->toJson();
-
 		}
 	}
 
@@ -1080,4 +1089,53 @@ private function generateTimeSlots() {
 		}
 		return back()->with(['msg' => 'Booking cancelled successfully!']);
 	}
-}
+
+
+	//////////////////////////////
+	public function ajaxData(Request $request)
+	{
+		Log::info('Received AJAX Request', ['selected_date' => $request->selected_date]);
+	
+		// Retrieve bookings with related user data
+		$query = Bookings::with(['user', 'vehicle', 'driver', 'customer'])->select('bookings.*');
+	
+		// Apply date filter if selected_date is provided
+		if (!empty($request->selected_date)) {
+			$query->whereDate('pickup', $request->selected_date);
+		}
+	
+		return DataTables::of($query)
+			->addColumn('checkbox', function ($booking) {
+				return '<input type="checkbox" class="checkbox" value="' . $booking->id . '">';
+			})
+			->addColumn('user_id', function ($booking) {
+				return $booking->user ? $booking->user->id : '-';
+			})
+			->addColumn('name', function ($booking) {
+				return $booking->user ? $booking->user->name : '-';
+			})
+			->addColumn('phone', function ($booking) {
+				return $booking->user ? $booking->user->phone : '-';
+			})
+			->addColumn('gender', function ($booking) {
+				return $booking->user ? $booking->user->gender : '-';
+			})
+			->addColumn('actual_office', function ($booking) {
+				return $booking->user ? $booking->user->address : '-';
+			})
+			->editColumn('pickup_location', function ($booking) {
+				return $booking->pickup_addr ?? '-';
+			})
+			->editColumn('drop_location', function ($booking) {
+				return $booking->dest_addr ?? '-';
+			})
+			->rawColumns(['checkbox'])
+			->make(true);
+	}
+	
+
+	function shiftdate(){
+		// die("helelo");
+		return view("bookings.shift");
+		}
+	}
