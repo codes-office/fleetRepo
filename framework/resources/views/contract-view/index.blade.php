@@ -114,43 +114,6 @@ $(document).ready(function () {
         $('#bulk_delete').prop('disabled', $('.checkbox:checked').length === 0);
     }
 
-    // Handle Single Delete
-    // $(document).on('click', '.delete-contract', function () {
-    //     var id = $(this).data('id');
-
-    //     Swal.fire({
-    //         title: 'Are you sure?',
-    //         text: "This contract will be permanently deleted!",
-    //         icon: 'warning',
-    //         showCancelButton: true,
-    //         confirmButtonColor: '#d33',
-    //         cancelButtonColor: '#3085d6',
-    //         confirmButtonText: 'Yes, Delete it!'
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             $.ajax({
-    //                 url: "{{ url('/admin/vehiclecontracts') }}/" + id,
-    //                 type: 'DELETE',
-    //                 data: {
-    //                     _token: '{{ csrf_token() }}'
-    //                 },
-    //                 success: function (response) {
-    //                     if (response.success) {
-    //                         table.ajax.reload();
-    //                         showToast('success', response.message);
-    //                     } else {
-    //                         showToast('error', response.message);
-    //                     }
-    //                 },
-    //                 error: function () {
-    //                     showToast('error', 'An error occurred while deleting the contract.');
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
-
-
     /////////////////////  View Button //////////////////////
     $(document).on('click', '.view-contract', function () {
     let contractId = $(this).data('id'); // Get contract ID from button
@@ -204,42 +167,7 @@ $(document).ready(function () {
     });
 });
 
-    ////////
-   // Handle delete button click
-//    $(document).on('click', '.delete-contract', function() {
-//     var id = $(this).data('id');
-    
-//     Swal.fire({
-//         title: 'Are you sure?',
-//         text: "You won't be able to revert this!",
-//         icon: 'warning',
-//         showCancelButton: true,
-//         confirmButtonColor: '#3085d6',
-//         cancelButtonColor: '#d33',
-//         confirmButtonText: 'Yes, delete it!'
-//     }).then((result) => {
-//         if (result.isConfirmed) {
-//             $.ajax({
-//                 url: '/admin/contract/' + id,  // Adjust this URL based on your routes
-//                 type: 'DELETE',
-//                 data: {
-//                     _token: '{{ csrf_token() }}'
-//                 },
-//                 success: function(response) {
-//                     if (response.success) {
-//                         table.ajax.reload();
-//                         showToast('success', response.message);
-//                     } else {
-//                         showToast('error', response.message);
-//                     }
-//                 },
-//                 error: function() {
-//                     showToast('error', 'An error occurred while deleting the contract.');
-//                 }
-//             });
-//         }
-//     });
-// });
+ 
 
 $(document).on('click', '.delete-contract', function () {
     let contractId = $(this).data('id'); // This should have the route URL
@@ -260,18 +188,6 @@ $(document).on('click', '.delete-contract', function () {
         });
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
     
     // Handle Bulk Delete
     $('#bulk_delete').on('click', function () {
