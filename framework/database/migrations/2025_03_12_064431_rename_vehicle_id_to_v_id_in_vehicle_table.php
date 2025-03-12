@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up() {
+        //thi nis to chnage
         Schema::table('vehicle', function (Blueprint $table) {
             $table->renameColumn('vehicle_id', 'v_id');
         });
