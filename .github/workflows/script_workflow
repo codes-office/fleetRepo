@@ -1,0 +1,32 @@
+name: Run Script on Hostinger  
+
+on:
+  push:
+    branches:
+      - main  # Runs on every push/commit to main
+
+jobs:
+  run_script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Run Script on Hostinger Server
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.HOSTINGER_IP }}
+        username: ${{ secrets.HOSTINGER_SSH_USER }}
+        password: ${{ secrets.HOSTINGER_SSH_PASS }}
+        port: ${{ secrets.HOSTINGER_PORT }}
+        script: |
+          echo "✅ Connected to Hostinger Server"
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet  # Change to your Laravel root folder
+          
+          echo "📂 Listing files in fleet directory:"
+          ls -lah  # List all files and folders with details
+
+          echo "🔍 Checking if artisan exists:"
+          if [ -f "artisan" ]; then
+            echo "✅ Artisan file found!"
+          else
+            echo "❌ Artisan file missing!"
+          fi
