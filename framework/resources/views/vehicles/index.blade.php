@@ -31,17 +31,18 @@
 @section('breadcrumb')
     <li class="breadcrumb-item active">@lang('fleet.vehicles')</li>
 @endsection
-
 @section('content')
     <div class="row">
         <div class="col-md-12">
             <div class="card card-info">
                 <div class="card-header">
-                    <h3 class="card-title">@lang('fleet.manageVehicles') &nbsp; @can('Vehicles add')
-                            <a href="{{ route('vehicles.create') }}" class="btn btn-success" title="@lang('fleet.addNew')"><i
-                                    class="fa fa-plus"></i></a>
+                    <h3 class="card-title">
+                        @lang('fleet.manageVehicles') 
+                        @can('Vehicles add')
+                            <a href="{{ route('vehicles.create') }}" class="btn btn-success" title="@lang('fleet.addNew')">
+                                <i class="fa fa-plus"></i>
+                            </a>
                         @endcan
-                        {{-- @can('Vehicles import')<button data-toggle="modal" data-target="#import" class="btn btn-warning">@lang('fleet.import')</button>@endcan --}}
                     </h3>
                 </div>
 
@@ -53,15 +54,13 @@
                                     <input type="checkbox" id="chk_all">
                                 </th>
                                 <th>#</th>
-                                <th>@lang('fleet.vehicleImage')</th>
-                                <th>@lang('fleet.make')</th>
-                                <th>@lang('fleet.model')</th>
-                                <th>@lang('fleet.type')</th>
-                                <th>@lang('fleet.color')</th>
+                                <th>@lang('fleet.vehicleId')</th>
                                 <th>@lang('fleet.licensePlate')</th>
-                                <th>@lang('fleet.group')</th>
-                                <th>@lang('fleet.service')</th>
-                                {{-- <th>@lang('fleet.assigned_driver')</th> --}}
+                                <th>@lang('fleet.contractType')</th>
+                                <th>@lang('fleet.vendor')</th>
+                                <th>@lang('fleet.assigned_driver')</th>
+                                <th>@lang('fleet.deviceIMEI')</th>
+                                <th>@lang('fleet.lastContact')</th>
                                 <th>@lang('fleet.action')</th>
                             </tr>
                         </thead>
@@ -70,23 +69,21 @@
                         <tfoot>
                             <tr>
                                 <th>
-
                                     @can('Vehicles delete')
                                         <button class="btn btn-danger" id="bulk_delete" data-toggle="modal"
-                                            data-target="#bulkModal" disabled title="@lang('fleet.delete')"><i
-                                                class="fa fa-trash"></i></button>
+                                            data-target="#bulkModal" disabled title="@lang('fleet.delete')">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
                                     @endcan
                                 </th>
                                 <th>#</th>
-                                <th>@lang('fleet.vehicleImage')</th>
-                                <th>@lang('fleet.make')</th>
-                                <th>@lang('fleet.model')</th>
-                                <th>@lang('fleet.type')</th>
-                                <th>@lang('fleet.color')</th>
+                                <th>@lang('fleet.vehicleId')</th>
                                 <th>@lang('fleet.licensePlate')</th>
-                                <th>@lang('fleet.group')</th>
-                                <th>@lang('fleet.service')</th>
-                                {{-- <th>@lang('fleet.assigned_driver')</th> --}}
+                                <th>@lang('fleet.contractType')</th>
+                                <th>@lang('fleet.vendor')</th>
+                                <th>@lang('fleet.assigned_driver')</th>
+                                <th>@lang('fleet.deviceIMEI')</th>
+                                <th>@lang('fleet.lastContact')</th>
                                 <th>@lang('fleet.action')</th>
                             </tr>
                         </tfoot>
@@ -94,6 +91,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Modal -->
@@ -229,7 +227,7 @@
         //     });
         // });
         $(document).on('click', '.openBtn', function() {
-            var id = $(this).attr("data-id");
+            var id = $(this).attr("data-id");   
             $('#myModal2 .modal-body').html('<div id="loader">Loading data...</div>');
             $('#myModal2').modal({
                 show: true
@@ -268,7 +266,7 @@
                         name: 'check',
                         searchable: false,
                         orderable: false
-                    },
+                    }, 
                     {
                         data: 'id',
                         name: 'id'

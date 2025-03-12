@@ -33,7 +33,7 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
-                                {!! Form::label('customer_id', __('fleet.selectCustomer'), ['class' => 'form-label']) !!}
+                                {!! Form::label('customer_id', __('Employee ID'), ['class' => 'form-label']) !!}
                                 @if (Auth::user()->user_type != 'C')
                                     <a href="#" data-toggle="modal" data-target="#exampleModal">@lang('fleet.new_customer')</a>
                                 @endif
@@ -240,24 +240,8 @@
 
 <script>
 
-$(document).ready(function () {
-    // Initially hide the datepicker section
-    $('#datepickerSection').hide();
 
-    let selectedAction = ""; //  Define selectedAction in a wider scope
 
-    // When the 'action' dropdown changes
-    $('#actionDropdown').change(function () {
-        selectedAction = $(this).val(); //  Set value when dropdown changes
-        console.log("Selected Action: ", selectedAction);
-
-        // Hide the datepicker section by default
-        $('#datepickerSection').hide();
-
-        // Show the datepicker section only if 'login' or 'logout' is selected
-        if (selectedAction === 'login' || selectedAction === 'logout') {
-            $('#datepickerSection').show();
-        }
     });
 
     // Ensure MultiDatesPicker Plugin is Loaded

@@ -121,14 +121,23 @@
                     </select>
                 </div>
             </div>
-
-            <!-- Registration Number -->
+          <!-- registrartion number -->
             <div class="form-group">
-                {!! Form::label('registration_no', __('Registration Number'), ['class' => 'col-xs-5 control-label']) !!}
-                <div class="col-xs-7">
-                    {!! Form::text('registration_no', null, ['class' => 'form-control', 'required', 'placeholder' => 'EX: KA-01-AB-0123', 'id' => 'registration_no']) !!}
-                </div>
-            </div>
+    {!! Form::label('registration_no', __('Registration Number'), ['class' => 'col-xs-5 control-label']) !!}
+    <div class="col-xs-7">
+        {!! Form::text('registration_no', null, [
+            'class' => 'form-control',
+            'required',
+            'placeholder' => 'KA-12-EC-1123',
+            'id' => 'registration_no',
+            'maxlength' => '13'
+        ]) !!}
+        <small id="reg_error" style="color: red; display: none;">Invalid Format! Use KA-12-EC-1123</small>
+    </div>
+</div>
+
+
+
 
             <!-- Status -->
             <div class="form-group">
@@ -165,7 +174,7 @@
                 </div>
             </div>
 
-            <!-- Vehicle ID (Read-Only) -->
+            <!-- Vehicle ID (Read-Only)
             <div class="form-group">
                 {!! Form::label('vehicle_id', __('Vehicle ID'), ['class' => 'col-xs-5 control-label']) !!}
                 <div class="col-xs-7">
@@ -174,7 +183,24 @@
             </div>
         </div>
     </div>
+</div> -->
+
+
+<!-- Vehicle ID (Manually Typed) -->
+<div class="form-group">
+    {!! Form::label('vehicle_id', __('Vehicle ID'), ['class' => 'col-xs-5 control-label']) !!}
+    <div class="col-xs-7">
+        {!! Form::text('vehicle_id', null, [
+            'class' => 'form-control', 
+            'placeholder' => 'Enter Vehicle ID', 
+            'id' => 'vehicle_id',
+            'required' // Optional: Add if you want it to be mandatory
+        ]) !!}
+    </div>
 </div>
+</div>
+    </div>
+    </div>
 
     <!-- </div> -->
 
@@ -237,7 +263,41 @@
         </div>
       </div>
 
+
+
       <div class="form-group">
+  {!! Form::label('send_audit_sms', __('Send Audit SMS'), ['class' => 'col-xs-5 control-label']) !!}
+  <div class="col-xs-6">
+    <label>
+      <input type="radio" name="send_audit_sms" value="Driver" 
+        {{ old('send_audit_sms') == 'Driver' ? 'checked' : '' }} 
+        onclick="toggleOtherInput(false)"> 
+      Driver
+    </label>
+    <label class="ml-3">
+      <input type="radio" name="send_audit_sms" value="Other" 
+        {{ old('send_audit_sms') == 'Other' ? 'checked' : '' }} 
+        onclick="toggleOtherInput(true)">
+      To Other
+    </label>
+    
+    <!-- Input field for "Other" option -->
+    <input type="text" name="send_audit_sms_other" id="sendAuditSmsOther" 
+      class="form-control mt-2"
+      placeholder="Enter other recipient"
+      value="{{ old('send_audit_sms_other') }}" 
+      style="display: {{ old('send_audit_sms') == 'Other' ? 'block' : 'none' }};">
+  </div>
+</div>
+
+<script>
+  function toggleOtherInput(show) {
+    document.getElementById('sendAuditSmsOther').style.display = show ? 'block' : 'none';
+  }
+</script>
+
+
+      <!-- <div class="form-group">
   {!! Form::label('send_audit_sms', __('Send Audit SMS'), ['class' => 'col-xs-5 control-label']) !!}
   <div class="col-xs-6">
     <label>
@@ -247,7 +307,7 @@
       <input type="radio" name="send_audit_sms" value="Other"> To Other
     </label>
   </div>
-</div>
+</div> -->
 
     </div>
     </div>
@@ -341,12 +401,44 @@
         $('#inactive_reason_div').hide();
       }
     });
-    $('#driver_id').change(function() {
-        let selectedDriver = $(this).val(); // Get selected driver ID
-        if (selectedDriver) {
-            $('input[name="send_audit_sms"][value="Driver"]').prop('checked', true);
+
+    
+    // $('#driver_id').change(function() {
+    //     let selectedDriver = $(this).val(); // Get selected driver ID
+    //     if (selectedDriver) {
+    //         $('input[name="send_audit_sms"][value="Driver"]').prop('checked', true);
+    //     }
+    // });
+
+    //for inserting registration number in Registrartion number field
+    $(document).ready(function () {
+    $('#registration_no').on('input', function () {
+        let value = $(this).val().toUpperCase(); // Convert to uppercase
+        let cleanedValue = value.replace(/[^A-Z0-9-]/gi, ''); // Allow only letters, numbers, and dashes
+
+        // Auto-formatting the registration number
+        let formatted = cleanedValue.replace(/^([A-Z]{2})(\d{2})([A-Z]{0,2})(\d{0,4})$/, function (match, p1, p2, p3, p4) {
+            return p1 + '-' + p2 + (p3 ? '-' + p3 : '') + (p4 ? '-' + p4 : '');
+        });
+
+        $(this).val(formatted.substring(0, 13)); // Restrict max length to 13
+    });
+
+    $('#registration_no').on('blur', function () {
+        let value = $(this).val();
+        let regex = /^[A-Z]{2}-\d{2}-[A-Z]{2}-\d{4}$/; // Correct format KA-12-EC-1123
+
+        if (!regex.test(value)) {
+            $('#reg_error').show();
+            $(this).css('border', '2px solid red');
+        } else {
+            $('#reg_error').hide();
+            $(this).css('border', '');
         }
     });
+});
+
+
     $(document).ready(function() {
         $('#vendor_id, #registration_no').on('change keyup', function() {
             generateVehicleID();
@@ -357,9 +449,8 @@
             let registrationNo = $('#registration_no').val();
 
             if (vendorName && registrationNo.length >= 4) {
-                let vendorPrefix = vendorName.split(' ')[0].toUpperCase(); // First word of Vendor Name
                 let regSuffix = registrationNo.slice(-4); // Last 4 digits of Registration No
-                let vehicleID = vendorPrefix + '-' + regSuffix;
+                let vehicleID = regSuffix;
 
                 $('#vehicle_id').val(vehicleID);
             } else {
