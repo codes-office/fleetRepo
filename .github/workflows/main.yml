@@ -24,7 +24,7 @@ jobs:
         password: ${{ secrets.HOSTINGER_SSH_PASS }}
         port: ${{ secrets.HOSTINGER_PORT }}
         source: "."  # Upload everything in the repo
-        target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet"
+        target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framerwork"
         rm: true  # Delete old files before upload
         overwrite: true  # Overwrite existing files
 
