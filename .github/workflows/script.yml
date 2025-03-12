@@ -24,8 +24,8 @@ jobs:
           echo "📌 Current Directory:"
           pwd
 
-          # Change to Laravel project folder
-          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework
+          # Change to Laravel root folder
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet
           
           # Print the new working directory
           echo "📌 Now in Directory:"
@@ -35,10 +35,48 @@ jobs:
           echo "📂 Listing files in fleet directory:"
           ls -lah  
 
+          # Check if 'framework' folder exists
+          if [ -d "framework" ]; then
+            echo "✅ framework folder exists"
+            cd framework
+          else
+            echo "❌ framework folder missing!"
+            exit 1
+          fi
+
+          # Print the working directory inside framework
+          echo "📌 Now in Framework Directory:"
+          pwd
+
+          # List all files inside framework
+          echo "📂 Listing files in framework directory:"
+          ls -lah
+
           # Check if artisan exists
           echo "🔍 Checking if artisan exists:"
           if [ -f "artisan" ]; then
             echo "✅ Artisan file found!"
           else
             echo "❌ Artisan file missing!"
+            exit 1
           fi
+
+          # Run Laravel Commands and Log Output
+          echo "🚀 Running Laravel Migrations & Clearing Cache"
+
+          echo "🔄 Running: php artisan migrate --force"
+          php artisan migrate --force
+
+          echo "🧹 Running: php artisan cache:clear"
+          php artisan cache:clear
+
+          echo "⚙️ Running: php artisan config:clear"
+          php artisan config:clear
+
+          echo "🛠 Running: php artisan route:clear"
+          php artisan route:clear
+
+          echo "🎨 Running: php artisan view:clear"
+          php artisan view:clear
+
+          echo "✅ All commands executed successfully!"
