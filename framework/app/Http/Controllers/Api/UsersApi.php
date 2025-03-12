@@ -8,7 +8,7 @@ Fleet Manager v6.5
 Copyright (C) 2017-2023 Hyvikk Solutions <https://hyvikk.com/> All rights reserved.
 Design and developed by Hyvikk Solutions <https://hyvikk.com/>
 
- */
+*/
 
 namespace App\Http\Controllers\Api;
 
@@ -269,6 +269,51 @@ class UsersApi extends Controller {
 	}
 
 
+
+public function getActiveSlots(Request $request)
+{
+    // Step 1: Validate the input
+    Log::info('Starting getActiveSlots endpoint', ['request_data' => $request->all()]);
+    $validated = $request->validate([
+        'user_id' => 'required|exists:users,id', // Ensure the user_id exists in the users table
+    ]);
+
+    // Step 2: Fetch the user and determine the company ID
+    $userId = $validated['user_id'];
+    Log::info('Validated user ID', ['user_id' => $userId]);
+
+    $user = User::find($userId);
+    if (!$user) {
+        Log::error('User not found', ['user_id' => $userId]);
+        return response()->json(['error' => 'User not found'], 404);
+    }
+
+    $companyId = $user->assigned_admin; // Replace `assigned_admin_id` with the actual field name
+    Log::info('Fetched company ID for user', ['user_id' => $userId, 'company_id' => $companyId]);
+
+    // Step 3: Fetch and filter the timeslot data
+    $timeslots = Timeslot::where('active', 1)
+        ->where('company_id', $companyId) // Filter by company ID
+        ->whereIn('log', ['login', 'logout'])
+        ->get();
+
+    Log::info('Fetched timeslots', ['company_id' => $companyId, 'timeslots' => $timeslots->toArray()]);
+
+    // Step 4: Process the data
+    $response = [];
+    foreach ($timeslots as $slot) {
+        $company = $slot->company_id;
+        $slotData = [
+            'shift' => $slot->shift,
+            'log' => $slot->log,
+            'days_available' => json_decode($slot->days_available, true), // Decode days_available if JSON
+        ];
+
+        Log::info('Processing timeslot', ['slot' => $slotData]);
+
+        if (!isset($response[$company])) {
+            $response[$company] = [];
+
 	public function getActiveSlots()
     {
         // Fetch and filter the timeslot data
@@ -292,11 +337,18 @@ class UsersApi extends Controller {
             }
 
             $response[$company][] = $slotData;
+
         }
 
-        // Return the response as JSON
-        return response()->json($response, 200);
+        $response[$company][] = $slotData;
     }
+
+    Log::info('Final response prepared', ['response' => $response]);
+
+    // Step 5: Return the response as JSON
+    return response()->json($response, 200);
+}
+
 
 
 	public function map_api(Request $request) {

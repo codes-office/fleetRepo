@@ -1,26 +1,56 @@
-name: Deploy the gitmlt project  
+name: Deploy Laravel to Hostinger  
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed  # Triggers only when a pull request is merged
     branches:
-      - main  # Or your deployment branch
+      - main  # Deploys only when merged into main
 
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true  # Ensures it runs only when PR is merged
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Upload Files via FTP
-      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+    - name: Deploy Only Changed Files via SCP
+      uses: appleboy/scp-action@master
       with:
-        server: 194.238.21.119   # FTP Server (IP dress)
-        username: u123262960.mltcorporate.com  # FTP Username
-        password: Mlt@7072  # FTP Password
-        local-dir: ./  # Path to the files to upload (e.g., index.html in the root of your repo)
-        server-dir: /public_html/fleet/  # Path to the test subdomain folder on Hostinger
-        exclude: |
-          **/.github/**
-          **/.gitignore
+        host: ${{ secrets.HOSTINGER_IP }}
+        username: ${{ secrets.HOSTINGER_SSH_USER }}
+        password: ${{ secrets.HOSTINGER_SSH_PASS }}
+        port: ${{ secrets.HOSTINGER_PORT }}
+        source: "."  # Upload everything in the repo
+        target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet"
+        rm: true  # Delete old files before upload
+        overwrite: true  # Overwrite existing files
+
+    - name: Install Dependencies & Run Migrations
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.HOSTINGER_IP }}
+        username: ${{ secrets.HOSTINGER_SSH_USER }}
+        password: ${{ secrets.HOSTINGER_SSH_PASS }}
+        port: ${{ secrets.HOSTINGER_PORT }}
+        script: |
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet
+          
+          # Ensure Composer is installed
+          if [ ! -f "composer.phar" ]; then curl -sS https://getcomposer.org/installer | php; fi
+          
+          # Install only new dependencies
+          if [ ! -d "vendor" ]; then
+            php composer.phar install --no-dev --optimize-autoloader
+          else
+            php composer.phar update --no-dev --optimize-autoloader
+          fi
+
+          # Run migrations & clear cache
+          php artisan migrate --force
+          php artisan cache:clear
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
