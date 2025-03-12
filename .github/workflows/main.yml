@@ -5,11 +5,11 @@ on:
     types:
       - closed  # Triggers only when a pull request is merged
     branches:
-      - main  # Deploys only when merged into main
+      - main  # Runs only when merged into main
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true  # Ensures it runs only when PR is merged
+    if: github.event.pull_request.merged == true  # Runs only if a PR is merged into main
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +23,7 @@ jobs:
         username: ${{ secrets.HOSTINGER_SSH_USER }}
         password: ${{ secrets.HOSTINGER_SSH_PASS }}
         port: ${{ secrets.HOSTINGER_PORT }}
-        source: "."  # Upload all changed files
+        source: "."  # Upload only changed files
         target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/"
         overwrite: true  # Overwrite existing files
         rm: false  # Do NOT delete files like vendor/ or .env
@@ -36,11 +36,44 @@ jobs:
         password: ${{ secrets.HOSTINGER_SSH_PASS }}
         port: ${{ secrets.HOSTINGER_PORT }}
         script: |
-          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework
+          echo "✅ Connected to Hostinger Server"
 
-          # Run migrations & clear cache
+          # Change to the Laravel project directory
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework || exit 1
+          
+          # Print current directory
+          echo "📌 Current Directory:"
+          pwd
+
+          # List all files
+          echo "📂 Listing files in framework directory:"
+          ls -lah  
+
+          # Check if artisan exists
+          echo "🔍 Checking if artisan exists:"
+          if [ -f "artisan" ]; then
+            echo "✅ Artisan file found!"
+          else
+            echo "❌ Artisan file missing!"
+            exit 1
+          fi
+
+          # Run Laravel Commands and Log Output
+          echo "🚀 Running Laravel Migrations & Clearing Cache"
+
+          echo "🔄 Running: php artisan migrate --force"
           php artisan migrate --force
+
+          echo "🧹 Running: php artisan cache:clear"
           php artisan cache:clear
+
+          echo "⚙️ Running: php artisan config:clear"
           php artisan config:clear
+
+          echo "🛠 Running: php artisan route:clear"
           php artisan route:clear
+
+          echo "🎨 Running: php artisan view:clear"
           php artisan view:clear
+
+          echo "✅ Deployment & Artisan Commands Completed Successfully!"
