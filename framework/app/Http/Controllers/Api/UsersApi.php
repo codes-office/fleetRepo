@@ -313,6 +313,31 @@ public function getActiveSlots(Request $request)
 
         if (!isset($response[$company])) {
             $response[$company] = [];
+
+	public function getActiveSlots()
+    {
+        // Fetch and filter the timeslot data
+        $timeslots = Timeslot::where('active', 1)
+            ->whereIn('log', ['login', 'logout'])
+            ->get();
+
+        // Process the data
+        $response = [];
+        foreach ($timeslots as $slot) {
+            $company = $slot->created_to;
+            $slotData = [
+                'shift' => $slot->from . '-' . $slot->to,
+                'log' => $slot->log,
+                'days_available' => $slot->days_available,
+
+            ];
+
+            if (!isset($response[$company])) {
+                $response[$company] = [];
+            }
+
+            $response[$company][] = $slotData;
+
         }
 
         $response[$company][] = $slotData;

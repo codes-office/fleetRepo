@@ -66,15 +66,18 @@ Route::namespace ('Admin')->group(function () {
 
         Route::post('Companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::post('/assign-admin', 'DriversController@assignAdmin');
+        // Route::get('/drivers/{id}/edit', 'DriversController@edit');
         Route::resource('/users', 'UsersController');
 
         Route::get('mlt', 'UsersController@mltindex');
-        Route::get('companyteam', 'CompanyTeamController@index');
+        Route::get('companyteam', 'CompanyTeamController@index')->name('Companyteam');
         Route::post('/companyteam-fetch', 'CompanyTeamController@fetch_data');
         Route::get('companyteam/create', 'CompanyTeamController@create');
         Route::post('companyteam/store', 'CompanyTeamController@store'); 
         Route::get('companyteam/edit/{id}', 'CompanyTeamController@edit');
         Route::post('companyteam/update/{id}', 'CompanyTeamController@update');
+        Route::get('companyteam/{id}','CompanyTeamController@show');
+        Route::get('companyteam/delete/{id}','CompanyTeamController@destroy');
         
 
 
@@ -213,7 +216,12 @@ Route::namespace ('Admin')->group(function () {
         Route::post('/vendors-fetch', 'VendorController@fetch_data');
         Route::resource('/vendors', 'VendorController');
         Route::post('drivers-fetch', 'DriversController@fetch_data');
-        Route::resource('/drivers', 'DriversController');       
+        Route::resource('/drivers', 'DriversController');   
+        Route::get('/download/{filename}', 'DriversController@download');
+        Route::get('/view/{filename}', 'DriversController@view');
+
+
+
         Route::resource('/parts', 'PartsController');
         Route::post('/vehicles-fetch', 'VehiclesController@fetch_data');
         Route::resource('/vehicles', 'VehiclesController');
@@ -340,6 +348,15 @@ Route::namespace ('Admin')->group(function () {
 
         Route::resource('/cancel-reason', 'ReasonController');
         Route::post('delete-fuel', 'FuelController@bulk_delete')->middleware('IsInstalled');
+
+        
+//        Route::get('/getShifts',  'BookingsController@getShifts')->name('getShifts');
+
+
+
+        Route::get('/get-available-days', 'BookingsController@getAvailableDays')->name('get-available-days');
+
+
     });
 
 });

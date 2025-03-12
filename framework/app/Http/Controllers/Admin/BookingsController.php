@@ -27,6 +27,7 @@ use App\Model\IncCats;
 use App\Model\IncomeModel;
 use App\Model\ServiceReminderModel;
 use App\Model\User;
+use App\Model\Timeslot;
 use App\Model\VehicleModel;
 use App\Model\VehicleTypeModel;
 use App\Model\ReasonsModel;
@@ -39,6 +40,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\WebPush;
+use Illuminate\Support\Facades\Log;
+
 
 class BookingsController extends Controller {
 	public function __construct() {
@@ -61,8 +64,8 @@ class BookingsController extends Controller {
 		$bookings = collect(); // Initialize as an empty collection
 	
 		if ($startTime && $endTime && $date) {
-			$start = Carbon::createFromFormat('Y-m-d H:i', "{$date} {$startTime}");
-			$end = Carbon::createFromFormat('Y-m-d H:i', "{$date} {$endTime}");
+			$start = Carbon::createFromFormat('Y-m-d ', "{$date} {$startTime}");
+			$end = Carbon::createFromFormat('Y-m-d ', "{$date} {$endTime}");
 	
 			// Filter bookings by date and time
 			$bookings = Bookings::whereBetween('pickup', [$startTime, $endTime])->get();
@@ -130,132 +133,132 @@ private function generateTimeSlots() {
 		return view("bookings.index", $data);
 	}
 
-	public function fetch_data(Request $request) {
-		if ($request->ajax()) {
-			$date_format_setting = (Hyvikk::get('date_format'))?Hyvikk::get('date_format'): 'd-m-Y';
-			if (Auth::user()->user_type == "C") {
-				$bookings = Bookings::where('customer_id', Auth::id())->latest();
-			} elseif (Auth::user()->group_id == null || Auth::user()->user_type == "S") {
-				$bookings = Bookings::latest();
-			} else {
-				$vehicle_ids = VehicleModel::where('group_id', Auth::user()->group_id)->pluck('id')->toArray();
-				$bookings = Bookings::whereIn('vehicle_id', $vehicle_ids)->latest();
+		public function fetch_data(Request $request) {
+			if ($request->ajax()) {
+				$date_format_setting = (Hyvikk::get('date_format'))?Hyvikk::get('date_format'): 'd-m-Y';
+				if (Auth::user()->user_type == "C") {
+					$bookings = Bookings::where('customer_id', Auth::id())->latest();
+				} elseif (Auth::user()->group_id == null || Auth::user()->user_type == "S") {
+					$bookings = Bookings::latest();
+				} else {
+					$vehicle_ids = VehicleModel::where('group_id', Auth::user()->group_id)->pluck('id')->toArray();
+					$bookings = Bookings::whereIn('vehicle_id', $vehicle_ids)->latest();
+				}
+				$bookings->select('bookings.*')
+					->leftJoin('vehicles', 'bookings.vehicle_id', '=', 'vehicles.id')
+
+					->leftJoin('bookings_meta', function ($join) {
+						$join->on('bookings_meta.booking_id', '=', 'bookings.id')
+							->where('bookings_meta.key', '=', 'vehicle_typeid');
+					})
+					->leftJoin('vehicle_types', 'bookings_meta.value', '=', 'vehicle_types.id')
+					->with(['customer', 'metas']);
+
+				return DataTables::eloquent($bookings)
+					->addColumn('check', function ($user) {
+						return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
+					})
+					->addColumn('customer', function ($row) {
+						return ($row->customer->name) ?? "";
+					})
+					->addColumn('travellers', function ($row) {
+						return ($row->travellers) ?? "";
+					})
+					->addColumn('ride_status', function ($row) {
+						return ($row->getMeta('ride_status')) ?? "";
+					})
+					->editColumn('pickup_addr', function ($row) {
+						return str_replace(",", "<br/>", $row->pickup_addr);
+					})
+					->editColumn('dest_addr', function ($row) {
+						// dd($row->dest_addr);
+						return str_replace(",", "<br/>", $row->dest_addr);
+					})
+					->editColumn('pickup', function ($row) use ($date_format_setting) {
+						$pickup = '';
+						$pickup = [
+							'display' => '',
+							'timestamp' => '',
+						];
+						if (!is_null($row->pickup)) {
+							$pickup = date($date_format_setting . ' h:i A', strtotime($row->pickup));
+							return [
+								'display' => date($date_format_setting . ' h:i A', strtotime($row->pickup)),
+								'timestamp' => Carbon::parse($row->pickup),
+							];
+						}
+						return $pickup;
+					})
+					->editColumn('dropoff', function ($row) use ($date_format_setting) {
+						$dropoff = [
+							'display' => '',
+							'timestamp' => '',
+						];
+						if (!is_null($row->dropoff)) {
+							$dropoff = date($date_format_setting . ' h:i A', strtotime($row->dropoff));
+							return [
+								'display' => date($date_format_setting . ' h:i A', strtotime($row->dropoff)),
+								'timestamp' => Carbon::parse($row->dropoff),
+							];
+						}
+						return $dropoff;
+					})
+
+					->editColumn('payment', function ($row) {
+						if ($row->payment == 1) {
+							return '<span class="text-success"> ' . __('fleet.paid1') . ' </span>';
+						} else {
+							return '<span class="text-warning"> ' . __('fleet.pending') . ' </span>';
+						}
+					})
+					->editColumn('tax_total', function ($row) {
+						return ($row->tax_total)?Hyvikk::get('currency') . " " . $row->tax_total: "";
+					})
+					->addColumn('vehicle', function ($row) {
+						$vehicle_type = VehicleTypeModel::find($row->getMeta('vehicle_typeid'));
+						return !empty($row->vehicle_id) ? $row->vehicle->make_name . '-' . $row->vehicle->model_name . '-' . $row->vehicle->license_plate : ($vehicle_type->displayname) ?? "";
+					})
+					->filterColumn('vehicle', function ($query, $keyword) {
+						$query->whereRaw("CONCAT(vehicles.make_name , '-' , vehicles.model_name , '-' , vehicles.license_plate) like ?", ["%$keyword%"])
+							->orWhereRaw("(vehicle_types.displayname like ? and bookings.vehicle_id IS NULL)", ["%$keyword%"]);
+						return $query;
+					})
+					->filterColumn('ride_status', function ($query, $keyword) {
+						$query->whereHas("metas", function ($q) use ($keyword) {
+							$q->where('key', 'ride_status');
+							$q->whereRaw("value like ?", ["%{$keyword}%"]);
+						});
+						return $query;
+					})
+					->filterColumn('tax_total', function ($query, $keyword) {
+						$query->whereHas("metas", function ($q) use ($keyword) {
+							$q->where('key', 'tax_total');
+							$q->whereRaw("value like ?", ["%{$keyword}%"]);
+						});
+						return $query;
+					})
+					->addColumn('action', function ($user) {
+						return view('bookings.list-actions', ['row' => $user]);
+					})
+					->filterColumn('payment', function ($query, $keyword) {
+						$query->whereRaw("IF(payment = 1 , '" . __('fleet.paid1') . "', '" . __('fleet.pending') . "') like ? ", ["%{$keyword}%"]);
+
+					})
+					->filterColumn('pickup', function ($query, $keyword) {
+						$query->whereRaw("DATE_FORMAT(pickup,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
+					})
+					->filterColumn('dropoff', function ($query, $keyword) {
+						$query->whereRaw("DATE_FORMAT(dropoff,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
+					})
+					->filterColumn('travellers', function ($query, $keyword) {
+						$query->where("travellers",'LIKE','%'.$keyword.'%');
+					})
+					->rawColumns(['payment', 'action', 'check', 'pickup_addr', 'dest_addr'])
+					->make(true);
+				//return datatables(User::all())->toJson();
+
 			}
-			$bookings->select('bookings.*')
-				->leftJoin('vehicles', 'bookings.vehicle_id', '=', 'vehicles.id')
-
-				->leftJoin('bookings_meta', function ($join) {
-					$join->on('bookings_meta.booking_id', '=', 'bookings.id')
-						->where('bookings_meta.key', '=', 'vehicle_typeid');
-				})
-				->leftJoin('vehicle_types', 'bookings_meta.value', '=', 'vehicle_types.id')
-				->with(['customer', 'metas']);
-
-			return DataTables::eloquent($bookings)
-				->addColumn('check', function ($user) {
-					return '<input type="checkbox" name="ids[]" value="' . $user->id . '" class="checkbox" id="chk' . $user->id . '" onclick=\'checkcheckbox();\'>';
-				})
-				->addColumn('customer', function ($row) {
-					return ($row->customer->name) ?? "";
-				})
-				->addColumn('travellers', function ($row) {
-					return ($row->travellers) ?? "";
-				})
-				->addColumn('ride_status', function ($row) {
-					return ($row->getMeta('ride_status')) ?? "";
-				})
-				->editColumn('pickup_addr', function ($row) {
-					return str_replace(",", "<br/>", $row->pickup_addr);
-				})
-				->editColumn('dest_addr', function ($row) {
-					// dd($row->dest_addr);
-					return str_replace(",", "<br/>", $row->dest_addr);
-				})
-				->editColumn('pickup', function ($row) use ($date_format_setting) {
-					$pickup = '';
-					$pickup = [
-						'display' => '',
-						'timestamp' => '',
-					];
-					if (!is_null($row->pickup)) {
-						$pickup = date($date_format_setting . ' h:i A', strtotime($row->pickup));
-						return [
-							'display' => date($date_format_setting . ' h:i A', strtotime($row->pickup)),
-							'timestamp' => Carbon::parse($row->pickup),
-						];
-					}
-					return $pickup;
-				})
-				->editColumn('dropoff', function ($row) use ($date_format_setting) {
-					$dropoff = [
-						'display' => '',
-						'timestamp' => '',
-					];
-					if (!is_null($row->dropoff)) {
-						$dropoff = date($date_format_setting . ' h:i A', strtotime($row->dropoff));
-						return [
-							'display' => date($date_format_setting . ' h:i A', strtotime($row->dropoff)),
-							'timestamp' => Carbon::parse($row->dropoff),
-						];
-					}
-					return $dropoff;
-				})
-
-				->editColumn('payment', function ($row) {
-					if ($row->payment == 1) {
-						return '<span class="text-success"> ' . __('fleet.paid1') . ' </span>';
-					} else {
-						return '<span class="text-warning"> ' . __('fleet.pending') . ' </span>';
-					}
-				})
-				->editColumn('tax_total', function ($row) {
-					return ($row->tax_total)?Hyvikk::get('currency') . " " . $row->tax_total: "";
-				})
-				->addColumn('vehicle', function ($row) {
-					$vehicle_type = VehicleTypeModel::find($row->getMeta('vehicle_typeid'));
-					return !empty($row->vehicle_id) ? $row->vehicle->make_name . '-' . $row->vehicle->model_name . '-' . $row->vehicle->license_plate : ($vehicle_type->displayname) ?? "";
-				})
-				->filterColumn('vehicle', function ($query, $keyword) {
-					$query->whereRaw("CONCAT(vehicles.make_name , '-' , vehicles.model_name , '-' , vehicles.license_plate) like ?", ["%$keyword%"])
-						->orWhereRaw("(vehicle_types.displayname like ? and bookings.vehicle_id IS NULL)", ["%$keyword%"]);
-					return $query;
-				})
-				->filterColumn('ride_status', function ($query, $keyword) {
-					$query->whereHas("metas", function ($q) use ($keyword) {
-						$q->where('key', 'ride_status');
-						$q->whereRaw("value like ?", ["%{$keyword}%"]);
-					});
-					return $query;
-				})
-				->filterColumn('tax_total', function ($query, $keyword) {
-					$query->whereHas("metas", function ($q) use ($keyword) {
-						$q->where('key', 'tax_total');
-						$q->whereRaw("value like ?", ["%{$keyword}%"]);
-					});
-					return $query;
-				})
-				->addColumn('action', function ($user) {
-					return view('bookings.list-actions', ['row' => $user]);
-				})
-				->filterColumn('payment', function ($query, $keyword) {
-					$query->whereRaw("IF(payment = 1 , '" . __('fleet.paid1') . "', '" . __('fleet.pending') . "') like ? ", ["%{$keyword}%"]);
-
-				})
-				->filterColumn('pickup', function ($query, $keyword) {
-					$query->whereRaw("DATE_FORMAT(pickup,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
-				})
-				->filterColumn('dropoff', function ($query, $keyword) {
-					$query->whereRaw("DATE_FORMAT(dropoff,'%d-%m-%Y %h:%i %p') LIKE ?", ["%$keyword%"]);
-				})
-				->filterColumn('travellers', function ($query, $keyword) {
-					$query->where("travellers",'LIKE','%'.$keyword.'%');
-				})
-				->rawColumns(['payment', 'action', 'check', 'pickup_addr', 'dest_addr'])
-				->make(true);
-			//return datatables(User::all())->toJson();
-
 		}
-	}
 
 	public function receipt($id) {
 		$data['id'] = $id;
@@ -719,21 +722,73 @@ private function generateTimeSlots() {
 		$data['customers'] = User::where('user_type', 'C')->get();
 		$drivers = User::whereUser_type("D")->get();
 		$data['drivers'] = [];
-
+	
 		foreach ($drivers as $d) {
 			if ($d->getMeta('is_active') == 1) {
 				$data['drivers'][] = $d;
 			}
-
 		}
+	
 		$data['addresses'] = Address::where('customer_id', Auth::user()->id)->get();
+	
 		if ($user == null) {
 			$data['vehicles'] = VehicleModel::whereIn_service("1")->get();
 		} else {
-			$data['vehicles'] = VehicleModel::where([['group_id', $user], ['in_service', '1']])->get();}
+			$data['vehicles'] = VehicleModel::where([['group_id', $user], ['in_service', '1']])->get();
+		}
+	
+		// Fetch available time slots
+		$data['timeSlots'] = TimeSlot::all();
+		// Log::info("hi there ");
+		// Log::info($data);
+	
 		return view("bookings.create", $data);
-		//dd($data['vehicles']);
 	}
+
+	
+// 	public function getShifts(Request $request)
+// {
+//     $timeSlots = []; // Ensure $timeSlots is always defined
+
+//     if ($request->ajax()) {
+//         $log = $request->action;
+// 		// Log::info($log); 
+
+
+//         // Fetch shifts based on action type (login/logout)
+//         $timeSlots = Timeslot::where('log', $log)->pluck('shift');
+// 		Log::info("Fetched shifts: ", $timeSlots->toArray());
+//     }
+
+//     return response()->json(['timeSlots' => $timeSlots]); // Always return a response
+// }
+
+
+ public function getAvailableDays(Request $request)
+    {
+        Log::info("AJAX Request Received", ['request_data' => $request->all()]);
+
+        if ($request->ajax()) {
+            Log::info("Request is an AJAX call");
+
+            // Fetch distinct available days
+            $days = Timeslot::distinct()->pluck('days_available')->unique()->values()->toArray();
+
+            Log::info("Days Fetched", ['days' => $days]);
+
+            if (empty($days)) {
+                Log::warning("No days available found in the database.");
+                return response()->json(['success' => false, 'message' => 'No days available found.']);
+            }
+
+            return response()->json(['success' => true, 'days_available' => $days]);
+        }
+
+        Log::warning("Request is not AJAX");
+        return response()->json(['success' => false, 'message' => 'Invalid request']);
+    }
+
+
 
 	public function edit($id) {
 		$booking = Bookings::whereId($id)->get()->first();
@@ -799,6 +854,9 @@ private function generateTimeSlots() {
 	}
 
 	public function store(BookingRequest $request) {
+		
+		// dd($request->all()); // Dumps all request data
+		// exit();
 		$max_seats = VehicleModel::find($request->get('vehicle_id'))->types->seats;
 		$xx = $this->check_booking($request->get("pickup"), $request->get("dropoff"), $request->get("vehicle_id"));
 		if ($xx) {

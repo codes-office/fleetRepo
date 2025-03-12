@@ -66,54 +66,40 @@
       <div class="card-body table-responsive">
         @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
         <table class="table" id="ajax_data_table" style="padding-bottom: 15px">
-          <thead class="thead-inverse">
-            <tr>
-              <th>
+    <thead class="thead-inverse">
+        <tr>
+            <th>
                 <input type="checkbox" id="chk_all">
-              </th>
-              <th>#</th>
-              <th>@lang('fleet.driverImage')</th>
-              <th>@lang('fleet.name')</th>
-              <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.is_active')</th>
-              <th>@lang('fleet.phone')</th>
-              {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
-              <th>@lang('fleet.start_date')</th>
-              <th>@lang('fleet.action')</th>
-               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
-               <th>Assign To</th>
-               @endif
-               @if (!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C"  && Auth::user()->user_type != 'M')
-               <th>Assign Under</th>
-               @endif
-            </tr>
-          </thead>
-          <tbody>
-
-          </tbody>
-          <tfoot>
-            <tr>
-              <th>
-                @can('Drivers delete')<button class="btn btn-danger" id="bulk_delete" data-toggle="modal"
-                  title="@lang('fleet.delete')" data-target="#bulkModal" disabled>
-                  <i class="fa fa-trash"></i></button>@endcan
-              </th>
-              <th>#</th>
-              <th>@lang('fleet.driverImage')</th>
-              <th>@lang('fleet.name')</th>
-              <th>@lang('fleet.email')</th>
-              <th>@lang('fleet.is_active')</th>
-              <th>@lang('fleet.phone')</th>
-              {{-- <th>@lang('fleet.assigned_vehicle')</th> --}}
-              <th>@lang('fleet.start_date')</th>
-              <th>@lang('fleet.action')</th>
-              <th>Assign To</th>
-              <th>Assign Under</th>
-            </tr>
-          </tfoot>
-        </table>
+            </th>
+            <th>#</th>
+            <th>Driver Name</th>
+            <th>License Number</th>
+            <th>Vendor</th>
+            <th>Number</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <!-- <tbody></tbody> -->
+    <tfoot>
+        <tr>
+            <th>
+                @can('Drivers delete')
+                    <button class="btn btn-danger" id="bulk_delete" data-toggle="modal" title="@lang('fleet.delete')" data-target="#bulkModal" disabled>
+                        <i class="fa fa-trash"></i>
+                    </button>
+                @endcan
+            </th>
+            <th>#</th>
+            <th>Driver Name</th>
+            <th>License Number</th>
+            <th>Vendor</th>
+            <th>Number</th>
+            <th>Actions</th>
+        </tr>
+    </tfoot>
+</table>
         @endif
-        @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" && Auth::user()->user_type != "O" && Auth::user()->user_type != 'S')
+        <!-- @if(!Auth::guest() && Auth::user()->user_type != "D" && Auth::user()->user_type != "C" && Auth::user()->user_type != "O" && Auth::user()->user_type != 'S')
         <table class="table" id="ajax_admin_data_table" style="padding-bottom: 15px">
           <thead class="thead-inverse">
             <tr>
@@ -134,7 +120,7 @@
           </thead>
           <tbody>
 
-          </tbody>
+          </tbody> -->
           <!--<tfoot>-->
           <!--  <tr>-->
           <!--    <th>-->
@@ -320,33 +306,27 @@
     $('#changepass').modal("hide");
     e.preventDefault();
   });
-  $(function(){
-    
+  $(function() {
     var table = $('#ajax_data_table').DataTable({
-          "language": {
-              "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
-          },
-         processing: true,
-         serverSide: true,
-         ajax: {
-          url: "{{ url('admin/drivers-fetch') }}",
-          type: 'POST',
-          data:{}
-         },
-         columns: [
-            {data: 'check',name:'check', searchable:false, orderable:false},
-            {data: 'id', name: 'users.id'},
-            {data: 'driver_image',name:'driver_image', searchable:false, orderable:false},
-            {data: 'name', name: 'name'},
-            {data: 'email', name: 'email'},
-            {data: 'is_active', name: 'is_active'},
-            {data: 'phone', name: 'phone'},
-            // {data: 'vehicle', name: 'vehicle'},
-            {data: 'start_date', name: 'start_date'},
-            {data: 'action',name:'action',  searchable:false, orderable:false},
-             {data : 'assign_admin',name:'assign_admin'},
-             {data : 'assigned_admin',name:'assigned_admin'}
-        ],
+        "language": {
+            "url": '{{ asset("assets/datatables/")."/".__("fleet.datatable_lang") }}',
+        },
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "{{ url('admin/drivers-fetch') }}",
+            type: 'POST',
+            data: {}
+        },
+        columns: [
+            { data: 'check', name: 'check', searchable: false, orderable: false },
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false },
+            { data: 'name', name: 'users.name' },
+            { data: 'license_number', name: 'license_number' },
+            { data: 'vendor', name: 'vendor_name' },  
+            { data: 'number', name: 'users.number' },
+            { data: 'action', name: 'action', searchable: false, orderable: false }
+        ],  
         order: [[1, 'desc']],
         "initComplete": function() {
               table.columns().every(function () {
@@ -398,7 +378,7 @@
          processing: true,
          serverSide: true,
          ajax: {
-          url: "{{ url('admin/drivers-admin-fetch') }}",
+          url: "{{ url('admin/drivers-fetch') }}",
           type: 'POST',
           data:{}
          },

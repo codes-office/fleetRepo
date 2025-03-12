@@ -61,8 +61,8 @@ class BookingsApiController extends Controller {
 				Bookings::where('id', $request->id)->update([
 					'vehicle_id' => $request->vehicle_id,
 					'user_id' => Auth::id(),
-					'pickup' => date('Y-m-d H:i:s', strtotime($request->pickup_datetime)),
-					'dropoff' => date('Y-m-d H:i:s', strtotime($request->dropoff_datetime)),
+					'pickup' => date('Y-m-d', strtotime($request->pickup_datetime)),
+					'dropoff' => date('Y-m-d', strtotime($request->dropoff_datetime)),
 					'pickup_addr' => $request->pickup_addr,
 					'dest_addr' => $request->dest_addr,
 					'travellers' => $request->travellers,
@@ -82,7 +82,7 @@ class BookingsApiController extends Controller {
 				$diff = $pickup->diffInMinutes($dropoff);
 				$booking->duration = $diff;
 				$booking->journey_date = date('d-m-Y', strtotime($request->pickup_datetime));
-				$booking->journey_time = date('H:i:s', strtotime($request->pickup_datetime));
+				// $booking->journey_time = date('H:i:s', strtotime($request->pickup_datetime));
 				$booking->udf = serialize($request->udf);
 				$booking->save();
 
@@ -127,8 +127,8 @@ class BookingsApiController extends Controller {
 					'customer_id' => $request->customer_id,
 					'vehicle_id' => $request->vehicle_id,
 					'user_id' => Auth::id(),
-					'pickup' => date('Y-m-d H:i:s', strtotime($request->pickup_datetime)),
-					'dropoff' => date('Y-m-d H:i:s', strtotime($request->dropoff_datetime)),
+					'pickup' => date('Y-m-d', strtotime($request->pickup_datetime)),
+					'dropoff' => date('Y-m-d', strtotime($request->dropoff_datetime)),
 					'pickup_addr' => $request->pickup_addr,
 					'dest_addr' => $request->dest_addr,
 					'travellers' => $request->travellers,
@@ -146,7 +146,7 @@ class BookingsApiController extends Controller {
 				// $booking->ride_status = "Upcoming";
 				$booking->booking_type = 1;
 				$booking->journey_date = date('d-m-Y', strtotime($booking->pickup));
-				$booking->journey_time = date('H:i:s', strtotime($booking->pickup));
+				// $booking->journey_time = date('H:i:s', strtotime($booking->pickup));
 				$booking->save();
 
 				// browser notification

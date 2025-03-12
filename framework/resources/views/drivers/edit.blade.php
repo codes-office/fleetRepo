@@ -1,27 +1,33 @@
 @extends('layouts.app')
+
 @section('extra_css')
 <!-- bootstrap datepicker -->
 <link rel="stylesheet" href="{{asset('assets/css/bootstrap-datepicker.min.css')}}">
-
 <style type="text/css">
   .select2-selection:not(.select2-selection--multiple) {
     height: 38px !important;
   }
+  .input-group-append,
+  .input-group-prepend {
+    display: flex;
+  }
+  .tab-content {
+    margin-top: 20px;
+  }
 </style>
-
 @endsection
 
 @section("breadcrumb")
 <li class="breadcrumb-item"><a href="{{ route('drivers.index')}}">@lang('fleet.drivers')</a></li>
-<li class="breadcrumb-item active">@lang('fleet.edit_driver')</li>
-
+<li class="breadcrumb-item active">@lang('fleet.editDriver')</li>
 @endsection
+
 @section('content')
 <div class="row">
   <div class="col-md-12">
-    <div class="card card-warning">
-      <div class="card-header">
-        <h3 class="card-title">@lang('fleet.edit_driver')</h3>
+    <div class="card card-primary">
+      <div class="card-header with-border">
+        <h3 class="card-title">@lang('fleet.editDriver')</h3>
       </div>
 
       <div class="card-body">
@@ -35,346 +41,301 @@
         </div>
         @endif
 
-        {!! Form::open(['route' => ['drivers.update',$driver->id],'files'=>true,'method'=>'PATCH']) !!}
-        {!! Form::hidden('id',$driver->id) !!}
-        {!! Form::hidden('edit',"1") !!}
-        {!! Form::hidden('detail_id',$driver->getMeta('id')) !!}
-        {!! Form::hidden('user_id',Auth::user()->id) !!}
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('first_name', __('fleet.firstname'), ['class' => 'form-label required']) !!}
-              {!! Form::text('first_name', $driver->getMeta('first_name'),['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('middle_name', __('fleet.middlename'), ['class' => 'form-label']) !!}
-              {!! Form::text('middle_name', $driver->getMeta('middle_name'),['class' => 'form-control']) !!}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('last_name', __('fleet.lastname'), ['class' => 'form-label required']) !!}
-              {!! Form::text('last_name', $driver->getMeta('last_name'),['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('address', __('fleet.address'), ['class' => 'form-label required']) !!}
-              {!! Form::text('address', $driver->address, ['class' => 'form-control', 'id' => 'address', 'required', 'placeholder' => 'Select an address']) !!}
-            </div>
-          </div>
-          
-          <!-- Map for Address Selection -->
-          <div id="address_map" style="height: 400px; margin-top: 10px; width: 100%;"></div>
-        </div>
+        {!! Form::model($driver, ['route' => ['drivers.update', $driver->id], 'method' => 'PUT', 'files' => true, 'id' => 'driver-edit-form']) !!}
 
-        <!-- Hidden Fields for Latitude and Longitude -->
-        {!! Form::hidden('latitude', $driver->latitude, ['id' => 'latitude']) !!}
-        {!! Form::hidden('longitude', $driver->longitude, ['id' => 'longitude']) !!}
-        
-          
-          <div class="col-md-6">
+        <ul class="nav nav-tabs" id="formTabs" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="info-tab" data-toggle="tab" href="#info" role="tab">Personal Details</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="documents-tab" data-toggle="tab" href="#documents" role="tab">Documents</a>
+  </li>
+</ul>
+
+       <!-- Tab Content -->
+       <div class="tab-content mt-3" id="formTabsContent">
+        <!-- Information Tab -->
+        @php
+    // Retrieve profile photo, ensure the key exists
+    $profilePhoto = $userFiles['profile_photo'] ?? null;
+
+    // If the profile photo exists, construct the file path
+    $profilePath = $profilePhoto && file_exists(public_path('uploads/' . $profilePhoto))
+        ? asset('uploads/' . $profilePhoto) // Use asset() to generate a correct URL
+        : asset('assets/images/no-user.jpg'); // Default image
+@endphp
+
+<!-- Profile Image -->
+<div class="col-md-4 text-center">
+    <div class="image-upload-container">
+        <!-- Display Image -->
+        <img id="profilePreview" 
+             src="{{ $profilePath }}" 
+             class="img-thumbnail profile-img" 
+             alt="Profile Image" />
+
+        <!-- Hidden File Input -->
+        <input type="file" id="profilePhotoInput" name="profile_photo" 
+               class="d-none" accept="image/png, image/jpeg, image/jpg">
+
+        <!-- Upload Button -->
+        @if($canUpload)
+            <button type="button" class="btn btn-primary btn-sm mt-2" 
+                    onclick="document.getElementById('profilePhotoInput').click();">
+                <i class="fa fa-pencil"></i> Change Image (JPG, JPEG & PNG)
+            </button>
+        @endif
+
+        <!-- View & Download Links -->
+        @if($profilePhoto && file_exists(public_path('uploads/' . $profilePhoto)))
+            <div class="mt-2">
+                <a href="{{ url('admin/view', ['filename' => $profilePhoto]) }}" 
+                   target="_blank" class="btn btn-info btn-sm">
+                    <i class="fa fa-eye"></i> View
+                </a>
+                <a href="{{ url('admin/download', ['filename' => $profilePhoto]) }}" 
+                   class="btn btn-success btn-sm">
+                    <i class="fa fa-download"></i> Download
+                </a>
+            </div>
+        @endif
+    </div>
+</div>
+
+
+
+        <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+          <div class="row">
+            <div class="col-md-4">
             <div class="form-group">
-              {!! Form::label('email', __('fleet.email'), ['class' => 'form-label required']) !!}
-              <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fa fa-envelope"></i></span>
-                </div>
-                {!! Form::email('email', $driver->email,['class' => 'form-control','required']) !!}
+        {!! Form::label('first_name', __('DRIVER NAME'), ['class' => 'form-label required']) !!}
+        {!! Form::text('first_name', $userDetails->name, ['class' => 'form-control', 'required', 'autofocus']) !!}
+      </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('city', __('CITY'), ['class' => 'form-label']) !!}
+                {!! Form::text('city', null, ['class' => 'form-control']) !!}
               </div>
             </div>
-          </div>
-
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  {!! Form::select('phone_code',$phone_code,$driver->getMeta('phone_code'),['class' => 'form-control
-                  code','required','style'=>'width:80px;']) !!}
-                </div>
-                {!! Form::number('phone', $driver->getMeta('phone'),['class' => 'form-control','required']) !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
-              {!! Form::text('emp_id', $driver->getMeta('emp_id'),['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('contract_number', __('fleet.contract'), ['class' => 'form-label']) !!}
-              {!! Form::text('contract_number', $driver->getMeta('contract_number'),['class' =>
-              'form-control','required']) !!}
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('license_number', __('fleet.licenseNumber'), ['class' => 'form-label required']) !!}
-              {!! Form::text('license_number', $driver->getMeta('license_number'),['class' =>
-              'form-control','required']) !!}
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('issue_date', __('fleet.issueDate'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('issue_date', $driver->getMeta('issue_date'),['class' => 'form-control','required']) !!}
+            <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('DOB', __('DATE OF BIRTH'), ['class' => 'form-label required']) !!}
+                {!! Form::date('DOB', null, ['class' => 'form-control', 'required']) !!}
               </div>
             </div>
           </div>
 
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('exp_date', __('fleet.expirationDate'), ['class' => 'form-label required']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
+          <!-- Additional Fields for Information Tab -->
+          <div class="row">
+            <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('phone', __('fleet.phone'), ['class' => 'form-label required']) !!}
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    {!! Form::select('phone_code', $phone_code, null, ['class' => 'form-control code', 'required', 'style'=>'width:80px']) !!}
+                  </div>
+                  {!! Form::number('phone', $userDetails->number, ['class' => 'form-control', 'required']) !!}
                 </div>
-                {!! Form::text('exp_date', $driver->getMeta('exp_date'),['class' => 'form-control','required']) !!}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('emp_id', __('fleet.employee_id'), ['class' => 'form-label']) !!}
+                {!! Form::text('emp_id', null, ['class' => 'form-control', 'required']) !!}
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group">
+                {!! Form::label('vendor_id', __('VENDORS'), ['class' => 'form-label required']) !!}
+                {!! Form::select('vendor_id', $vendors->pluck('name','user_id'), null, ['class' => 'form-control', 'placeholder' => __('Select a Vendor'), 'required']) !!}
               </div>
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('start_date', __('fleet.join_date'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('start_date', $driver->getMeta('start_date'),['class' => 'form-control']) !!}
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('end_date', __('fleet.leave_date'), ['class' => 'form-label']) !!}
-              <div class="input-group date">
-                <div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                </div>
-                {!! Form::text('end_date', $driver->getMeta('end_date'),['class' => 'form-control']) !!}
-              </div>
+      </div>
+
+
+          <!-- Documents Tab -->
+          <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+              <table class="table">
+                <tbody>
+                  <!-- Driver License -->
+        <tr>
+          <td>License Number</td>
+          <td>{!! Form::text('license_number', null, ['class' => 'form-control']) !!}</td>
+          <td>Expiry Date</td>
+          <td>{!! Form::date('license_number_date', null, ['class' => 'form-control']) !!}</td>
+          <td>Document</td>
+          <td>
+            @if(isset($userFiles['driver_license']) && !empty($userFiles['driver_license']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['driver_license'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['driver_license'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+        </tr>
+        <!-- Induction Date -->
+                  <tr>
+                    <td>Induction Date</td>
+                    <td>{!! Form::date('induction_date', null, ['class' => 'form-control']) !!}</td>
+                    <td>Documents</td>
+                    <td>
+            @if(isset($userFiles['induction']) && !empty($userFiles['induction']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['induction'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['induction'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+                  </tr>
+
+                  <!-- badge number -->
+                  <tr>
+                    <td>Badge Number</td>
+                    <td>{!! Form::text('badge_number', null, ['class' => 'form-control']) !!}</td>
+                    <td>{!! Form::date('badge_number_date', null, ['class' => 'form-control']) !!}</td>
+                  </tr>  
+              <!-- Alternate Govt-->
+                  <tr>
+                  <td>Alternate Govt. ID</td>
+                                <td>{!! Form::select('alternate_gov_id', ['AdharCard' => 'AdharCard', 'Rationcard' => 'Ration Card'], $driver->alternate_gov_id, ['class' => 'form-control']) !!}</td>
+                                <td>ID Number</td>
+                                <td>{!! Form::text('alternate_gov_id_number', $driver->alternate_gov_id_number, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+                              <td>
+            @if(isset($userFiles['alternate_gov']) && !empty($userFiles['alternate_gov']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['alternate_gov'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['alternate_gov'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+          </tr>
+          <!-- Background Verification -->
+          <tr>
+          <td>Background Verification</td>
+                                <td>{!! Form::select('background_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], $driver->background_verification_status, ['class' => 'form-control']) !!}</td>
+                                <td>Expiry Date</td>
+                                <td>{!! Form::date('background_verification_date', $driver->background_verification_date, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+          <td>
+            @if(isset($userFiles['background_verification']) && !empty($userFiles['background_verification']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['background_verification'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['background_verification'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+        </tr>
+        <!-- Police Verification -->
+        <tr>
+          <td>Police Verification</td>
+                                <td>{!! Form::select('police_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], $driver->police_verification_status, ['class' => 'form-control']) !!}</td>
+                                <td>Expiry Date</td>
+                                <td>{!! Form::date('police_verification_date', $driver->police_verification_date, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+          <td>
+            @if(isset($userFiles['police_verification']) && !empty($userFiles['police_verification']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['police_verification'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['police_verification'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+        </tr>
+        <!-- Medical Verification -->
+        <tr>
+                                <td>Medical Verification</td>
+                                <td>{!! Form::select('medical_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], $driver->medical_verification_status, ['class' => 'form-control']) !!}</td>
+                                <td>Expiry Date</td>
+                                <td>{!! Form::date('medical_verification_date', $driver->medical_verification_date, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+                                <td>
+            @if(isset($userFiles['medical_verification']) && !empty($userFiles['medical_verification']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['medical_verification'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['medical_verification'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+          </tr>
+          <!-- Training-->
+          <tr>
+                                <td>Training</td>
+                                <td>{!! Form::select('training_verification_status', ['Pending' => 'Pending', 'Success' => 'Success','Rejected' => 'Rejected'], $driver->training_verification_status, ['class' => 'form-control']) !!}</td>
+                                <td>Expiry Date</td>
+                                <td>{!! Form::date('training_date', $driver->training_date, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+                                <td>
+            @if(isset($userFiles['training']) && !empty($userFiles['training']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['training'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['training'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+          </tr>
+           <!-- Eye Test -->
+           <tr>
+                                <td>Eye Test Expiry Date</td>
+                                <td>{!! Form::date('eye_test_date', $driver->eye_test_date, ['class' => 'form-control']) !!}</td>
+                                <td>Document</td>
+                                <td>
+            @if(isset($userFiles['training']) && !empty($userFiles['training']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['eye_test'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['eye_test'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+          </tr>
+           <!-- Letter of Undertaking -->
+           <tr>
+                                <td>Letter of Undertaking</td>
+                                <td>@if(isset($userFiles['documents']) && !empty($userFiles['documents']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['documents'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['documents'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif</td>
+                                <td>Current Address</td>
+                                <td>
+            @if(isset($userFiles['current_address']) && !empty($userFiles['current_address']))
+              <a href="{{url('admin/view', ['filename' => basename($userFiles['current_address'])]) }}" target="_blank">view</a>
+              <a href="{{ url('admin/download', ['filename' => basename($userFiles['current_address'])]) }}" class="btn btn-sm btn-success">Download</a>
+            @endif
+          </td>
+          </tr>
+
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="form-group">
-              {!! Form::label('driver_commision_type', __('fleet.driver_commision_type'), ['class' => 'form-label']) !!}
-              
-                {!! Form::select('driver_commision_type',['amount'=>__('fleet.amount'), 'percent'=> __('fleet.percent')],$driver->getMeta('driver_commision_type'),['class' => 'form-control', 'placeholder' =>__('fleet.select'), 'required']) !!}            
-            </div>
-          </div>
-          <div class="col-md-4" id="driver_commision_container" style="display: none;">
-            <div class="form-group">
-              {!! Form::label('driver_commision', __('fleet.driver_commision'), ['class' => 'form-label']) !!}              
-                {!! Form::number('driver_commision',$driver->getMeta('driver_commision'),['class' => 'form-control']) !!}            
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('gender', __('fleet.gender') , ['class' => 'form-label']) !!}<br>
-              <input type="radio" name="gender" class="flat-red gender" value="1" @if($driver->getMeta('gender')== 1)
-              checked @endif> @lang('fleet.male')<br>
-              <input type="radio" name="gender" class="flat-red gender" value="0" @if($driver->getMeta('gender')== 0)
-              checked @endif> @lang('fleet.female')
-            </div>
-            <div class="form-group">
-              {!! Form::label('driver_image', __('fleet.driverImage'), ['class' => 'form-label']) !!}
-              @if($driver->getMeta('driver_image') != null)
-              <a href="{{ asset('uploads/'.$driver->getMeta('driver_image')) }}" target="_blank">View</a>
-              @endif
-              {!! Form::file('driver_image',null,['class' => 'form-control','required']) !!}
-            </div>
-            <div class="form-group">
-              {!! Form::label('documents', __('fleet.documents'), ['class' => 'form-label']) !!}
-              @if($driver->getMeta('documents') != null)
-              <a href="{{ asset('uploads/'.$driver->getMeta('documents')) }}" target="_blank">View</a>
-              @endif
-              {!! Form::file('documents',null,['class' => 'form-control','required']) !!}
-            </div>
-            <div class="form-group">
-              {!! Form::label('license_image', __('fleet.licenseImage'), ['class' => 'form-label']) !!}
-              @if($driver->getMeta('license_image') != null)
-              <a href="{{ asset('uploads/'.$driver->getMeta('license_image')) }}" target="_blank">View</a>
-              @endif
-              {!! Form::file('license_image',null,['class' => 'form-control','required']) !!}
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group">
-              {!! Form::label('econtact', __('fleet.emergency_details'), ['class' => 'form-label']) !!}
-              {!! Form::textarea('econtact',$driver->getMeta('econtact'),['class' => 'form-control']) !!}
-            </div>
-          </div>
-        </div>
+
         <div class="col-md-12">
-          {!! Form::submit(__('fleet.update'), ['class' => 'btn btn-warning']) !!}
-          <a href="{{route('drivers.index')}}" class="btn btn-danger">@lang('fleet.back')</a>
+          {!! Form::submit(__('fleet.updateDriver'), ['class' => 'btn btn-primary']) !!}
         </div>
+
         {!! Form::close() !!}
       </div>
     </div>
   </div>
 </div>
-
 @endsection
 
 @section("script")
-<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
-<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ Hyvikk::api('api_key') }}&callback=initMap" async defer></script>
 <script>
- let map, marker, geocoder;
-
-function initMap() {
-  geocoder = new google.maps.Geocoder();
-
-  // Check if latitude and longitude are available
-  let latitude = parseFloat(document.getElementById('latitude').value);
-  let longitude = parseFloat(document.getElementById('longitude').value);
-
-  // If both latitude and longitude are valid, use them to initialize the map
-  let location = (isNaN(latitude) || isNaN(longitude)) ? { lat: 13.0380, lng: 77.4812 } : { lat: latitude, lng: longitude };
-
-  map = new google.maps.Map(document.getElementById('address_map'), {
-    center: location,
-    zoom: 13,
-  });
-
-  // Place a draggable marker at the location
-  marker = new google.maps.Marker({
-    position: location,
-    map: map,
-    draggable: true,
-    title: "Drag to select location",
-  });
-
-  // Update latitude, longitude, and address when the marker is dragged
-  marker.addListener('dragend', function() {
-    const position = marker.getPosition();
-    updateLocation(position);
-  });
-
-  // Update latitude, longitude, and address when the map is clicked
-  map.addListener('click', function(event) {
-    const position = event.latLng;
-    marker.setPosition(position);
-    updateLocation(position);
-  });
-
-  // Set the initial location based on the address field (if present)
-  const addressField = document.getElementById('address').value;
-  if (addressField) {
-    geocodeAddress(addressField);
-  } else {
-    updateLocation(location);
-  }
-}
-
-// Function to update the hidden fields and address
-function updateLocation(latLng) {
-  const lat = latLng.lat();
-  const lng = latLng.lng();
-
-  // Update the latitude and longitude hidden fields
-  document.getElementById('latitude').value = lat;
-  document.getElementById('longitude').value = lng;
-
-  // Reverse geocode to get the address
-  geocoder.geocode({ location: latLng }, function(results, status) {
-    if (status === 'OK' && results[0]) {
-      document.getElementById('address').value = results[0].formatted_address;
-    } else {
-      document.getElementById('address').value = "Location not found";
-    }
-  });
-}
-
-// Function to geocode the address and update the map and fields
-function geocodeAddress(address) {
-  geocoder.geocode({ address: address }, function(results, status) {
-    if (status === 'OK') {
-      const position = results[0].geometry.location;
-      marker.setPosition(position);
-      map.setCenter(position);
-      updateLocation(position);
-    } else {
-      alert("Geocode was not successful for the following reason: " + status);
-    }
-  });
-}
-</script>
-
-<script type="text/javascript">
-  $(document).ready(function() {
-    $('#driver_commision_type').on('change', function(){
-      var val = $(this).val();
-      if(val==''){
-        $('#driver_commision_container').hide();
-      }else{
-        if(val =='amount'){
-          $('#driver_commision').attr('placeholder',"@lang('fleet.enter_amount')");
-        }else{
-          $('#driver_commision').attr('placeholder',"@lang('fleet.enter_percent')")
+  $(document).ready(function () {
+    $('#driver-edit-form').validate({
+      rules: {
+        password: {
+          minlength: 6
         }
-        $('#driver_commision_container').show();
+      },
+      messages: {
+        vehicle_id: "Assign Vehicle field is required."
+      },
+      errorPlacement: function (error, element) {
+        if (element.hasClass('select2-hidden-accessible') && element.next('.select2-container').length) {
+          error.insertAfter(element.next('.select2-container'));
+        } else if (element.parent('.input-group').length) {
+          error.insertAfter(element.parent());
+        } else {
+          error.insertAfter(element);
+        }
+      },
+      highlight: function (element) {
+        $(element).addClass('is-invalid');
+      },
+      unhighlight: function (element) {
+        $(element).removeClass('is-invalid');
       }
     });
-    $('#driver_commision_type').trigger('change');
-    $('.code').select2();
-    $('#vehicle_id').select2({
-      placeholder:"@lang('fleet.selectVehicle')"
-    });
-    $('#end_date').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      }).on('show', function() {
-    var pickupdate = $( "#start_date" ).datepicker('getDate');
-    if (pickupdate) {
-      $("#end_date").datepicker('setStartDate', pickupdate);
-    }
-  
-  });
-    $('#exp_date').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      }).on('show', function() {
-    var pickupdate = $( "#issue_date" ).datepicker('getDate');
-    if (pickupdate) {
-      $("#exp_date").datepicker('setStartDate', pickupdate);
-    }
-  });
-    $('#issue_date').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      });
-    $('#start_date').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-      });
-
-    //Flat green color scheme for iCheck
-    // $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
-    //   checkboxClass: 'icheckbox_flat-green',
-    //   radioClass   : 'iradio_flat-green'
-    // });
-
   });
 </script>
 @endsection

@@ -26,6 +26,8 @@ use App\Model\Hyvikk;
 use App\Model\IncomeModel;
 use App\Model\ServiceReminderModel;
 use App\Model\User;
+use App\Model\Vehicle;
+use App\Model\Vendor;
 use App\Model\VehicleGroupModel;
 use App\Model\VehicleModel;
 use App\Model\VehicleReviewModel;
@@ -102,83 +104,131 @@ class VehiclesController extends Controller {
 
 	public function fetch_data(Request $request) {
 		if ($request->ajax()) {
-
 			$user = Auth::user();
-			if ($user->group_id == null || $user->user_type == "S") {
-				$vehicles = VehicleModel::select('vehicles.*', 'users.name as name');
+	
+			// Base query for vehicles
+			$vehicles = Vehicle::query();
+			// Select statement based on user type
+			if ($user->group_id === null || $user->user_type === "S") {
+				$vehicles = $vehicles->select('vehicle.*', 'users.name as vendor_name');
 			} else {
-				$vehicles = VehicleModel::select('vehicles.*')->where('vehicles.group_id', $user->group_id);
+				$vehicles = $vehicles->select('vehicle.*')->where('vehicle.vendor_id', $user->group_id);
 			}
+	
+			// Joins to fetch related driver data
 			$vehicles = $vehicles
-				->leftJoin('driver_vehicle', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
-				->leftJoin('users', 'users.id', '=', 'driver_vehicle.driver_id')
-				->leftJoin('users_meta', 'users_meta.id', '=', 'users.id')
-				->groupBy('vehicles.id');
-
-			$vehicles->with(['group', 'types', 'drivers']);
-
+				->leftJoin('driver_vehicle', 'driver_vehicle.vehicle_id', '=', 'vehicle.id')
+				->leftJoin('users as drivers', 'drivers.id', '=', 'driver_vehicle.driver_id')
+				->groupBy('vehicle.id')
+				->with(['drivers']);  // Eager load drivers relationship
+	
 			return DataTables::eloquent($vehicles)
 				->addColumn('check', function ($vehicle) {
-					$tag = '<input type="checkbox" name="ids[]" value="' . $vehicle->id . '" class="checkbox" id="chk' . $vehicle->id . '" onclick=\'checkcheckbox();\'>';
-
-					return $tag;
+					return '<input type="checkbox" name="ids[]" value="' . $vehicle->id . '" class="checkbox" id="chk' . $vehicle->id . '" onclick="checkcheckbox();">';
 				})
-				->editColumn('vehicle_image', function ($vehicle) {
-					$src = ($vehicle->vehicle_image != null)?asset('uploads/' . $vehicle->vehicle_image): asset('assets/images/vehicle.jpeg');
-
-					return '<img src="' . $src . '" height="70px" width="70px">';
+				->addColumn('vehicle_id', function ($vehicle) {
+					return $vehicle->id;
 				})
-				->addColumn('make', function ($vehicle) {
-					return ($vehicle->make_name) ? $vehicle->make_name : '';
+				->addColumn('vehicle_no', function ($vehicle) {
+					return $vehicle->registration_no;
 				})
-				->addColumn('model', function ($vehicle) {
-					return ($vehicle->model_name) ? $vehicle->model_name : '';
+				->addColumn('contract_type', function ($vehicle) {
+					return $vehicle->contract ?? '';
 				})
-				->addColumn('displayname', function ($vehicle) {
-					return ($vehicle->type_id) ? $vehicle->types->displayname : '';
+				->addColumn('vendor', function ($vehicle) {
+					return $vehicle->vendor_name ?? '';  // 'users.name' is aliased as 'vendor_name'
 				})
-				->addColumn('color', function ($vehicle) {
-					return ($vehicle->color_name) ? $vehicle->color_name : '';
+				->addColumn('driver', function ($vehicle) {
+					return $vehicle->drivers->pluck('name')->join(', ') ?? '';
 				})
-				->editColumn('license_plate', function ($vehicle) {
-					return $vehicle->license_plate;
+				->addColumn('device_imei', function ($vehicle) {
+					return $vehicle->device_imei ?? '';
 				})
-				->addColumn('group', function ($vehicle) {
-					return ($vehicle->group_id) ? $vehicle->group->name : '';
+				->addColumn('device_last_contact', function ($vehicle) {
+					return $vehicle->updated_at ? $vehicle->updated_at->diffForHumans() : '';
 				})
-				->addColumn('LXBXH', function ($vehicle) {
-					$LBH = ($vehicle->length) ? $vehicle->length . ' X ' : '';
-					$LBH .= ($vehicle->breadth) ? $vehicle->breadth . ' X ' : '';
-					$LBH .= $vehicle->height;
-					return $LBH;
-				})
-				->addColumn('weight', function ($vehicle) {
-					return $vehicle->weight;
-				})
-				->addColumn('in_service', function ($vehicle) {
-					return ($vehicle->in_service) ? "YES" : "NO";
-				})
-				->filterColumn('in_service', function ($query, $keyword) {
-					$query->whereRaw("IF(in_service = 1, 'YES', 'NO') like ?", ["%{$keyword}%"]);
-				})
-			// ->addColumn('assigned_driver', function ($vehicle) {
-			//     $drivers = $vehicle->drivers->pluck('name')->toArray() ?? [];
-			//     return implode(', ', $drivers);
-			// })
-			// ->filterColumn('assigned_driver', function ($query, $keyword) {
-			//     $query->whereRaw("users.name like ?", ["%$keyword%"]);
-			//     return $query;
-			// })
 				->addColumn('action', function ($vehicle) {
 					return view('vehicles.list-actions', ['row' => $vehicle]);
 				})
 				->addIndexColumn()
-				->rawColumns(['vehicle_image', 'action', 'check'])
+				->rawColumns(['check', 'action'])
 				->make(true);
-			//return datatables(User::all())->toJson();
-
 		}
 	}
+	
+
+	// public function fetch_data(Request $request) {
+	// 	if ($request->ajax()) {
+
+	// 		$user = Auth::user();
+	// 		if ($user->group_id == null || $user->user_type == "S") {
+	// 			$vehicles = Vehicle::select('vehicles.*', 'users.name as name');
+	// 		} else {
+	// 			$vehicles = Vehicle::select('vehicles.*')->where('vehicles.group_id', $user->group_id);
+	// 		}
+	// 		$vehicles = $vehicles
+	// 			->leftJoin('driver_vehicle', 'driver_vehicle.vehicle_id', '=', 'vehicles.id')
+	// 			->leftJoin('users', 'users.id', '=', 'driver_vehicle.driver_id')
+	// 			->leftJoin('users_meta', 'users_meta.id', '=', 'users.id')
+	// 			->groupBy('vehicles.id');
+
+	// 		$vehicles->with(['group', 'types', 'drivers']);
+
+	// 		return DataTables::eloquent($vehicles)
+	// 			->addColumn('check', function ($vehicle) {
+	// 				$tag = '<input type="checkbox" name="ids[]" value="' . $vehicle->id . '" class="checkbox" id="chk' . $vehicle->id . '" onclick=\'checkcheckbox();\'>';
+
+	// 				return $tag;
+	// 			})
+	// 			->addColumn('make', function ($vehicle) {
+	// 				return ($vehicle->make_name) ? $vehicle->make_name : '';
+	// 			})
+	// 			->addColumn('model', function ($vehicle) {
+	// 				return ($vehicle->model_name) ? $vehicle->model_name : '';
+	// 			})
+	// 			->addColumn('displayname', function ($vehicle) {
+	// 				return ($vehicle->type_id) ? $vehicle->types->displayname : '';
+	// 			})
+
+	// 			->editColumn('license_plate', function ($vehicle) {
+	// 				return $vehicle->license_plate;
+	// 			})
+	// 			->addColumn('group', function ($vehicle) {
+	// 				return ($vehicle->group_id) ? $vehicle->group->name : '';
+	// 			})
+	// 			->addColumn('LXBXH', function ($vehicle) {
+	// 				$LBH = ($vehicle->length) ? $vehicle->length . ' X ' : '';
+	// 				$LBH .= ($vehicle->breadth) ? $vehicle->breadth . ' X ' : '';
+	// 				$LBH .= $vehicle->height;
+	// 				return $LBH;
+	// 			})
+	// 			->addColumn('weight', function ($vehicle) {
+	// 				return $vehicle->weight;
+	// 			})
+	// 			->addColumn('in_service', function ($vehicle) {
+	// 				return ($vehicle->in_service) ? "YES" : "NO";
+	// 			})
+	// 			->filterColumn('in_service', function ($query, $keyword) {
+	// 				$query->whereRaw("IF(in_service = 1, 'YES', 'NO') like ?", ["%{$keyword}%"]);
+	// 			})
+	// 		// ->addColumn('assigned_driver', function ($vehicle) {
+	// 		//     $drivers = $vehicle->drivers->pluck('name')->toArray() ?? [];
+	// 		//     return implode(', ', $drivers);
+	// 		// })
+	// 		// ->filterColumn('assigned_driver', function ($query, $keyword) {
+	// 		//     $query->whereRaw("users.name like ?", ["%$keyword%"]);
+	// 		//     return $query;
+	// 		// })
+	// 			->addColumn('action', function ($vehicle) {
+	// 				return view('vehicles.list-actions', ['row' => $vehicle]);
+	// 			})
+	// 			->addIndexColumn()
+	// 			->rawColumns(['vehicle_image', 'action', 'check'])
+	// 			->make(true);
+	// 		//return datatables(User::all())->toJson();
+
+	// 	}
+	// }
 
 	public function driver_logs() {
 
@@ -242,13 +292,21 @@ class VehiclesController extends Controller {
 		} else {
 			$index['groups'] = VehicleGroupModel::where('id', Auth::user()->group_id)->get();
 		}
-		// $index['types'] = VehicleTypeModel::all();
+	
 		$index['types'] = VehicleTypeModel::where('isenable', 1)->get();
 		$index['makes'] = VehicleModel::groupBy('make_name')->get()->pluck('make_name')->toArray();
 		$index['models'] = VehicleModel::groupBy('model_name')->get()->pluck('model_name')->toArray();
 		$index['colors'] = VehicleModel::groupBy('color_name')->get()->pluck('color_name')->toArray();
+		
+		// Fetch vendors from Vendor table
+		$index['vendors'] = Vendor::all();
+	
+		// Fetch drivers from User table where user_type is 'D'
+		$index['drivers'] = User::where('user_type', 'D')->get();
+	
 		return view("vehicles.create", $index);
 	}
+	
 
 	public function get_models($name) {
 		$makes = VehicleModel::groupBy('make_name')->where('make_name', $name)->get();
@@ -396,54 +454,121 @@ class VehiclesController extends Controller {
 
 	}
 
-	public function store(VehicleRequest $request) {
-		// dd($request->all());
-		$user_id = $request->get('user_id');
-		$vehicle = VehicleModel::create([
-			'make_name' => $request->get("make_name"),
-			'model_name' => $request->get("model_name"),
-			// 'type' => $request->get("type"),
-			'year' => $request->get("year"),
-			'engine_type' => $request->get("engine_type"),
-			'horse_power' => $request->get("horse_power"),
-			'color_name' => $request->get("color_name"),
-			'vin' => $request->get("vin"),
-			'license_plate' => $request->get("license_plate"),
-			'int_mileage' => $request->get("int_mileage"),
-			'group_id' => $request->get('group_id'),
-			'user_id' => $request->get('user_id'),
-			'lic_exp_date' => $request->get('lic_exp_date'),
-			'reg_exp_date' => $request->get('reg_exp_date'),
-			'in_service' => $request->get("in_service"),
-			'type_id' => $request->get('type_id'),
-			// 'vehicle_image' => $request->get('vehicle_image'),
-			'height' => $request->height,
-			'length' => $request->length,
-			'breadth' => $request->breadth,
-			'weight' => $request->weight,
 
-		])->id;
+	public function store(Request $request)
+{
+	// dd($request->all());
+	// exit;
+    // Validate the incoming request data
+    $request->validate([
+        'user_id' => 'required|integer',
+        'vendor_id' => 'required|integer',
+        'vehicle_id' => 'required|string|max:255',
+        'registration_no' => 'required|string|max:255',
+        'status' => 'required|string|in:active,inactive',
+        'sim_number' => 'nullable|string|max:20',
+        'device_imei' => 'nullable|string|max:50',
+        'vehicle_type' => 'required|string|max:50',
+        'contract' => 'nullable|string|max:50',
+        'working_time' => 'required|integer',
+        'change_contract_from' => 'nullable|string|max:50',
+        'start_hour' => 'required|string|max:2',
+        'start_minute' => 'required|string|max:2',
+        'send_audit_sms' => 'nullable|string|max:50',
+        'driver_id' => 'required|integer',
+        'mobile_number' => 'nullable|string|max:15',
+        'alternative_number' => 'nullable|string|max:15',
+        'comments' => 'nullable|string|max:255',
+    ]);
 
-		if ($request->file('vehicle_image') && $request->file('vehicle_image')->isValid()) {
-			$this->upload_file($request->file('vehicle_image'), "vehicle_image", $vehicle);
-		}
+ // Assign driver_id to send_audit_sms if "Driver" is selected
+ $send_audit_sms = $request->input('send_audit_sms') === 'Driver' ? $request->input('driver_id') : $request->input('send_audit_sms');
 
-		$meta = VehicleModel::find($vehicle);
-		$meta->setMeta([
-			'ins_number' => "",
-			'ins_exp_date' => "",
-			'documents' => "",
-			'traccar_device_id' => $request->traccar_device_id,
-			'traccar_vehicle_id' => $request->traccar_vehicle_id,
-		]);
-		$meta->udf = serialize($request->get('udf'));
-		$meta->average = $request->average;
-		$meta->save();
+ // Ensure driver_id is not null if "Driver" is selected
+ $driver_id = ($request->input('send_audit_sms') === 'Driver') ? $request->input('driver_id') : null;
 
-		$vehicle_id = $vehicle;
+ // Debugging: Log values to check if driver_id is retrieved correctly
+ \Log::info('Driver ID:', ['driver_id' => $driver_id]);
+ \Log::info('Send Audit SMS:', ['send_audit_sms' => $send_audit_sms]);
 
-		return redirect("admin/vehicles/" . $vehicle_id . "/edit?tab=vehicle");
-	}
+
+    // Create a new vehicle record
+    $vehicle = Vehicle::create([
+        'user_id' => $request->input('user_id'),
+        'vendor_id' => $request->input('vendor_id'),
+        'vehicle_id' => $request->input('vehicle_id'),
+        'registration_no' => $request->input('registration_no'),
+        'status' => $request->input('status'),
+        'inactive_reason' => $request->input('inactive_reason'),
+        'sim_number' => $request->input('sim_number'),
+        'device_imei' => $request->input('device_imei'),
+        'vehicle_type' => $request->input('vehicle_type'),
+        'contract' => $request->input('contract'),
+        'working_time' => $request->input('working_time'),
+        'change_contract_from' => $request->input('change_contract_from'),
+        'start_hour' => $request->input('start_hour'),
+        'start_minute' => $request->input('start_minute'),
+        'send_audit_sms' => $send_audit_sms, // Assign driver_id if applicable
+        'driver_id' => $request->input('driver_id'),
+        'mobile_number' => $request->input('mobile_number'),
+        'alternative_number' => $request->input('alternative_number'),
+        'comments' => $request->input('comments'),
+    ]);
+
+    return redirect()->back()->with('success', 'Vehicle added successfully.');
+}
+		//OLD STORE FUNCTION
+	// public function store(VehicleRequest $request) {
+		
+	// 	dd($request->all());
+	// 	exit();
+		
+	// 	$user_id = $request->get('user_id');
+	// 	$vehicle = VehicleModel::create([
+	// 		'make_name' => $request->get("make_name"),
+	// 		'model_name' => $request->get("model_name"),
+	// 		// 'type' => $request->get("type"),
+	// 		'year' => $request->get("year"),
+	// 		'engine_type' => $request->get("engine_type"),
+	// 		'horse_power' => $request->get("horse_power"),
+	// 		'color_name' => $request->get("color_name"),
+	// 		'vin' => $request->get("vin"),
+	// 		'license_plate' => $request->get("license_plate"),
+	// 		'int_mileage' => $request->get("int_mileage"),
+	// 		'group_id' => $request->get('group_id'),
+	// 		'user_id' => $request->get('user_id'),
+	// 		'lic_exp_date' => $request->get('lic_exp_date'),
+	// 		'reg_exp_date' => $request->get('reg_exp_date'),
+	// 		'in_service' => $request->get("in_service"),
+	// 		'type_id' => $request->get('type_id'),
+	// 		// 'vehicle_image' => $request->get('vehicle_image'),
+	// 		'height' => $request->height,
+	// 		'length' => $request->length,
+	// 		'breadth' => $request->breadth,
+	// 		'weight' => $request->weight,
+
+	// 	])->id;
+
+	// 	if ($request->file('vehicle_image') && $request->file('vehicle_image')->isValid()) {
+	// 		$this->upload_file($request->file('vehicle_image'), "vehicle_image", $vehicle);
+	// 	}
+
+	// 	$meta = VehicleModel::find($vehicle);
+	// 	$meta->setMeta([
+	// 		'ins_number' => "",
+	// 		'ins_exp_date' => "",
+	// 		'documents' => "",
+	// 		'traccar_device_id' => $request->traccar_device_id,
+	// 		'traccar_vehicle_id' => $request->traccar_vehicle_id,
+	// 	]);
+	// 	$meta->udf = serialize($request->get('udf'));
+	// 	$meta->average = $request->average;
+	// 	$meta->save();
+
+	// 	$vehicle_id = $vehicle;
+
+	// 	return redirect("admin/vehicles/" . $vehicle_id . "/edit?tab=vehicle");
+	// }
 
 	public function store_insurance(InsuranceRequest $request) {
 		$vehicle = VehicleModel::find($request->get('vehicle_id'));
@@ -544,7 +669,6 @@ class VehiclesController extends Controller {
 	}
 
 	public function vehicle_inspection_index() {
-
 		$vehicle = DriverLogsModel::where('driver_id', Auth::user()->id)->get()->toArray();
 		if ($vehicle) {
 			// $data['reviews'] = VehicleReviewModel::where('vehicle_id', $vehicle[0]['vehicle_id'])->orderBy('id', 'desc')->get();

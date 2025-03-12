@@ -34,10 +34,10 @@ class DriverRequest extends FormRequest {
 			return [
 
 				'first_name' => 'required',
-				'last_name' => 'required',
-				'address' => 'required',
+				// 'last_name' => 'required',
+				// 'address' => 'required',
 				'phone' => 'required|numeric|digits_between:7,15',
-				'email' => 'required|email|unique:users,email,' . \Request::get("id"),
+				// 'email' => 'required|email|unique:users,email,' . \Request::get("id"),
 				'start_date' => 'date|date_format:Y-m-d',
 				'issue_date' => 'date|date_format:Y-m-d',
 				'end_date' => 'nullable|date|date_format:Y-m-d',
@@ -45,28 +45,28 @@ class DriverRequest extends FormRequest {
 				'driver_image' => 'nullable|mimes:jpg,png,jpeg|max:5120',
 				'license_image' => 'nullable|mimes:jpg,png,jpeg|max:5120',
 				'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx|max:5120',
-				'driver_commision_type' => 'required',
-				'driver_commision' => 'required|numeric',
+				// 'driver_commision_type' => 'required',
+				// 'driver_commision' => 'required|numeric',
 			];
 		} else {
 			return [
 				'emp_id' => ['required', new UniqueEId],
-				'license_number' => ['required', new UniqueLicenceNumber],
-				'contract_number' => ['required', new UniqueContractNumber],
+				// 'license_number' => ['required', new UniqueLicenceNumber],
+				// 'contract_number' => ['required', new UniqueContractNumber],
 				'first_name' => 'required',
-				'last_name' => 'required',
-				'address' => 'required',
+				// 'last_name' => 'required',
+				// 'address' => 'required',
 				'phone' => 'required|numeric|digits_between:7,15',
-				'email' => 'required|email|unique:users,email,' . \Request::get("id"),
-				'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
+				// 'email' => 'required|email|unique:users,email,' . \Request::get("id"),
+				// 'exp_date' => 'required|date|date_format:Y-m-d|after:tomorrow',
 				'start_date' => 'date|date_format:Y-m-d',
 				'issue_date' => 'date|date_format:Y-m-d',
 				'end_date' => 'nullable|date|date_format:Y-m-d',
 				'driver_image' => 'nullable|mimes:jpg,png,jpeg|max:5120',
 				'license_image' => 'nullable|mimes:jpg,png,jpeg|max:5120',
 				'documents.*' => 'nullable|mimes:jpg,png,jpeg,pdf,doc,docx|max:5120',
-				'driver_commision_type' => 'required',
-				'driver_commision' => 'required|numeric',
+				// 'driver_commision_type' => 'required',
+				// 'driver_commision' => 'required|numeric',
 			];
 		}
 	}
