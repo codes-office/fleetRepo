@@ -19,11 +19,23 @@ jobs:
         port: ${{ secrets.HOSTINGER_PORT }}
         script: |
           echo "✅ Connected to Hostinger Server"
-          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet  # Change to your Laravel root folder
-          
-          echo "📂 Listing files in fleet directory:"
-          ls -lah  # List all files and folders with details
 
+          # Print the current working directory
+          echo "📌 Current Directory:"
+          pwd
+
+          # Change to Laravel project folder
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework
+          
+          # Print the new working directory
+          echo "📌 Now in Directory:"
+          pwd
+
+          # List all files and folders
+          echo "📂 Listing files in fleet directory:"
+          ls -lah  
+
+          # Check if artisan exists
           echo "🔍 Checking if artisan exists:"
           if [ -f "artisan" ]; then
             echo "✅ Artisan file found!"
