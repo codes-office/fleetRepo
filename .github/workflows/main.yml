@@ -24,11 +24,11 @@ jobs:
         password: ${{ secrets.HOSTINGER_SSH_PASS }}
         port: ${{ secrets.HOSTINGER_PORT }}
         source: "."  # Upload everything in the repo
-        target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framerwork"
+        target: "/home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework"
         rm: true  # Delete old files before upload
         overwrite: true  # Overwrite existing files
 
-    - name: Install Dependencies & Run Migrations
+    - name: Run Migrations & Clear Cache
       uses: appleboy/ssh-action@v0.1.6
       with:
         host: ${{ secrets.HOSTINGER_IP }}
@@ -37,16 +37,6 @@ jobs:
         port: ${{ secrets.HOSTINGER_PORT }}
         script: |
           cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework
-          
-          # Ensure Composer is installed
-          if [ ! -f "composer.phar" ]; then curl -sS https://getcomposer.org/installer | php; fi
-          
-          # Install only new dependencies
-          if [ ! -d "vendor" ]; then
-            php composer.phar install --no-dev --optimize-autoloader
-          else
-            php composer.phar update --no-dev --optimize-autoloader
-          fi
 
           # Run migrations & clear cache
           php artisan migrate --force
