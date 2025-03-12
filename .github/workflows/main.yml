@@ -36,7 +36,7 @@ jobs:
         password: ${{ secrets.HOSTINGER_SSH_PASS }}
         port: ${{ secrets.HOSTINGER_PORT }}
         script: |
-          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet
+          cd /home/${{ secrets.HOSTINGER_USERNAME }}/public_html/fleet/framework
           
           # Ensure Composer is installed
           if [ ! -f "composer.phar" ]; then curl -sS https://getcomposer.org/installer | php; fi
